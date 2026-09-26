@@ -17,13 +17,15 @@ import (
 )
 
 const (
-	NumMessages = 100
+	NumMessages = 1_000_000
+	RandSeed    = 0 // Value of 0 means use fresh random data
 	MinPerGroup = 1
 	MaxPerGroup = 10
 )
 
 var testData []*models.SqsMessage
 var nextMessageIndex int = 0
+var rng = rand.New(&testSource{})
 
 func TestInput_UnderHighLoad(t *testing.T) {
 	generateTestData()
@@ -36,6 +38,8 @@ func TestInput_UnderHighLoad(t *testing.T) {
 
 	t.Log("Starting")
 	start := time.Now()
+
+	logInterval := NumMessages / 10
 	for i := range NumMessages {
 		_, ackFunc, rErr := input.Read(t.Context())
 		if rErr != nil {
@@ -46,11 +50,17 @@ func TestInput_UnderHighLoad(t *testing.T) {
 		if aErr != nil {
 			t.Fatal(aErr)
 		}
-		t.Log("Processed msg " + strconv.Itoa(i) + " of " + strconv.Itoa(NumMessages) + " messages")
+
+		if i%logInterval == 0 {
+			t.Log("Processed msg " + strconv.Itoa(i) + " of " + strconv.Itoa(NumMessages) + " messages")
+		}
 	}
+
 	elapsed := time.Since(start)
+
 	fmt.Println("Total time: " + elapsed.String())
 	fmt.Println("Avg time per msg: " + (elapsed / NumMessages).String())
+	fmt.Printf("Processing rate per second: %v\n", float64(NumMessages)/elapsed.Seconds())
 }
 
 func generateTestData() {
@@ -71,7 +81,7 @@ func generateTestData() {
 }
 
 func randRange(min, max int) int {
-	return min + rand.IntN(max-min)
+	return min + rng.IntN(max-min)
 }
 
 func createStressTestInput() *SqsFifoInput {
@@ -116,4 +126,16 @@ func createStressTestInput() *SqsFifoInput {
 	client.On("GetQueueVisibilityTimeout", mock.Anything).Return(30, nil)
 
 	return NewSqsFifoInput(client, config, nil)
+}
+
+// For ensuring repeatable input
+type testSource struct {
+}
+
+func (t *testSource) Uint64() uint64 {
+	if RandSeed == 0 {
+		return uint64(time.Now().UnixNano())
+	}
+
+	return uint64(RandSeed)
 }

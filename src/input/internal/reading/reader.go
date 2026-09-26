@@ -210,7 +210,8 @@ func (r *SqsFifoReader) ack(ctx context.Context) error {
 				r.tracker.Ack(success.MsgId)
 			}
 
-			clear(batch)
+			// Reset the batch slice
+			batch = batch[:0]
 		}
 	}
 
