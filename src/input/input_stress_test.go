@@ -17,11 +17,13 @@ import (
 )
 
 const (
-	NumMessages      = 1_000_000
+	NumMessages      = 100_000
 	RandSeed         = 0 // Value of 0 means use fresh random data
 	MinPerGroup      = 1
 	MaxPerGroup      = 10
 	ConcurrentGroups = 10
+	MinSqsLatencyMs  = 10
+	MaxSqsLatencyMs  = 200
 )
 
 var testData []*models.SqsMessage
@@ -108,7 +110,7 @@ func createStressTestInput() *SqsFifoInput {
 		MaxReceiveBatchSize:      10,
 		MaxInFlightMessages:      30,
 		MaxProcessingAttempts:    3,
-		MaxPendingAcks:           1,
+		MaxPendingAcks:           10,
 	}
 
 	var rCall *mock.Call
@@ -121,18 +123,27 @@ func createStressTestInput() *SqsFifoInput {
 		nextMsgs := testData[nextMessageIndex : nextMessageIndex+n]
 		nextMessageIndex += n
 		rCall.ReturnArguments = mock.Arguments{nextMsgs, nil}
+
+		latency := randRange(MinSqsLatencyMs, MaxSqsLatencyMs)
+		rCall.After(time.Duration(latency) * time.Millisecond)
 	}
 	var dCall *mock.Call
 	dCallback := func(args mock.Arguments) {
 		msgs := args.Get(1).([]*models.SqsMessage)
 		res := test.BatchSuccessResult(msgs)
 		dCall.ReturnArguments = mock.Arguments{res, nil}
+
+		latency := randRange(MinSqsLatencyMs, MaxSqsLatencyMs)
+		rCall.After(time.Duration(latency) * time.Millisecond)
 	}
 	var vCall *mock.Call
 	vCallback := func(args mock.Arguments) {
 		msgs := args.Get(2).([]*models.SqsMessage)
 		res := test.BatchSuccessResult(msgs)
 		vCall.ReturnArguments = mock.Arguments{res, nil}
+
+		latency := randRange(MinSqsLatencyMs, MaxSqsLatencyMs)
+		rCall.After(time.Duration(latency) * time.Millisecond)
 	}
 	client := new(mocks.MockSqsClient)
 	rCall = client.On("ReceiveMessages", mock.Anything, mock.Anything).Run(rCallback).Return(nil, nil)
