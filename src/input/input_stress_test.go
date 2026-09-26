@@ -17,10 +17,11 @@ import (
 )
 
 const (
-	NumMessages = 1_000_000
-	RandSeed    = 0 // Value of 0 means use fresh random data
-	MinPerGroup = 1
-	MaxPerGroup = 10
+	NumMessages      = 1_000_000
+	RandSeed         = 0 // Value of 0 means use fresh random data
+	MinPerGroup      = 1
+	MaxPerGroup      = 10
+	ConcurrentGroups = 10
 )
 
 var testData []*models.SqsMessage
@@ -65,17 +66,31 @@ func TestInput_UnderHighLoad(t *testing.T) {
 
 func generateTestData() {
 	testData = make([]*models.SqsMessage, 0, NumMessages)
-	for {
+	groups := make([][]*models.SqsMessage, ConcurrentGroups)
+	for i := range groups {
 		nMsgs := randRange(MinPerGroup, MaxPerGroup)
+		groups[i] = test.CreateMessages(1, nMsgs)
+	}
 
-		if nMsgs > NumMessages-len(testData) {
-			nMsgs = NumMessages - len(testData)
-		}
-
-		testData = append(testData, test.CreateMessages(1, nMsgs)...)
+	nextGroup := 0
+	for {
+		testData = append(testData, groups[nextGroup][0])
 
 		if len(testData) == NumMessages {
 			break
+		}
+
+		if len(groups[nextGroup]) == 1 {
+			nMsgs := randRange(MinPerGroup, MaxPerGroup)
+			groups[nextGroup] = test.CreateMessages(1, nMsgs)
+		} else {
+			groups[nextGroup] = groups[nextGroup][1:]
+		}
+
+		if nextGroup == ConcurrentGroups-1 {
+			nextGroup = 0
+		} else {
+			nextGroup++
 		}
 	}
 }
