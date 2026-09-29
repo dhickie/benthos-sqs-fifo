@@ -23,7 +23,7 @@ func TestAck_SignalsAckLoopToRun_WhenHittingMaxPendingAcks(t *testing.T) {
 	setupConf := func(config *models.InputConfig) {
 		config.MaxPendingAcks = 2
 	}
-	reader := createReader(setupConf, nil)
+	reader := createReader(t, setupConf, nil)
 	waitFunc := func(ctx context.Context) (bool, error) {
 		err := reader.ackCond.Wait(ctx)
 		if err != nil {
@@ -48,7 +48,7 @@ func TestNack_SignalsNackLoopToRun_WhenHittingMaxPendingNacks(t *testing.T) {
 	setupConf := func(config *models.InputConfig) {
 		config.MaxPendingAcks = 2
 	}
-	reader := createReader(setupConf, nil)
+	reader := createReader(t, setupConf, nil)
 	waitFunc := func(ctx context.Context) (bool, error) {
 		err := reader.nackCond.Wait(ctx)
 		if err != nil {
@@ -79,7 +79,7 @@ func TestReadLoop_PerformsRead_WhenTriggeredByReadCondition(t *testing.T) {
 		c.On("ReceiveMessages", mock.Anything, mock.Anything).Return(msgs, nil)
 		c.On("SetMessageVisibility", mock.Anything, mock.Anything, mock.Anything).Return(test.BatchSuccessResult(msgs), nil)
 	}
-	reader := createReader(setupConf, setupClient)
+	reader := createReader(t, setupConf, setupClient)
 
 	// Act
 	reader.RegisterLoops()
@@ -110,7 +110,7 @@ func TestReadLoop_PerformsRead_WhenTriggeredBySpareCapacity(t *testing.T) {
 		c.On("ReceiveMessages", mock.Anything, mock.Anything).Return(nextMsgs, nil).Once()
 		c.On("DeleteMessages", mock.Anything, mock.Anything).Return(test.BatchSuccessResult(initMsgs), nil)
 	}
-	reader := createReader(setupConf, setupClient)
+	reader := createReader(t, setupConf, setupClient)
 	lengthWaitFunc := func(ctx context.Context) (bool, error) {
 		l := reader.tracker.Length()
 		return l == 1, nil
@@ -160,7 +160,7 @@ func TestNackLoop_PerformsNack_WhenHittingMaxPendingNacks(t *testing.T) {
 		c.On("ReceiveMessages", mock.Anything, mock.Anything).Return([]*models.SqsMessage{}, nil)
 		c.On("SetMessageVisibility", mock.Anything, mock.Anything, mock.Anything).Return(test.BatchSuccessResult(msgs), nil)
 	}
-	reader := createReader(setupConf, setupClient)
+	reader := createReader(t, setupConf, setupClient)
 	lengthWaitFunc := func(expectedLength int) func(context.Context) (bool, error) {
 		return func(ctx context.Context) (bool, error) {
 			l := reader.tracker.Length()
@@ -187,6 +187,7 @@ func TestNackLoop_PerformsNack_WhenHittingMaxPendingNacks(t *testing.T) {
 }
 
 func createReader(
+	t *testing.T,
 	setupConf func(config *models.InputConfig),
 	setupClient func(c *mocks.MockSqsClient)) *SqsFifoReader {
 
@@ -202,8 +203,9 @@ func createReader(
 
 	lt := util.NewLifetime(nil)
 	readCond := util.NewAsyncCond()
-	tracker := tracking.NewMessageTracker(config, readCond, client, lt, nil)
-	return NewSqsFifoReader(tracker, readCond, client, config, lt, nil)
+	logger := test.NewTestLogger(t)
+	tracker := tracking.NewMessageTracker(config, readCond, client, lt, logger)
+	return NewSqsFifoReader(tracker, readCond, client, config, lt, logger)
 }
 
 func randomId() *string {

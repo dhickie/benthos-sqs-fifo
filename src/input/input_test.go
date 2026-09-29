@@ -16,7 +16,7 @@ import (
 
 func TestConnectionTest_ReturnsSuccess_WhenQueueVisibilityTimeoutIsRetrievedSuccessfully(t *testing.T) {
 	// Arrange
-	input := createInput(nil, nil)
+	input := createInput(t, nil, nil)
 
 	// Act
 	res := input.ConnectionTest(t.Context())
@@ -30,7 +30,7 @@ func TestConnectionTest_SetsVisibilityTimeout(t *testing.T) {
 	setupConf := func(config *models.InputConfig) {
 		config.VisibilityTimeoutSeconds = 0
 	}
-	input := createInput(setupConf, nil)
+	input := createInput(t, setupConf, nil)
 
 	// Act
 	input.ConnectionTest(t.Context())
@@ -45,7 +45,7 @@ func TestConnectionTest_ReturnsFailure_IfSqsCallFails(t *testing.T) {
 		client.On("GetQueueVisibilityTimeout", mock.Anything).Unset()
 		client.On("GetQueueVisibilityTimeout", mock.Anything).Return(0, errors.New("fail"))
 	}
-	input := createInput(nil, setupSqs)
+	input := createInput(t, nil, setupSqs)
 
 	// Act
 	res := input.ConnectionTest(t.Context())
@@ -67,7 +67,7 @@ func TestConnect_StartsCallbackLoop_AndProcessesAcks(t *testing.T) {
 		client.On("ReceiveMessages", mock.Anything, mock.Anything).Return(msgs, nil).Once()
 		client.On("ReceiveMessages", mock.Anything, mock.Anything).Return([]*models.SqsMessage{}, nil)
 	}
-	input := createInput(setupConf, setupSqs)
+	input := createInput(t, setupConf, setupSqs)
 	t.Cleanup(func() {
 		_ = input.Close(t.Context())
 	})
@@ -112,7 +112,7 @@ func TestConnect_StartsCallbackLoop_AndProcessesNacks(t *testing.T) {
 		client.On("ReceiveMessages", mock.Anything, mock.Anything).Return(msgs, nil).Once()
 		client.On("ReceiveMessages", mock.Anything, mock.Anything).Return([]*models.SqsMessage{}, nil)
 	}
-	input := createInput(setupConf, setupSqs)
+	input := createInput(t, setupConf, setupSqs)
 	t.Cleanup(func() {
 		_ = input.Close(t.Context())
 	})
@@ -163,7 +163,7 @@ func TestNext_GetsMessagesWithExpectedMetadata(t *testing.T) {
 		client.On("ReceiveMessages", mock.Anything, mock.Anything).Return(msgs, nil).Once()
 		client.On("ReceiveMessages", mock.Anything, mock.Anything).Return([]*models.SqsMessage{}, nil)
 	}
-	input := createInput(nil, setupSqs)
+	input := createInput(t, nil, setupSqs)
 	t.Cleanup(func() {
 		_ = input.Close(t.Context())
 	})
@@ -198,7 +198,7 @@ func TestNext_GetsMessagesWithExpectedMetadata(t *testing.T) {
 	}
 }
 
-func createInput(confFunc func(*models.InputConfig), sqsFunc func(*mocks.MockSqsClient)) *SqsFifoInput {
+func createInput(t *testing.T, confFunc func(*models.InputConfig), sqsFunc func(*mocks.MockSqsClient)) *SqsFifoInput {
 	config := mocks.NewMockConfig()
 	if confFunc != nil {
 		confFunc(config)
@@ -232,5 +232,6 @@ func createInput(confFunc func(*models.InputConfig), sqsFunc func(*mocks.MockSqs
 		sqsFunc(client)
 	}
 
-	return NewSqsFifoInput(client, config, nil)
+	logger := test.NewTestLogger(t)
+	return NewSqsFifoInput(client, config, logger)
 }
