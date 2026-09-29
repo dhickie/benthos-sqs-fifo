@@ -93,7 +93,7 @@ func (i *SqsFifoInput) Read(ctx context.Context) (*service.Message, service.AckF
 		return nil, nil, err
 	}
 
-	i.logger.Debugf("Retrieved message ID %v from input", sqsMsg.Msg.MessageId)
+	i.logger.Debugf("Retrieved message ID %v from input", *sqsMsg.Msg.MessageId)
 
 	sMsg := service.NewMessage([]byte(*sqsMsg.Msg.Body))
 	addSQSMetadata(sMsg, sqsMsg)

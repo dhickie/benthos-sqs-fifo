@@ -7,7 +7,6 @@ import (
 	"dhickie/redpanda-connect-sqs-fifo/src/input/internal/test"
 	"dhickie/redpanda-connect-sqs-fifo/src/input/internal/test/mocks"
 	"fmt"
-	"math/rand/v2"
 	"strconv"
 	"time"
 
@@ -28,10 +27,10 @@ const (
 
 var testData []*models.SqsMessage
 var nextMessageIndex int = 0
-var rng = rand.New(&testSource{})
+var rng = test.NewRng(RandSeed)
 
 func TestInput_UnderHighLoad(t *testing.T) {
-	generateTestData()
+	generateStressTestData()
 	input := createStressTestInput()
 	cErr := input.Connect(t.Context())
 	if cErr != nil {
@@ -66,11 +65,11 @@ func TestInput_UnderHighLoad(t *testing.T) {
 	fmt.Printf("Processing rate per second: %v\n", float64(NumMessages)/elapsed.Seconds())
 }
 
-func generateTestData() {
+func generateStressTestData() {
 	testData = make([]*models.SqsMessage, 0, NumMessages)
 	groups := make([][]*models.SqsMessage, ConcurrentGroups)
 	for i := range groups {
-		nMsgs := randRange(MinPerGroup, MaxPerGroup)
+		nMsgs := rng.RandRange(MinPerGroup, MaxPerGroup)
 		groups[i] = test.CreateMessages(1, nMsgs)
 	}
 
@@ -83,7 +82,7 @@ func generateTestData() {
 		}
 
 		if len(groups[nextGroup]) == 1 {
-			nMsgs := randRange(MinPerGroup, MaxPerGroup)
+			nMsgs := rng.RandRange(MinPerGroup, MaxPerGroup)
 			groups[nextGroup] = test.CreateMessages(1, nMsgs)
 		} else {
 			groups[nextGroup] = groups[nextGroup][1:]
@@ -95,10 +94,6 @@ func generateTestData() {
 			nextGroup++
 		}
 	}
-}
-
-func randRange(min, max int) int {
-	return min + rng.IntN(max-min)
 }
 
 func createStressTestInput() *SqsFifoInput {
@@ -124,7 +119,7 @@ func createStressTestInput() *SqsFifoInput {
 		nextMessageIndex += n
 		rCall.ReturnArguments = mock.Arguments{nextMsgs, nil}
 
-		latency := randRange(MinSqsLatencyMs, MaxSqsLatencyMs)
+		latency := rng.RandRange(MinSqsLatencyMs, MaxSqsLatencyMs)
 		rCall.After(time.Duration(latency) * time.Millisecond)
 	}
 	var dCall *mock.Call
@@ -133,7 +128,7 @@ func createStressTestInput() *SqsFifoInput {
 		res := test.BatchSuccessResult(msgs)
 		dCall.ReturnArguments = mock.Arguments{res, nil}
 
-		latency := randRange(MinSqsLatencyMs, MaxSqsLatencyMs)
+		latency := rng.RandRange(MinSqsLatencyMs, MaxSqsLatencyMs)
 		rCall.After(time.Duration(latency) * time.Millisecond)
 	}
 	var vCall *mock.Call
@@ -142,7 +137,7 @@ func createStressTestInput() *SqsFifoInput {
 		res := test.BatchSuccessResult(msgs)
 		vCall.ReturnArguments = mock.Arguments{res, nil}
 
-		latency := randRange(MinSqsLatencyMs, MaxSqsLatencyMs)
+		latency := rng.RandRange(MinSqsLatencyMs, MaxSqsLatencyMs)
 		rCall.After(time.Duration(latency) * time.Millisecond)
 	}
 	client := new(mocks.MockSqsClient)
@@ -152,16 +147,4 @@ func createStressTestInput() *SqsFifoInput {
 	client.On("GetQueueVisibilityTimeout", mock.Anything).Return(30, nil)
 
 	return NewSqsFifoInput(client, config, nil)
-}
-
-// For ensuring repeatable input
-type testSource struct {
-}
-
-func (t *testSource) Uint64() uint64 {
-	if RandSeed == 0 {
-		return uint64(time.Now().UnixNano())
-	}
-
-	return uint64(RandSeed)
 }

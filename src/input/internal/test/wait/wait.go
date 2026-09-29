@@ -5,6 +5,7 @@ import (
 	"time"
 )
 
+// Until waits until the value returned by the provided function is true (or the provided context is cancelled)
 func Until(ctx context.Context, f func(context.Context) (bool, error), timeout time.Duration) error {
 	tCtx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
@@ -38,4 +39,17 @@ func Until(ctx context.Context, f func(context.Context) (bool, error), timeout t
 	case <-condCh:
 		return nil
 	}
+}
+
+// For waits for the specified duration to pass (or until the provided context is cancelled)
+func For(ctx context.Context, d time.Duration) error {
+	ch := time.After(d)
+
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-ch:
+	}
+
+	return nil
 }
