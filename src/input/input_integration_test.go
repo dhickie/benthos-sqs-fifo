@@ -56,16 +56,23 @@ func TestInput(t *testing.T) {
 	totalMsgs := NumGroups * NumMsgsPerGroup
 	msgs := make([]*service.Message, 0, totalMsgs)
 	mu := &sync.Mutex{}
-	readFunc := func() { // We'll read across multiple threads to test concurrency
-		for range (NumMsgsPerGroup * NumGroups) / NumReadThreads {
-			if msg, ackFunc, err := input.Read(ctx); err != nil {
-				t.Fatal(err)
-			} else {
-				mu.Lock()
-				msgs = append(msgs, msg)
-				mu.Unlock()
-				if err := ackFunc(ctx, nil); err != nil {
-					t.Fatal(err)
+	errs := make([]error, NumReadThreads)
+	readFunc := func(i int) func() { // We'll read across multiple threads to test concurrency
+		return func() {
+			for range totalMsgs / NumReadThreads {
+				if msg, ackFunc, err := input.Read(ctx); err != nil {
+					t.Errorf("An error occurred while reading input: %v", err)
+					errs[i] = err
+					return
+				} else {
+					mu.Lock()
+					msgs = append(msgs, msg)
+					mu.Unlock()
+					if err := ackFunc(ctx, nil); err != nil {
+						t.Errorf("An error occurred while acking the message: %v", err)
+						errs[i] = err
+						return
+					}
 				}
 			}
 		}
@@ -74,10 +81,20 @@ func TestInput(t *testing.T) {
 	// Act - read out all the messages across multiple threads
 	t.Log("Starting read threads...")
 	wg := &sync.WaitGroup{}
-	for range NumReadThreads {
-		wg.Go(readFunc)
+	for i := range NumReadThreads {
+		wg.Go(readFunc(i))
 	}
 	wg.Wait()
+
+	errored := slices.ContainsFunc(errs, func(err error) bool {
+		if err != nil {
+			return true
+		}
+		return false
+	})
+	if errored {
+		t.FailNow()
+	}
 
 	// Assert
 	t.Log("Asserting message ordering...")
@@ -117,33 +134,48 @@ func generateTestData(t *testing.T, client *sqs.Client) map[string][]*models.Sqs
 	msgs := make(map[string][]*models.SqsMessage)
 	mu := &sync.Mutex{}
 	rng := test.NewRng(RngSeed)
-	genFunc := func() {
-		group := test.CreateMessages(1, NumMsgsPerGroup)
-		gId := group[0].GetGroupId()
-		mu.Lock()
-		msgs[gId] = make([]*models.SqsMessage, 0, NumMsgsPerGroup)
-		msgs[gId] = append(msgs[gId], group...)
-		mu.Unlock()
+	errs := make([]error, NumGroups)
 
-		for len(group) > 0 {
-			if err := sendMessage(ctx, client, group[0]); err != nil {
-				t.Fatal(err)
-			}
+	genFunc := func(i int) func() {
+		return func() {
+			group := test.CreateMessages(1, NumMsgsPerGroup)
+			gId := group[0].GetGroupId()
+			mu.Lock()
+			msgs[gId] = make([]*models.SqsMessage, 0, NumMsgsPerGroup)
+			msgs[gId] = append(msgs[gId], group...)
+			mu.Unlock()
 
-			group = group[1:]
-			w := rng.RandRange(1, 1000)
-			d := time.Duration(w) * time.Microsecond
-			if err := wait.For(ctx, d); err != nil {
-				t.Fatal(err)
+			for len(group) > 0 {
+				if err := sendMessage(ctx, client, group[0]); err != nil {
+					t.Logf("An error occurred sending the test message: %v", err)
+					errs[i] = err
+					return
+				}
+
+				group = group[1:]
+				w := rng.RandRange(1, 1000)
+				d := time.Duration(w) * time.Microsecond
+				if err := wait.For(ctx, d); err != nil {
+					t.Logf("An error occurred sending the test message: %v", err)
+					errs[i] = err
+					return
+				}
 			}
 		}
 	}
 
 	wg := sync.WaitGroup{}
-	for range NumGroups {
-		wg.Go(genFunc)
+	for i := range NumGroups {
+		wg.Go(genFunc(i))
 	}
 	wg.Wait()
+
+	errored := slices.ContainsFunc(errs, func(e error) bool {
+		return e != nil
+	})
+	if errored {
+		t.FailNow()
+	}
 
 	return msgs
 }
