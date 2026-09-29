@@ -129,7 +129,7 @@ func createStressTestInput() *SqsFifoInput {
 		dCall.ReturnArguments = mock.Arguments{res, nil}
 
 		latency := rng.RandRange(MinSqsLatencyMs, MaxSqsLatencyMs)
-		rCall.After(time.Duration(latency) * time.Millisecond)
+		dCall.After(time.Duration(latency) * time.Millisecond)
 	}
 	var vCall *mock.Call
 	vCallback := func(args mock.Arguments) {
@@ -138,7 +138,7 @@ func createStressTestInput() *SqsFifoInput {
 		vCall.ReturnArguments = mock.Arguments{res, nil}
 
 		latency := rng.RandRange(MinSqsLatencyMs, MaxSqsLatencyMs)
-		rCall.After(time.Duration(latency) * time.Millisecond)
+		vCall.After(time.Duration(latency) * time.Millisecond)
 	}
 	client := new(mocks.MockSqsClient)
 	rCall = client.On("ReceiveMessages", mock.Anything, mock.Anything).Run(rCallback).Return(nil, nil)
