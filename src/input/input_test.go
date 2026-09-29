@@ -164,9 +164,7 @@ func TestNext_GetsMessagesWithExpectedMetadata(t *testing.T) {
 		client.On("ReceiveMessages", mock.Anything, mock.Anything).Return([]*models.SqsMessage{}, nil)
 	}
 	input := createInput(t, nil, setupSqs)
-	t.Cleanup(func() {
-		_ = input.Close(t.Context())
-	})
+	defer input.Close(t.Context())
 
 	// Act
 	cErr := input.Connect(t.Context()) // Connect the input

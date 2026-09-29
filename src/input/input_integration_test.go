@@ -8,6 +8,7 @@ import (
 	"dhickie/redpanda-connect-sqs-fifo/src/input/internal/models"
 	"dhickie/redpanda-connect-sqs-fifo/src/input/internal/test"
 	"dhickie/redpanda-connect-sqs-fifo/src/input/internal/test/wait"
+	"os"
 	"slices"
 	"sync"
 	"testing"
@@ -33,6 +34,12 @@ const (
 
 func TestInput(t *testing.T) {
 	// Arrange
+	if err := os.Setenv("AWS_ACCESS_KEY_ID", "test"); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Setenv("AWS_SECRET_ACCESS_KEY", "test"); err != nil {
+		t.Fatal(err)
+	}
 	ctx := t.Context()
 	aConf, err := createAwsConfig(ctx)
 	if err != nil {

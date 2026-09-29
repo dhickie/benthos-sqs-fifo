@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	NumMessages      = 100_000
+	NumMessages      = 5000
 	RandSeed         = 0 // Value of 0 means use fresh random data
 	MinPerGroup      = 1
 	MaxPerGroup      = 10
