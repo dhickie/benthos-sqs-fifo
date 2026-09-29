@@ -58,10 +58,6 @@ func TestInput(t *testing.T) {
 	mu := &sync.Mutex{}
 	readFunc := func() { // We'll read across multiple threads to test concurrency
 		for range (NumMsgsPerGroup * NumGroups) / NumReadThreads {
-			mu.Lock()
-			t.Log(len(msgs))
-			mu.Unlock()
-
 			if msg, ackFunc, err := input.Read(ctx); err != nil {
 				t.Fatal(err)
 			} else {
