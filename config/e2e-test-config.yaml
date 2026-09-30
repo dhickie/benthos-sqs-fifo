@@ -1,0 +1,13 @@
+input:
+  aws_sqs_fifo:
+    url: http://floci:4566/000000000000/e2etest.fifo
+    base_endpoint: http://floci:4566
+
+output:
+  aws_sqs:
+    url: http://floci:4566/000000000000/e2etest-output.fifo
+    message_group_id: ${!meta("sqs_message_group_id")}
+    message_deduplication_id: ${!meta("sqs_message_id")}
+    batching:
+      count: 10
+      period: 1s
