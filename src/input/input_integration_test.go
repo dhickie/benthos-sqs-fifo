@@ -155,7 +155,7 @@ func TestE2EPipeline(t *testing.T) {
 	createQueueIfRequired(t, ctx, client, "http://localhost:4566/000000000000/e2etest.fifo")
 
 	t.Log("Generating test data...")
-	generateTestData(t, client, "http://localhost:4566/000000000000/e2etest.fifo") // Publish test messages to the queue
+	iMsgs := generateTestData(t, client, "http://localhost:4566/000000000000/e2etest.fifo") // Publish test messages to the queue
 
 	oMsgs := make(map[string][]*models.SqsMessage)
 	totalMsgs := NumGroups * NumMsgsPerGroup
@@ -172,6 +172,13 @@ func TestE2EPipeline(t *testing.T) {
 				oMsgs[gId] = append(oMsgs[gId], msg)
 				nMsgs++
 			}
+		}
+	}
+
+	for gId, msgs := range iMsgs {
+		oBatch := oMsgs[gId]
+		for i, msg := range msgs {
+			assert.Equal(t, msg.Msg.MessageId, oBatch[i].Msg.MessageId, "Messages should have been output in the same order as they were input for each group")
 		}
 	}
 }

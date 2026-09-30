@@ -1,6 +1,7 @@
 input:
   aws_sqs_fifo:
     url: http://floci:4566/000000000000/e2etest.fifo
+    region: eu-west-1
     base_endpoint: http://floci:4566
 
 output:
@@ -15,4 +16,4 @@ output:
       period: 1s
 
 logger:
-  level: debug
+  level: info
