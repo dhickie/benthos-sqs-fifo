@@ -6,8 +6,13 @@ input:
 output:
   aws_sqs:
     url: http://floci:4566/000000000000/e2etest-output.fifo
+    region: eu-west-1
+    endpoint: http://floci:4566
     message_group_id: ${!meta("sqs_message_group_id")}
     message_deduplication_id: ${!meta("sqs_message_id")}
     batching:
       count: 10
       period: 1s
+
+logger:
+  level: debug

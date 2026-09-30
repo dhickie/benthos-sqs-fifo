@@ -8,6 +8,7 @@ import (
 	"dhickie/redpanda-connect-sqs-fifo/src/input/internal/models"
 	"dhickie/redpanda-connect-sqs-fifo/src/input/internal/test"
 	"dhickie/redpanda-connect-sqs-fifo/src/input/internal/test/wait"
+	"dhickie/redpanda-connect-sqs-fifo/src/input/internal/util"
 	"os"
 	"slices"
 	"sync"
@@ -17,6 +18,7 @@ import (
 	awssdk "github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
+	"github.com/aws/aws-sdk-go-v2/service/sqs/types"
 	"github.com/redpanda-data/benthos/v4/public/service"
 	"github.com/stretchr/testify/assert"
 )
@@ -48,10 +50,10 @@ func TestInput(t *testing.T) {
 	client := createClient(aConf)
 
 	t.Log("Checking input queue...")
-	createQueueIfRequired(t, ctx, client)
+	createQueueIfRequired(t, ctx, client, QueueUrl)
 
 	t.Log("Generating test data...")
-	iMsgs := generateTestData(t, client) // Publish test messages to the queue
+	iMsgs := generateTestData(t, client, QueueUrl) // Publish test messages to the queue
 	input := createIntegrationTestInput(t, aConf)
 
 	t.Log("Connecting input...")
@@ -134,9 +136,49 @@ func TestInput(t *testing.T) {
 	}
 }
 
+func TestE2EPipeline(t *testing.T) {
+	// Arrange
+	if err := os.Setenv("AWS_ACCESS_KEY_ID", "test"); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Setenv("AWS_SECRET_ACCESS_KEY", "test"); err != nil {
+		t.Fatal(err)
+	}
+	ctx := t.Context()
+	aConf, err := createAwsConfig(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	client := createClient(aConf)
+
+	t.Log("Checking input queue...")
+	createQueueIfRequired(t, ctx, client, "http://localhost:4566/000000000000/e2etest.fifo")
+
+	t.Log("Generating test data...")
+	generateTestData(t, client, "http://localhost:4566/000000000000/e2etest.fifo") // Publish test messages to the queue
+
+	oMsgs := make(map[string][]*models.SqsMessage)
+	totalMsgs := NumGroups * NumMsgsPerGroup
+	nMsgs := 0
+	for nMsgs < totalMsgs {
+		if batch, err := receiveMessages(ctx, client, "http://localhost:4566/000000000000/e2etest-output.fifo"); err != nil {
+			t.Fatal(err)
+		} else {
+			for _, msg := range batch {
+				gId := msg.GetGroupId()
+				if _, ok := oMsgs[gId]; !ok {
+					oMsgs[gId] = make([]*models.SqsMessage, 0, NumMsgsPerGroup)
+				}
+				oMsgs[gId] = append(oMsgs[gId], msg)
+				nMsgs++
+			}
+		}
+	}
+}
+
 // Generates random test messages distributed across a number of different groups, and sends them to the queue in a
 // randomised interleaved order
-func generateTestData(t *testing.T, client *sqs.Client) map[string][]*models.SqsMessage {
+func generateTestData(t *testing.T, client *sqs.Client, queueUrl string) map[string][]*models.SqsMessage {
 	ctx := t.Context()
 	msgs := make(map[string][]*models.SqsMessage)
 	mu := &sync.Mutex{}
@@ -153,7 +195,7 @@ func generateTestData(t *testing.T, client *sqs.Client) map[string][]*models.Sqs
 			mu.Unlock()
 
 			for len(group) > 0 {
-				if err := sendMessage(ctx, client, group[0]); err != nil {
+				if err := sendMessage(ctx, client, group[0], queueUrl); err != nil {
 					t.Logf("An error occurred sending the test message: %v", err)
 					errs[i] = err
 					return
@@ -188,11 +230,11 @@ func generateTestData(t *testing.T, client *sqs.Client) map[string][]*models.Sqs
 }
 
 // Sends a message to the queue
-func sendMessage(ctx context.Context, client *sqs.Client, message *models.SqsMessage) error {
+func sendMessage(ctx context.Context, client *sqs.Client, message *models.SqsMessage, queueUrl string) error {
 	gId := message.GetGroupId()
 	req := &sqs.SendMessageInput{
 		MessageBody:            message.Msg.Body,
-		QueueUrl:               awssdk.String(QueueUrl),
+		QueueUrl:               &queueUrl,
 		DelaySeconds:           0,
 		MessageAttributes:      message.Msg.MessageAttributes,
 		MessageDeduplicationId: message.Msg.MessageId,
@@ -208,15 +250,36 @@ func sendMessage(ctx context.Context, client *sqs.Client, message *models.SqsMes
 	return nil
 }
 
+func receiveMessages(ctx context.Context, client *sqs.Client, queueUrl string) ([]*models.SqsMessage, error) {
+	req := &sqs.ReceiveMessageInput{
+		QueueUrl:            &queueUrl,
+		MaxNumberOfMessages: 10,
+		MessageAttributeNames: []string{
+			"All",
+		},
+		MessageSystemAttributeNames: []types.MessageSystemAttributeName{
+			"All",
+		},
+	}
+
+	if res, err := client.ReceiveMessage(ctx, req); err != nil {
+		return nil, err
+	} else {
+		return util.Select(res.Messages, func(msg types.Message) *models.SqsMessage {
+			return models.NewSqsMessage(msg, 30)
+		}), nil
+	}
+}
+
 // Creates the test queue if it doesn't already exist
-func createQueueIfRequired(t *testing.T, ctx context.Context, client *sqs.Client) {
-	if exists, err := testQueueExists(ctx, client); err != nil {
+func createQueueIfRequired(t *testing.T, ctx context.Context, client *sqs.Client, queueUrl string) {
+	if exists, err := testQueueExists(ctx, client, queueUrl); err != nil {
 		t.Fatal(err)
 	} else if exists {
 		// Purge the queue of any messages from previous runs
 		t.Log("Queue already exists, purging...")
 		req := &sqs.PurgeQueueInput{
-			QueueUrl: awssdk.String(QueueUrl),
+			QueueUrl: &queueUrl,
 		}
 		if _, err := client.PurgeQueue(ctx, req); err != nil {
 			t.Fatal(err)
@@ -237,7 +300,7 @@ func createQueueIfRequired(t *testing.T, ctx context.Context, client *sqs.Client
 }
 
 // Checks whether the test queue already exists
-func testQueueExists(ctx context.Context, client *sqs.Client) (bool, error) {
+func testQueueExists(ctx context.Context, client *sqs.Client, queueUrl string) (bool, error) {
 	var next *string
 	for {
 		req := &sqs.ListQueuesInput{}
@@ -247,7 +310,7 @@ func testQueueExists(ctx context.Context, client *sqs.Client) (bool, error) {
 
 		if res, err := client.ListQueues(ctx, req); err != nil {
 			return false, err
-		} else if slices.Contains(res.QueueUrls, QueueUrl) {
+		} else if slices.Contains(res.QueueUrls, queueUrl) {
 			return true, nil
 		} else if res.NextToken == nil {
 			return false, nil
