@@ -1,0 +1,22 @@
+name: Build and test
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the testing image
+        run: docker build . -t benthos-sqs-fifo-test --target test
+      - name: Start the docker compose stack
+        run: docker compose up -d --wait
+      - name: Run the test image
+        run: docker run --net=host benthos-sqs-fifo-test

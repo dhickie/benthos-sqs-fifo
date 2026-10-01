@@ -85,9 +85,9 @@ func TestReadLoop_PerformsRead_WhenTriggeredByReadCondition(t *testing.T) {
 	reader.RegisterLoops()
 	reader.lt.Start()
 	reader.readCond.Signal()
+	msg, err := reader.Next(t.Context())
 	reader.lt.Kill()
 	<-reader.lt.Stopped()
-	msg, err := reader.Next(t.Context())
 
 	// Act
 	assert.NoError(t, err, "No error should have been returned from Next()")
