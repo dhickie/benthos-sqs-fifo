@@ -88,9 +88,16 @@ func (c *SqsClient) SetMessageVisibility(
 
 // ReceiveMessages pulls a batch of messages from the queue
 func (c *SqsClient) ReceiveMessages(ctx context.Context, maxMsgs int) ([]*models.SqsMessage, error) {
+	maxM := int32(min(float64(maxMsgs), float64(maxBatchSize)))
 	req := sqs.ReceiveMessageInput{
 		QueueUrl:            &c.conf.QueueUrl,
-		MaxNumberOfMessages: int32(maxMsgs),
+		MaxNumberOfMessages: maxM,
+		MessageAttributeNames: []string{
+			"All",
+		},
+		MessageSystemAttributeNames: []types.MessageSystemAttributeName{
+			"All",
+		},
 	}
 
 	res, err := c.client.ReceiveMessage(ctx, &req)
@@ -131,10 +138,6 @@ func (c *SqsClient) DeleteMessages(ctx context.Context, msgs []*models.SqsMessag
 	res, err := c.client.DeleteMessageBatch(ctx, &req)
 	if err != nil {
 		return nil, err
-	}
-
-	if len(res.Failed) == 0 {
-		return newEmptyBatchOpResult(), nil
 	}
 
 	bId := uuid.New().String()

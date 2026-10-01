@@ -1,0 +1,8 @@
+FROM amazon/aws-cli:latest
+
+WORKDIR /app
+COPY ./floci-setup.sh ./floci-setup.sh
+
+RUN ["chmod", "+x", "./floci-setup.sh"]
+
+ENTRYPOINT ["sh", "./floci-setup.sh"]

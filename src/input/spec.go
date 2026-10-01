@@ -12,6 +12,7 @@ import (
 // Input configuration fields
 const (
 	confFieldUrl                   = "url"
+	confFieldRegion                = "region"
 	confFieldBaseEndpoint          = "base_endpoint"
 	confFieldMinReceiveBatchSize   = "min_receive_batch_size"
 	confFieldMaxReceiveBatchSize   = "max_receive_batch_size"
@@ -36,7 +37,7 @@ func inputConfigFromConnectConfig(cConfig *service.ParsedConfig) (*models.InputC
 	}
 	conf.BaseEndpoint = baseEndpoint.String()
 
-	if conf.BaseEndpoint, err = cConfig.FieldString(confFieldUrl); err != nil {
+	if conf.Region, err = cConfig.FieldString(confFieldRegion); err != nil {
 		return nil, err
 	}
 	if conf.MinReceiveBatchSize, err = cConfig.FieldInt(confFieldMinReceiveBatchSize); err != nil {
@@ -85,6 +86,8 @@ func sqsFifoInputSpec() *service.ConfigSpec {
 		Fields(
 			service.NewURLField(confFieldUrl).
 				Description("The URL of the SQS FIFO queue"),
+			service.NewURLField(confFieldRegion).
+				Description("The AWS region the queue is in"),
 			service.NewURLField(confFieldBaseEndpoint).
 				Description("The base URL to use when connecting to AWS. Set this to connect to local mocking services like LocalStack and Floci").
 				ShortDescription("The base URL to use when connecting to AWS.").
@@ -130,6 +133,7 @@ func init() {
 			aConf, err := config.LoadDefaultConfig(context.TODO(), func(o *config.LoadOptions) error {
 				if iConf.BaseEndpoint != "" {
 					o.BaseEndpoint = iConf.BaseEndpoint
+					o.Region = iConf.Region
 				}
 
 				return nil

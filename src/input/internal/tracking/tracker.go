@@ -144,6 +144,9 @@ func (t *MessageTracker) Flush(ctx context.Context) (*models.SqsMessage, error) 
 
 	msg := t.pendingFlush[0]
 	t.pendingFlush = t.pendingFlush[1:]
+	if len(t.pendingFlush) > 0 {
+		t.msgsAvailable.Signal() // Pass the baton to any other waiting threads
+	}
 	return msg, nil
 }
 

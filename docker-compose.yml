@@ -1,0 +1,56 @@
+services:
+  floci:
+    image: floci/floci:latest
+    ports:
+      - "4566:4566"
+    networks:
+      - local
+  setup:
+    build:
+      context: .
+      dockerfile: ./Dockerfile-floci-setup
+    environment:
+      - AWS_ENDPOINT_URL=http://floci:4566
+      - AWS_DEFAULT_REGION=eu-west-1
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+    healthcheck:
+      test: >-
+        queues=$$(aws sqs list-queues) &&
+        echo "$$queues" | grep -q "/test.fifo" &&
+        echo "$$queues" | grep -q "/e2etest.fifo" &&
+        echo "$$queues" | grep -q "/e2etest-output.fifo"
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+    depends_on:
+      - floci
+    networks:
+      - local
+  pipeline:
+    build: .
+    entrypoint: /usr/local/bin/app --config /go/e2e-test-config.yaml
+    volumes:
+      - type: bind
+        source: ./config
+        target: /go
+    environment:
+      - AWS_DEFAULT_REGION=eu-west-1
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4195/ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+    depends_on:
+      setup:
+        condition: service_healthy
+    networks:
+      - local
+
+networks:
+  local:
+    driver: bridge

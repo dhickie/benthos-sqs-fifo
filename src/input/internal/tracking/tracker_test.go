@@ -18,7 +18,7 @@ import (
 
 func TestAdd_ReturnsCorrectNumberOfInflightMessages_WhenAddingInitialMessages(t *testing.T) {
 	// Arrange
-	tracker := createTracker(nil, nil)
+	tracker := createTracker(t, nil, nil)
 	msgs := test.CreateMessages(3, 3)
 
 	// Act
@@ -30,7 +30,7 @@ func TestAdd_ReturnsCorrectNumberOfInflightMessages_WhenAddingInitialMessages(t 
 
 func TestAdd_ReturnsCorrectNumberOfInflightMessages_WhenAddingAdditionalMessages(t *testing.T) {
 	// Arrange
-	tracker := createTracker(nil, nil)
+	tracker := createTracker(t, nil, nil)
 	msgs := test.CreateMessages(3, 3)
 	tracker.Add(msgs)
 	msgs = test.CreateMessages(3, 3)
@@ -44,7 +44,7 @@ func TestAdd_ReturnsCorrectNumberOfInflightMessages_WhenAddingAdditionalMessages
 
 func TestPeek_ReturnsCorrectMessage(t *testing.T) {
 	// Arrange
-	tracker := createTracker(nil, nil)
+	tracker := createTracker(t, nil, nil)
 	msgs := test.CreateMessages(3, 3)
 	tracker.Add(msgs)
 	msg := msgs[5]
@@ -59,7 +59,7 @@ func TestPeek_ReturnsCorrectMessage(t *testing.T) {
 
 func TestFlush_ReturnsFirstMessageFromEachGroupOnly(t *testing.T) {
 	// Arrange
-	tracker := createTracker(nil, nil)
+	tracker := createTracker(t, nil, nil)
 	msgs := test.CreateMessages(2, 2)
 	tracker.Add(msgs)
 
@@ -84,7 +84,7 @@ func TestFlush_ReturnsFirstMessageFromEachGroupOnly(t *testing.T) {
 
 func TestFlush_ReturnsNewMessageIfMessageIsAddedWhileWaiting(t *testing.T) {
 	// Arrange
-	tracker := createTracker(nil, nil)
+	tracker := createTracker(t, nil, nil)
 	msgs := test.CreateMessages(1, 1)
 	deadline := time.Now().Add(20 * time.Millisecond)
 	ctx, cancel := context.WithDeadline(t.Context(), deadline)
@@ -105,7 +105,7 @@ func TestFlush_ReturnsNewMessageIfMessageIsAddedWhileWaiting(t *testing.T) {
 
 func TestAck_RemovesMessageFromTracker(t *testing.T) {
 	// Arrange
-	tracker := createTracker(nil, nil)
+	tracker := createTracker(t, nil, nil)
 	msgs := test.CreateMessages(1, 1)
 	tracker.Add(msgs)
 
@@ -123,7 +123,7 @@ func TestAck_RemovesMessageFromTracker(t *testing.T) {
 
 func TestAck_MakesNextMessageInGroupAvailable(t *testing.T) {
 	// Arrange
-	tracker := createTracker(nil, nil)
+	tracker := createTracker(t, nil, nil)
 	msgs := test.CreateMessages(1, 2)
 	tracker.Add(msgs)
 
@@ -147,7 +147,7 @@ func TestNack_RemovesEntireGroupFromTracker_WhenMaxAttemptsReached(t *testing.T)
 			On("SetMessageVisibility", mock.Anything, mock.Anything, msgs).
 			Return(test.BatchSuccessResult(msgs), nil)
 	}
-	tracker := createTracker(nil, setup)
+	tracker := createTracker(t, nil, setup)
 	tracker.Add(msgs)
 
 	// Act
@@ -173,7 +173,7 @@ func TestNack_RetriesFailures_WhenMaxAttemptsNotReached(t *testing.T) {
 			On("SetMessageVisibility", mock.Anything, mock.Anything, msgs).
 			Return(test.BatchSuccessResult(msgs), nil)
 	}
-	tracker := createTracker(setupConf, setupClient)
+	tracker := createTracker(t, setupConf, setupClient)
 	tracker.Add(msgs)
 	flushFunc := func(ctx context.Context) (bool, error) {
 		_, err := tracker.Flush(ctx)
@@ -205,7 +205,7 @@ func TestNack_RetriesFailures_WhenMaxAttemptsNotReached(t *testing.T) {
 func TestLength_IncludesFlushedButNotYetAckedMessages(t *testing.T) {
 	// Arrange
 	msgs := test.CreateMessages(1, 2)
-	tracker := createTracker(nil, nil)
+	tracker := createTracker(t, nil, nil)
 	tracker.Add(msgs)
 
 	// Act
@@ -234,7 +234,7 @@ func TestStart_StartsRefreshLoop(t *testing.T) {
 			}).
 			Return(test.BatchSuccessResult(msgs), nil)
 	}
-	tracker := createTracker(setupConf, setupClient)
+	tracker := createTracker(t, setupConf, setupClient)
 	tracker.Add(msgs)
 
 	// Act
@@ -249,7 +249,7 @@ func TestStart_StartsRefreshLoop(t *testing.T) {
 	assert.Greater(t, calls, 0, "The SQS API should have been called to set the visibility deadline")
 }
 
-func createTracker(confFunc func(*models.InputConfig), clientFunc func(*mocks2.MockSqsClient)) *MessageTracker {
+func createTracker(t *testing.T, confFunc func(*models.InputConfig), clientFunc func(*mocks2.MockSqsClient)) *MessageTracker {
 	conf := mocks2.NewMockConfig()
 	if confFunc != nil {
 		confFunc(conf)
@@ -262,5 +262,6 @@ func createTracker(confFunc func(*models.InputConfig), clientFunc func(*mocks2.M
 
 	lt := util.NewLifetime(nil)
 	readCond := util.NewAsyncCond()
-	return NewMessageTracker(conf, readCond, sqs, lt, nil)
+	logger := test.NewTestLogger(t)
+	return NewMessageTracker(conf, readCond, sqs, lt, logger)
 }

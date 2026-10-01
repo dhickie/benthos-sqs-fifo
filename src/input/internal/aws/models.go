@@ -68,5 +68,5 @@ func (f *BatchItemFailure) Sprint() string {
 	}
 
 	return fmt.Sprintf("A %v error occurred in batch %v while performing a %v operation for message ID %v: %v",
-		blame, f.batchId, f.operation, f.MsgId, f.error)
+		blame, *f.batchId, *f.operation, *f.MsgId, *f.error)
 }
