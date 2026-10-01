@@ -172,13 +172,17 @@ func TestE2EPipeline(t *testing.T) {
 				oMsgs[gId] = append(oMsgs[gId], msg)
 				nMsgs++
 			}
+
+			if err := deleteMessages(ctx, client, "http://localhost:4566/000000000000/e2etest-output.fifo", batch); err != nil {
+				t.Fatal(err)
+			}
 		}
 	}
 
 	for gId, msgs := range iMsgs {
 		oBatch := oMsgs[gId]
 		for i, msg := range msgs {
-			assert.Equal(t, msg.Msg.MessageId, oBatch[i].Msg.MessageId, "Messages should have been output in the same order as they were input for each group")
+			assert.Equal(t, *msg.Msg.Body, *oBatch[i].Msg.Body, "Messages should have been output in the same order as they were input for each group")
 		}
 	}
 }
@@ -276,6 +280,24 @@ func receiveMessages(ctx context.Context, client *sqs.Client, queueUrl string) (
 			return models.NewSqsMessage(msg, 30)
 		}), nil
 	}
+}
+
+func deleteMessages(ctx context.Context, client *sqs.Client, queueUrl string, msgs []*models.SqsMessage) error {
+	req := &sqs.DeleteMessageBatchInput{
+		Entries: util.Select(msgs, func(m *models.SqsMessage) types.DeleteMessageBatchRequestEntry {
+			return types.DeleteMessageBatchRequestEntry{
+				Id:            m.Msg.MessageId,
+				ReceiptHandle: m.Msg.ReceiptHandle,
+			}
+		}),
+		QueueUrl: &queueUrl,
+	}
+
+	if _, err := client.DeleteMessageBatch(ctx, req); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Creates the test queue if it doesn't already exist

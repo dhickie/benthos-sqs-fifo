@@ -40,7 +40,7 @@ services:
       - AWS_ACCESS_KEY_ID=test
       - AWS_SECRET_ACCESS_KEY=test
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost/ping"]
+      test: ["CMD", "curl", "-f", "http://localhost:4195/ping"]
       interval: 5s
       timeout: 5s
       retries: 10

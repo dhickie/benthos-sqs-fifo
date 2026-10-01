@@ -93,7 +93,7 @@ func (i *SqsFifoInput) Read(ctx context.Context) (*service.Message, service.AckF
 		return nil, nil, err
 	}
 
-	i.logger.Debugf("Retrieved message ID %v from input", *sqsMsg.Msg.MessageId)
+	i.logger.Infof("Retrieved message ID %v from input", *sqsMsg.Msg.MessageId)
 
 	sMsg := service.NewMessage([]byte(*sqsMsg.Msg.Body))
 	addSQSMetadata(sMsg, sqsMsg)
@@ -170,10 +170,10 @@ loop:
 	for {
 		select {
 		case mId := <-i.ackChan:
-			i.logger.Debugf("Input received Ack for message ID %v", *mId)
+			i.logger.Infof("Input received Ack for message ID %v", *mId)
 			i.reader.Ack(mId)
 		case mId := <-i.nackChan:
-			i.logger.Debugf("Input received Nack for message ID %v", *mId)
+			i.logger.Infof("Input received Nack for message ID %v", *mId)
 			i.reader.Nack(mId)
 		case <-ltHandle.Terminated():
 			break loop
