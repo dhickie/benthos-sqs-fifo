@@ -2,8 +2,8 @@ package mocks
 
 import (
 	"context"
-	"dhickie/redpanda-connect-sqs-fifo/src/input/internal/aws"
-	"dhickie/redpanda-connect-sqs-fifo/src/input/internal/models"
+	"dhickie/benthos-sqs-fifo/src/input/internal/aws"
+	"dhickie/benthos-sqs-fifo/src/input/internal/models"
 
 	"github.com/stretchr/testify/mock"
 )
