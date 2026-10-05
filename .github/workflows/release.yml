@@ -21,9 +21,23 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
-      - name: Build runtime image
-        run: docker build --tag dominichickie/benthos-sqs-fifo:latest --tag dominichickie/benthos-sqs-fifo:${{ inputs.version }} --target run .
-      - name: Push latest
-        run: docker push dominichickie/benthos-sqs-fifo:latest
-      - name: Push version
-        run: docker push dominichickie/benthos-sqs-fifo:${{ inputs.version }}
+      - name: Build & push image
+        run: |
+          docker buildx build \
+            --platform linux/amd64,linux/arm64 \
+            --tag dominichickie/benthos-sqs-fifo:latest \
+            --tag dominichickie/benthos-sqs-fifo:${{ inputs.version }} \
+            --target run \
+            --file ./Dockerfile-gha
+            --push
+            .
+      - name: Tag latest
+        uses: actions/github-script@v5
+        with:
+          script: |
+            github.rest.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: 'refs/tags/${{ inputs.version }}',
+              sha: context.sha
+            })
