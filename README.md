@@ -1,2 +1,2 @@
-# redpanda-connect-sqs-fifo
-A Redpanda Connect input plugin for working with FIFO SQS queues
+# benthos-sqs-fifo
+A Benthos input plugin for working with FIFO SQS queues

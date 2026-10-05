@@ -4,12 +4,12 @@ package reading
 
 import (
 	"context"
-	"dhickie/redpanda-connect-sqs-fifo/src/input/internal/models"
-	"dhickie/redpanda-connect-sqs-fifo/src/input/internal/test"
-	"dhickie/redpanda-connect-sqs-fifo/src/input/internal/test/mocks"
-	"dhickie/redpanda-connect-sqs-fifo/src/input/internal/test/wait"
-	"dhickie/redpanda-connect-sqs-fifo/src/input/internal/tracking"
-	"dhickie/redpanda-connect-sqs-fifo/src/input/internal/util"
+	"dhickie/benthos-sqs-fifo/src/input/internal/models"
+	"dhickie/benthos-sqs-fifo/src/input/internal/test"
+	"dhickie/benthos-sqs-fifo/src/input/internal/test/mocks"
+	"dhickie/benthos-sqs-fifo/src/input/internal/test/wait"
+	"dhickie/benthos-sqs-fifo/src/input/internal/tracking"
+	"dhickie/benthos-sqs-fifo/src/input/internal/util"
 	"testing"
 	"time"
 	"uuid"

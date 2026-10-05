@@ -2,8 +2,8 @@ package test
 
 import (
 	"context"
-	"dhickie/redpanda-connect-sqs-fifo/src/input/internal/models"
-	"dhickie/redpanda-connect-sqs-fifo/src/input/internal/util"
+	"dhickie/benthos-sqs-fifo/src/input/internal/models"
+	"dhickie/benthos-sqs-fifo/src/input/internal/util"
 
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/aws/aws-sdk-go-v2/service/sqs/types"

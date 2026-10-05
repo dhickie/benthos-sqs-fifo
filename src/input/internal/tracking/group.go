@@ -1,7 +1,7 @@
 package tracking
 
 import (
-	"dhickie/redpanda-connect-sqs-fifo/src/input/internal/models"
+	"dhickie/benthos-sqs-fifo/src/input/internal/models"
 )
 
 // Tracks the current processing status of a message group that must be processed sequentially

@@ -1,4 +1,4 @@
-module dhickie/redpanda-connect-sqs-fifo
+module dhickie/benthos-sqs-fifo
 
 go 1.27.1
 

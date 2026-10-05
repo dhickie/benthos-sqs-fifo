@@ -1,6 +1,6 @@
 package mocks
 
-import "dhickie/redpanda-connect-sqs-fifo/src/input/internal/models"
+import "dhickie/benthos-sqs-fifo/src/input/internal/models"
 
 func NewMockConfig() *models.InputConfig {
 	return &models.InputConfig{

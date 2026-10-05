@@ -1,10 +1,10 @@
 package test
 
 import (
-	"dhickie/redpanda-connect-sqs-fifo/src/input/internal/aws"
-	"dhickie/redpanda-connect-sqs-fifo/src/input/internal/models"
-	"dhickie/redpanda-connect-sqs-fifo/src/input/internal/test/wait"
-	"dhickie/redpanda-connect-sqs-fifo/src/input/internal/util"
+	"dhickie/benthos-sqs-fifo/src/input/internal/aws"
+	"dhickie/benthos-sqs-fifo/src/input/internal/models"
+	"dhickie/benthos-sqs-fifo/src/input/internal/test/wait"
+	"dhickie/benthos-sqs-fifo/src/input/internal/util"
 	"slices"
 	"sync"
 	"testing"

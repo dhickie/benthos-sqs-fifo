@@ -2,8 +2,8 @@ package aws
 
 import (
 	"context"
-	"dhickie/redpanda-connect-sqs-fifo/src/input/internal/models"
-	"dhickie/redpanda-connect-sqs-fifo/src/input/internal/util"
+	"dhickie/benthos-sqs-fifo/src/input/internal/models"
+	"dhickie/benthos-sqs-fifo/src/input/internal/util"
 	"strconv"
 	"uuid"
 

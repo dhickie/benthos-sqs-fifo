@@ -2,9 +2,9 @@ package sqs_fifo
 
 import (
 	"context"
-	"dhickie/redpanda-connect-sqs-fifo/src/input/internal/aws"
-	"dhickie/redpanda-connect-sqs-fifo/src/input/internal/models"
-	"dhickie/redpanda-connect-sqs-fifo/src/input/internal/test"
+	"dhickie/benthos-sqs-fifo/src/input/internal/aws"
+	"dhickie/benthos-sqs-fifo/src/input/internal/models"
+	"dhickie/benthos-sqs-fifo/src/input/internal/test"
 	"testing"
 
 	awssdk "github.com/aws/aws-sdk-go-v2/aws"
