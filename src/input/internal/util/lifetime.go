@@ -9,26 +9,31 @@ import (
 
 // Lifetime informs ongoing processes that the application is being stopped and should stop processing work.
 type Lifetime struct {
-	ctx        context.Context // Ctx provides access to the lifetime context, which is completed if the application is killed
-	cancelFunc context.CancelFunc
-	stopped    chan struct{}  // stopped is sent a signal when processes have stopped.
-	wg         sync.WaitGroup // wg is used to ensure all processes have finished shutting down before sending the stopped signal.
-	funcs      []func(ILifetimeHandle)
-	handles    []*LifetimeHandle
-	logger     *service.Logger
+	kctx        context.Context // kctx provides access to the lifetime kill context, which is cancelled if the application is killed
+	tctx        context.Context // tctx provides access to the lifetime terminate context, which is cancelled if the application is terminated
+	kCancelFunc context.CancelFunc
+	tCancelFunc context.CancelFunc
+	stopped     chan struct{}  // stopped is sent a signal when processes have stopped.
+	wg          sync.WaitGroup // wg is used to ensure all processes have finished shutting down before sending the stopped signal.
+	funcs       []func(ILifetimeHandle)
+	handles     []*LifetimeHandle
+	logger      *service.Logger
 }
 
 // NewLifetime returns a new Lifetime object that is used to signal the end of the application lifetime to goroutines.
 func NewLifetime(logger *service.Logger) *Lifetime {
-	ctx, cancel := context.WithCancel(context.Background())
+	kctx, kCancel := context.WithCancel(context.Background())
+	tctx, tCancel := context.WithCancel(kctx)
 	l := Lifetime{
-		ctx:        ctx,
-		cancelFunc: cancel,
-		stopped:    make(chan struct{}, 1),
-		wg:         sync.WaitGroup{},
-		funcs:      make([]func(ILifetimeHandle), 0),
-		handles:    make([]*LifetimeHandle, 0),
-		logger:     logger,
+		kctx:        kctx,
+		tctx:        tctx,
+		kCancelFunc: kCancel,
+		tCancelFunc: tCancel,
+		stopped:     make(chan struct{}, 1),
+		wg:          sync.WaitGroup{},
+		funcs:       make([]func(ILifetimeHandle), 0),
+		handles:     make([]*LifetimeHandle, 0),
+		logger:      logger,
 	}
 	return &l
 }
@@ -39,6 +44,8 @@ func (l *Lifetime) Terminate() {
 	if len(l.handles) == 0 {
 		panic("Cannot terminate lifetime with no started routines")
 	}
+
+	l.tCancelFunc()
 
 	for _, v := range l.handles {
 		v.sigterm <- struct{}{}
@@ -52,7 +59,7 @@ func (l *Lifetime) Kill() {
 		panic("Cannot kill lifetime with no started routines")
 	}
 
-	l.cancelFunc()
+	l.kCancelFunc()
 
 	for _, v := range l.handles {
 		v.sigkill <- struct{}{}
@@ -70,7 +77,7 @@ func (l *Lifetime) Start() {
 	for _, v := range l.funcs {
 		hSigterm := make(chan struct{}, 1)
 		hSigkill := make(chan struct{}, 1)
-		handle := newLifetimeHandle(l.ctx, hSigterm, hSigkill)
+		handle := newLifetimeHandle(l.kctx, l.tctx, hSigterm, hSigkill)
 		l.handles = append(l.handles, handle)
 		l.wg.Go(func() {
 			defer func() {
@@ -100,7 +107,8 @@ func (l *Lifetime) wait() {
 type LifetimeHandle struct {
 	sigterm chan struct{}
 	sigkill chan struct{}
-	ctx     context.Context
+	kctx    context.Context
+	tctx    context.Context
 }
 
 // ILifetimeHandle represents a channel through which a subroutine can be informed that the application is closing
@@ -108,12 +116,14 @@ type ILifetimeHandle interface {
 	Terminated() chan struct{}
 	Killed() chan struct{}
 	KillContext() context.Context
+	TerminateContext() context.Context
 }
 
 // Returns a new LifetimeHandle object with its own termination channel and kill channel/context
-func newLifetimeHandle(ctx context.Context, sigterm chan struct{}, sigkill chan struct{}) *LifetimeHandle {
+func newLifetimeHandle(kctx context.Context, tctx context.Context, sigterm chan struct{}, sigkill chan struct{}) *LifetimeHandle {
 	return &LifetimeHandle{
-		ctx:     ctx,
+		kctx:    kctx,
+		tctx:    tctx,
 		sigterm: sigterm,
 		sigkill: sigkill,
 	}
@@ -131,5 +141,9 @@ func (l *LifetimeHandle) Killed() chan struct{} {
 
 // KillContext returns a context object that will be cancelled when the application is being killed
 func (l *LifetimeHandle) KillContext() context.Context {
-	return l.ctx
+	return l.kctx
+}
+
+func (l *LifetimeHandle) TerminateContext() context.Context {
+	return l.tctx
 }
