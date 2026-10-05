@@ -113,9 +113,9 @@ readLoop:
 			r.logger.Debug("Read loop received kill order - breaking loop")
 			break readLoop
 		case <-t.C:
-			r.read(ltHandle.KillContext())
+			r.read(ltHandle.TerminateContext()) // We want to cancel the read if the application is undergoing graceful shutdown
 		case <-r.readCond.WaitChan():
-			r.read(ltHandle.KillContext())
+			r.read(ltHandle.TerminateContext())
 		}
 	}
 }
@@ -125,7 +125,9 @@ func (r *SqsFifoReader) read(ctx context.Context) {
 	capacity := r.conf.MaxInFlightMessages - r.tracker.Length()
 	if capacity >= r.conf.MinReceiveBatchSize {
 		msgs, err := r.client.ReceiveMessages(ctx, capacity)
-		if err != nil {
+		if cErr := ctx.Err(); cErr != nil {
+			r.logger.Debug("Read cancelled - termination context cancelled")
+		} else if err != nil {
 			r.logger.Errorf("Failed to receive messages from queue: %v", err.Error())
 			return
 		}

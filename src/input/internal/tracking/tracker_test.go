@@ -60,11 +60,18 @@ func TestPeek_ReturnsCorrectMessage(t *testing.T) {
 func TestFlush_ReturnsFirstMessageFromEachGroupOnly(t *testing.T) {
 	// Arrange
 	tracker := createTracker(t, nil, nil)
-	msgs := test.CreateMessages(2, 2)
-	tracker.Add(msgs)
+	msgs1 := test.CreateMessages(1, 2)
+	msgs2 := test.CreateMessages(1, 2)
+	tracker.Add(msgs1)
+	tracker.Add(msgs2)
+
+	gId1 := msgs1[0].GetGroupId()
+	gId2 := msgs2[0].GetGroupId()
+	g1Msg := msgs1[0]
+	g2Msg := msgs2[0]
 
 	// Act
-	flushed := make([]*models.SqsMessage, 0, 2)
+	flushed := make(map[string]*models.SqsMessage)
 	deadline := time.Now().Add(10 * time.Millisecond)
 	ctx, cancel := context.WithDeadline(t.Context(), deadline)
 	defer cancel()
@@ -73,13 +80,15 @@ func TestFlush_ReturnsFirstMessageFromEachGroupOnly(t *testing.T) {
 		if err != nil {
 			break
 		}
-		flushed = append(flushed, msg)
+
+		gId := msg.GetGroupId()
+		flushed[gId] = msg
 	}
 
 	// Assert
 	assert.Equal(t, 2, len(flushed), "Only the first message from each group should be flushed")
-	assert.EqualValues(t, msgs[0], flushed[0], "The first message should be from the first group")
-	assert.EqualValues(t, msgs[1], flushed[1], "The second message should be from the second group")
+	assert.EqualValues(t, g1Msg, flushed[gId1], "The first message should be from the first group")
+	assert.EqualValues(t, g2Msg, flushed[gId2], "The second message should be from the second group")
 }
 
 func TestFlush_ReturnsNewMessageIfMessageIsAddedWhileWaiting(t *testing.T) {

@@ -14,6 +14,7 @@ import (
 
 const (
 	maxBatchSize = 10
+	maxWaitTime  = 20
 )
 
 // SqsClient provides access to functions of the SQS API
@@ -98,6 +99,7 @@ func (c *SqsClient) ReceiveMessages(ctx context.Context, maxMsgs int) ([]*models
 		MessageSystemAttributeNames: []types.MessageSystemAttributeName{
 			"All",
 		},
+		WaitTimeSeconds: maxWaitTime,
 	}
 
 	res, err := c.client.ReceiveMessage(ctx, &req)
