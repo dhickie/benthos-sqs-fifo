@@ -11,6 +11,8 @@ import (
 
 // Input configuration fields
 const (
+	inputName = "aws_sqs_fifo"
+
 	confFieldUrl                   = "url"
 	confFieldRegion                = "region"
 	confFieldBaseEndpoint          = "base_endpoint"
@@ -122,7 +124,7 @@ func sqsFifoInputSpec() *service.ConfigSpec {
 }
 
 func init() {
-	service.MustRegisterInput("aws_sqs_fifo", sqsFifoInputSpec(),
+	service.MustRegisterInput(inputName, sqsFifoInputSpec(),
 		func(cConf *service.ParsedConfig, mgr *service.Resources) (service.Input, error) {
 			iConf, err := inputConfigFromConnectConfig(cConf)
 
@@ -130,7 +132,7 @@ func init() {
 				return nil, err
 			}
 
-			aConf, err := config.LoadDefaultConfig(context.TODO(), func(o *config.LoadOptions) error {
+			aConf, err := config.LoadDefaultConfig(context.Background(), func(o *config.LoadOptions) error {
 				if iConf.BaseEndpoint != "" {
 					o.BaseEndpoint = iConf.BaseEndpoint
 					o.Region = iConf.Region

@@ -8,6 +8,8 @@ The only way, therefore, to guarantee ordering is to limit it to a single in-fli
 
 The input in this repository provides much higher throughput by grouping messages by message group ID and serving different groups concurrently.
 
+It's available for use under the name `aws_sqs_fifo`.
+
 ## Running
 
 A custom Benthos image that includes this input as well as all free connectors from the Redpanda Connect bundle is available on Dockerhub:
@@ -15,6 +17,8 @@ A custom Benthos image that includes this input as well as all free connectors f
 ```shell
 docker pull dominichickie/benthos-sqs-fifo:latest
 ```
+
+The image is cross compiled for `linux/arm64` and `linux/amd64` targets.
 
 The source for the input can be found under `src/input` and is available under the MIT licence.
 
@@ -26,6 +30,36 @@ Tests are split into four categories:
 - **Integration** - Tests the input component as a black box against emulated AWS resources using Floci
 - **Stress** - Performs a stress test reading from a mocked queue of 5000 messages, including simulated SQS request latency
 - **E2E** - Runs the built custom Benthos image against Floci, populates messages on the emulated queue, and checks messages sent to an output queue. The Benthos configuration used for the tests is under the `config` folder.
+
+Each of these are tagged appropriately. The Unit and Stress tests can be run without any dependencies, while the integration and E2E tests require the docker compose stack to be running.
+
+To bring up dependencies for the integration and e2e tests:
+
+```shell
+docker compose up -d --wait
+```
+
+To run all tests:
+
+```shell
+go test -tags unit,integration,stress,e2e ./...
+```
+
+The stress test will also give information on message processing performance. The test values in `src/input/input_stress_test.go` can be set to trial values to see how that impacts throughput.
+
+## Building
+
+The easiest way to build is through docker. To build the docker container, run:
+
+```shell
+docker build -t benthos-sqs-fifo .
+```
+
+You can also build manually:
+
+```shell
+go build ./...
+```
 
 ## Features
 
@@ -119,3 +153,32 @@ Having a higher value promotes batching of the calls to delete messages from the
 However, in lower throughput scenarios this delays the deletion of acknowledged messages from the queue. Given that subsequent messages from the same message group cannot be processed until the previous message has been deleted, this will harm through throughput.
 
 In general, the higher the expected throughput, the higher this value should be. Any pending acknowledgements are processed once per second if this value isn't reached.
+
+## Architecture
+
+The input component runs several loops in dedicated goroutines that maintain the current state of the message buffer:
+
+- Read loop - Receives new messages from the input queue when there's room in the buffer
+- Ack loop - Processes pending acknowledgements from the pipeline, deleting them from the queue and making following messages from the same message group available
+- Nack loop - Processes pending negative acknowledgements from the pipeline, either re-queueing them for processing of abandoning them from the buffer
+- Refresh loop - Checks for messages that need to have their visibility deadlined refreshed to prevent them becoming available for other instances
+
+Each of these interact in some way with the core components, which operate in a hierarchy:
+
+- `spec.go`:
+  - Describes the specification for the input, with descriptions of all configuration fields
+  - Tells the benthos runtime how to construct the input on startup
+- `input.go`:
+  - Responsible for managing interaction with the benthos runtime, via the `ConnectionTest`, `Connect`, `Read` and `Close` methods
+  - Receives Ack and Nack callbacks and adds them to a queue for processing by the reader
+- `reader.go`:
+  - Manages the loops for receiving new messages from the queue and processing pending acks and nacks
+- `tracker.go`:
+  - Manages the state of the buffer of pending messages, including which messages from each group are available to the rest of the pipeline and deletion of messages upon acknowledgement
+  - Manages the refresh loop, which refreshes the visibility of messages once they reach half their original timeout
+
+All the loops share the tracker, which ensures thread safety using a combination of locks, channels and conds.
+
+## Contributions
+
+Contributions are welcome. Please see [the contributing guidelines](CONTRIBUTING.md).
