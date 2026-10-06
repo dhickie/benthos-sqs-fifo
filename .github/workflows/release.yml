@@ -28,7 +28,7 @@ jobs:
             --tag dominichickie/benthos-sqs-fifo:latest \
             --tag dominichickie/benthos-sqs-fifo:${{ inputs.version }} \
             --target run \
-            --push
+            --push \
             .
       - name: Tag latest
         uses: actions/github-script@v5
