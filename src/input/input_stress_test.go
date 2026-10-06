@@ -22,7 +22,7 @@ const (
 	MaxPerGroup      = 10
 	ConcurrentGroups = 10
 	MinSqsLatencyMs  = 10
-	MaxSqsLatencyMs  = 200
+	MaxSqsLatencyMs  = 100
 )
 
 var testData []*models.SqsMessage

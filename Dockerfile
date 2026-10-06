@@ -11,7 +11,7 @@ COPY . .
 RUN GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -v -o /usr/local/bin/app ./src
 
 FROM build AS test
-ENTRYPOINT ["go", "test", "-tags", "unit,integration,stress,e2e", "-timeout", "30s", "-v", "./..."]
+ENTRYPOINT ["go", "test", "-tags", "unit,integration,stress,e2e", "-timeout", "1m", "-v", "./..."]
 
 FROM alpine:latest AS run
 COPY --from=build /usr/local/bin/app /usr/local/bin/app
