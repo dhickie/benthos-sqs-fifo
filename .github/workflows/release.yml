@@ -28,7 +28,6 @@ jobs:
             --tag dominichickie/benthos-sqs-fifo:latest \
             --tag dominichickie/benthos-sqs-fifo:${{ inputs.version }} \
             --target run \
-            --file ./Dockerfile-gha
             --push
             .
       - name: Tag latest
