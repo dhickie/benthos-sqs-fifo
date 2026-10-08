@@ -10,25 +10,40 @@ import (
 	"time"
 )
 
+// Channel represents a medium for asynchronously sending messages of any type to one or more receivers.
+// They are fully threadsafe, and can be used by any number of goroutines simultaneously for both sending and receiving.
+// Messages sent to the channel are batched according to the batch policy provided when creating the channel. They are
+// only propagated to any receivers when either the number of pending messages reaches the maximum batch size, or the
+// duration since the previous pushed batch is greater than the maximum batch period.
+//
+// Channels are strictly FIFO and ordering is guaranteed.
 type Channel[T any] struct {
-	ctx       context.Context
-	cancel    context.CancelFunc
-	bp        *BatchPolicy
-	input     chan []*T
-	output    chan []*T
-	messages  []*T
-	ticker    *time.Ticker
-	batches   [][]*T
-	batchLock *sync.Mutex
-	batchCond *util.ContextCond
-	closed    bool
-	closing   bool
-	closeLock *sync.RWMutex
-	closeCond *util.ContextCond
-	wg        *sync.WaitGroup
-	size      *atomic.Int32
+	ctx    context.Context    // The context for the lifetime of the channel - cancelled when the channel has closed
+	cancel context.CancelFunc // The function to cancel the lifetime context
+
+	bp   *BatchPolicy  // The batch policy that governs when batches are propagated to receivers
+	size *atomic.Int32 // The number of messages waiting to be received in the channel
+
+	input  chan []*T // The input channel for incoming messages
+	output chan []*T // The output channel for outgoing batches of messages
+
+	ticker *time.Ticker // The ticker that governs the pushing of batches according to the batch policy
+
+	messages []*T   // Collection of pending un-batched messages
+	batches  [][]*T // Pending batches that haven't yet been received
+
+	closed  bool // Set to true when the channel is closed
+	closing bool // Set to true when the channel is closing and the channel is draining down
+
+	batchLock *sync.Mutex       // The lock for providing thread safe access to the batch collection
+	batchCond *util.ContextCond // Used for signaling a receiver thread that a new batch is available
+	closeLock *sync.RWMutex     // Protects access to the closed/closing bools
+	closeCond *util.ContextCond // Notifies the goroutine closing the channel that the channel is now empty
+	wg        *sync.WaitGroup   // Used to wait for the batching and serving loops to exit
 }
 
+// NewChannel returns a pointer to a new channel that can send and receive messages of the specified type, and applies
+// the provided batching policy to any sent messages before propagating messages to receivers.
 func NewChannel[T any](bp *BatchPolicy) *Channel[T] {
 	cLock := &sync.RWMutex{}
 	bLock := &sync.Mutex{}
@@ -56,6 +71,8 @@ func NewChannel[T any](bp *BatchPolicy) *Channel[T] {
 	return c
 }
 
+// Send sends the provided message(s) to the channel. Returns an error if the channel is currently closing or has already
+// closed.
 func (c *Channel[T]) Send(m ...*T) error {
 	c.closeLock.RLock()
 	defer c.closeLock.RUnlock()
@@ -73,6 +90,9 @@ func (c *Channel[T]) Send(m ...*T) error {
 	return nil
 }
 
+// Receive receives the next batch of messages from the channel, blocking until one is available.
+// Returns an error if the channel is already closed, or is forcefully closed while waiting for messages to be available.
+// If the provided context is cancelled, any wait for a new batch is abandoned and an error is returned.
 func (c *Channel[T]) Receive(ctx context.Context) ([]*T, error) {
 	c.closeLock.RLock()
 	defer c.closeLock.RUnlock()
@@ -97,6 +117,9 @@ func (c *Channel[T]) Receive(ctx context.Context) ([]*T, error) {
 	}
 }
 
+// Close initiates a graceful closure of the channel, and blocks until any remaining messages in the channel have been
+// received. Any attempts to send more messages while the channel is closing will return an error. If the context
+// provided to Close is cancelled while waiting, the channel is forcefully closed and any pending messages are lost.
 func (c *Channel[T]) Close(ctx context.Context) {
 	c.closeLock.Lock()
 	defer c.closeLock.Unlock()
@@ -109,12 +132,13 @@ func (c *Channel[T]) Close(ctx context.Context) {
 		}
 	}
 
-	// Kill the processing thread
+	// Kill the processing threads
 	c.cancel()
 	c.closed = true
 	c.wg.Wait() // Wait for the processing threads to actually exit
 }
 
+// Loop that manages the batching and propagation of incoming messages according to the channel's batch policy.
 func (c *Channel[T]) batchLoop() {
 	for {
 		select {
@@ -132,6 +156,9 @@ func (c *Channel[T]) batchLoop() {
 	}
 }
 
+// Batches pending messages and makes them available to receivers.
+// If batchAll is true, all pending messages will be batched regardless of whether they fill full batches.
+// If batchAll is false, messages are only batched if they can fill a full batch.
 func (c *Channel[T]) propagateBatch(batchAll bool) {
 	c.batchLock.Lock()
 	defer c.batchLock.Unlock()
@@ -148,6 +175,7 @@ func (c *Channel[T]) propagateBatch(batchAll bool) {
 	}
 }
 
+// Loop that manages serving batches to receivers.
 func (c *Channel[T]) serveLoop() {
 	for {
 		n, err := func() ([]*T, error) {
