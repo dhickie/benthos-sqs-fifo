@@ -124,17 +124,25 @@ func (c *Channel[T]) Close(ctx context.Context) {
 	c.closeLock.Lock()
 	defer c.closeLock.Unlock()
 
+	// Keep track of whether this is a duplicate request to close the channel
+	secondaryClose := c.closing || c.closed
+
 	// Wait until the channel is empty before closing if possible
-	c.closing = true
+	if !secondaryClose {
+		c.closing = true
+	}
 	for c.size.Load() > 0 {
 		if err := c.closeCond.Wait(ctx); err != nil {
 			break
 		}
 	}
 
-	// Kill the processing threads
-	c.cancel()
-	c.closed = true
+	// Kill the processing threads if this was the original close request
+	if !secondaryClose {
+		c.cancel()
+		c.closing = false
+		c.closed = true
+	}
 	c.wg.Wait() // Wait for the processing threads to actually exit
 }
 
