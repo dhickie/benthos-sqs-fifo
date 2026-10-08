@@ -17,7 +17,7 @@ type Channel[T any] struct {
 	input     chan []*T
 	output    chan []*T
 	messages  []*T
-	timer     *time.Timer
+	ticker    *time.Ticker
 	batches   [][]*T
 	batchLock *sync.Mutex
 	batchCond *util.ContextCond
@@ -40,7 +40,7 @@ func NewChannel[T any](bp *BatchPolicy) *Channel[T] {
 		input:     make(chan []*T),
 		output:    make(chan []*T),
 		messages:  make([]*T, 0),
-		timer:     time.NewTimer(bp.Period),
+		ticker:    time.NewTicker(bp.Period),
 		batches:   make([][]*T, 0),
 		batchLock: bLock,
 		batchCond: util.NewContextCond(bLock),
@@ -112,20 +112,20 @@ func (c *Channel[T]) Close(ctx context.Context) {
 	// Kill the processing thread
 	c.cancel()
 	c.closed = true
-	c.wg.Wait() // Wait for the processing thread to actually exit
+	c.wg.Wait() // Wait for the processing threads to actually exit
 }
 
 func (c *Channel[T]) batchLoop() {
-	defer c.wg.Done()
 	for {
 		select {
 		case <-c.ctx.Done():
 			return
-		case <-c.timer.C:
+		case <-c.ticker.C:
 			c.propagateBatch(true)
 		case m := <-c.input:
 			c.messages = append(c.messages, m...)
 			if len(c.messages) >= c.bp.Number {
+				c.ticker.Reset(c.bp.Period)
 				c.propagateBatch(false)
 			}
 		}
@@ -139,6 +139,9 @@ func (c *Channel[T]) propagateBatch(batchAll bool) {
 	batches := slices.Chunk(c.messages, c.bp.Number)
 	for v := range batches {
 		if len(v) == c.bp.Number || (len(v) > 0 && batchAll) {
+			if len(c.batches) == 0 {
+				c.batchCond.Signal()
+			}
 			c.batches = append(c.batches, v)
 			c.messages = c.messages[len(v):]
 		}

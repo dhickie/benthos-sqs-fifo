@@ -1,6 +1,7 @@
 package test
 
 import (
+	"math"
 	"math/rand/v2"
 	"time"
 )
@@ -21,6 +22,25 @@ func NewRng(seed int64) *Rng {
 // RandRange returns a new integer within the specified range, inclusive
 func (r *Rng) RandRange(min, max int) int {
 	return min + r.rng.IntN(max-min)
+}
+
+// RandFloatRange returns a 32-bit float with the specified number of decimals
+func (r *Rng) RandFloatRange(min, max, decimals int) float32 {
+	m := int(math.Pow(10, float64(decimals)))
+	mMin := m * min
+	mMax := m * max
+	mV := r.RandRange(mMin, mMax)
+	return float32(mV) / float32(m)
+}
+
+// RandBool returns a random boolean value
+func (r *Rng) RandBool() bool {
+	n := r.RandRange(0, 1)
+	if n == 1 {
+		return true
+	}
+
+	return false
 }
 
 type testSource struct {
