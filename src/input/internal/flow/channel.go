@@ -32,89 +32,91 @@ type Channel[T any] struct {
 	messages []*T   // Collection of pending un-batched messages
 	batches  [][]*T // Pending batches that haven't yet been received
 
-	closed  bool // Set to true when the channel is closed
-	closing bool // Set to true when the channel is closing and the channel is draining down
+	closeInitChan     chan struct{} // Channel that is sent to when Channel closure is being initiated
+	stopInputChan     chan struct{} // Channel that is sent to when the input loop should stop
+	stopOutputChan    chan struct{} // Channel that is sent to when the output loop should stop
+	inputStoppedChan  chan struct{} // Channel that is sent to when the input loop has stopped
+	outputStoppedChan chan struct{} // Channel that is sent to when the output loop has stopped
+	closed            bool          // Set to true when the channel is closed
 
 	batchLock *sync.Mutex       // The lock for providing thread safe access to the batch collection
-	batchCond *util.ContextCond // Used for signaling a receiver thread that a new batch is available
-	closeLock *sync.RWMutex     // Protects access to the closed/closing bools
-	closeCond *util.ContextCond // Notifies the goroutine closing the channel that the channel is now empty
+	batchCond *util.ContextCond // Used for signalling a receiver thread that a new batch is available
+	closeLock *sync.Mutex       // Protects access to the closed/closing bools
 	wg        *sync.WaitGroup   // Used to wait for the batching and serving loops to exit
 }
 
 // NewChannel returns a pointer to a new channel that can send and receive messages of the specified type, and applies
 // the provided batching policy to any sent messages before propagating messages to receivers.
 func NewChannel[T any](bp *BatchPolicy) *Channel[T] {
-	cLock := &sync.RWMutex{}
 	bLock := &sync.Mutex{}
 	ctx, cancel := context.WithCancel(context.Background())
 	c := &Channel[T]{
-		ctx:       ctx,
-		cancel:    cancel,
-		bp:        bp,
-		input:     make(chan []*T),
-		output:    make(chan []*T),
-		messages:  make([]*T, 0),
-		ticker:    time.NewTicker(bp.Period),
-		batches:   make([][]*T, 0),
-		batchLock: bLock,
-		batchCond: util.NewContextCond(bLock),
-		closed:    false,
-		closing:   false,
-		closeLock: cLock,
-		closeCond: util.NewContextCond(cLock),
-		wg:        &sync.WaitGroup{},
-		size:      new(atomic.Int32),
+		ctx:               ctx,
+		cancel:            cancel,
+		bp:                bp,
+		input:             make(chan []*T),
+		output:            make(chan []*T),
+		messages:          make([]*T, 0),
+		ticker:            time.NewTicker(bp.Period),
+		batches:           make([][]*T, 0),
+		batchLock:         bLock,
+		batchCond:         util.NewContextCond(bLock),
+		closeInitChan:     make(chan struct{}, 1),
+		stopInputChan:     make(chan struct{}, 1),
+		stopOutputChan:    make(chan struct{}, 1),
+		inputStoppedChan:  make(chan struct{}, 1),
+		outputStoppedChan: make(chan struct{}, 1),
+		closed:            false,
+		closeLock:         &sync.Mutex{},
+		wg:                &sync.WaitGroup{},
+		size:              new(atomic.Int32),
 	}
-	c.wg.Go(c.batchLoop)
-	c.wg.Go(c.serveLoop)
+	c.wg.Go(c.closeLoop)
+	c.wg.Go(c.inputLoop)
+	c.wg.Go(c.outputLoop)
 	return c
 }
 
-// Send sends the provided message(s) to the channel. Returns an error if the channel is currently closing or has already
-// closed.
-func (c *Channel[T]) Send(m ...*T) error {
-	c.closeLock.RLock()
-	defer c.closeLock.RUnlock()
-
-	// Check the channel isn't closing or already closed
-	if c.closing {
-		return errors.New("cannot send to a closing channel")
+// Send sends the provided message(s) to the Channel.
+// Blocks indefinitely if the Channel is already closed.
+// Returns an error if ctx is cancelled.
+func (c *Channel[T]) Send(ctx context.Context, m ...*T) error {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case c.input <- m:
+		return nil
 	}
-	if c.closed {
-		return errors.New("cannot send to a closed channel")
-	}
+}
 
-	c.input <- m
-	c.size.Add(int32(len(m)))
-	return nil
+// SendChan returns a go channel that can be used to send messages to the Channel, for example if needed for use with a
+// select statement. If the channel is closed, it will asynchronously gracefully close the overall Channel.
+// If the Channel is already closed when the channel is sent to, it will block indefinitely.
+func (c *Channel[T]) SendChan() chan<- []*T {
+	return c.input
 }
 
 // Receive receives the next batch of messages from the channel, blocking until one is available.
 // Returns an error if the channel is already closed, or is forcefully closed while waiting for messages to be available.
 // If the provided context is cancelled, any wait for a new batch is abandoned and an error is returned.
 func (c *Channel[T]) Receive(ctx context.Context) ([]*T, error) {
-	c.closeLock.RLock()
-	defer c.closeLock.RUnlock()
-
-	// Check the channel isn't already closed
-	if c.closed {
-		return nil, errors.New("cannot receive from a closed channel")
-	}
-	// If the channel is closing and is now empty, then signal the close function that closing can complete
-	defer func() {
-		if c.closing && c.size.Load() == 0 {
-			c.closeCond.Signal()
-		}
-	}()
-
 	select {
-	case <-ctx.Done():
-		return nil, ctx.Err()
-	case v := <-c.output:
-		c.size.Add(int32(len(v) * -1))
-		return v, nil
+	case <-c.ctx.Done():
+		return nil, c.ctx.Err()
+	case m, ok := <-c.output:
+		if ok {
+			return m, nil
+		}
+
+		return nil, errors.New("channel has closed")
 	}
+}
+
+// ReceiveChan returns a channel that can be used to receive batches of messages from the Channel, for example if
+// needed for use with a select statement. If the overall channel is closed, this channel will be closed when there are
+// no more messages remaining.
+func (c *Channel[T]) ReceiveChan() <-chan []*T {
+	return c.output
 }
 
 // Close initiates a graceful closure of the channel, and blocks until any remaining messages in the channel have been
@@ -124,41 +126,68 @@ func (c *Channel[T]) Close(ctx context.Context) {
 	c.closeLock.Lock()
 	defer c.closeLock.Unlock()
 
-	// Keep track of whether this is a duplicate request to close the channel
-	secondaryClose := c.closing || c.closed
-
-	// Wait until the channel is empty before closing if possible
-	if !secondaryClose {
-		c.closing = true
+	if c.closed {
+		return
 	}
-	for c.size.Load() > 0 {
-		if err := c.closeCond.Wait(ctx); err != nil {
-			break
+
+	// Initiate the closure
+	c.closeInitChan <- struct{}{}
+
+	// Wait for either the closure to finish, or the context to be cancelled
+	select {
+	case <-ctx.Done():
+	case <-c.outputStoppedChan:
+	}
+
+	// Cancel the Channel context
+	c.cancel()
+
+	// Wait for all the loops to exit
+	c.wg.Wait()
+	c.closed = true
+}
+
+// Loop that manages the closure of the Channel, ensuring graceful termination
+func (c *Channel[T]) closeLoop() {
+	for {
+		select {
+		case <-c.ctx.Done(): // The Channel is being force closed - kill the loop
+			return
+		case <-c.closeInitChan: // Graceful close has been initiated - tell the input loop to stop
+			c.stopInputChan <- struct{}{}
+		case <-c.inputStoppedChan: // The input loop has stopped, tell the output loop to stop when empty
+			c.stopOutputChan <- struct{}{}
+		case <-c.outputStoppedChan: // Graceful stop is complete, kill the loop
+			return
 		}
 	}
-
-	// Kill the processing threads if this was the original close request
-	if !secondaryClose {
-		c.cancel()
-		c.closing = false
-		c.closed = true
-	}
-	c.wg.Wait() // Wait for the processing threads to actually exit
 }
 
 // Loop that manages the batching and propagation of incoming messages according to the channel's batch policy.
-func (c *Channel[T]) batchLoop() {
+func (c *Channel[T]) inputLoop() {
 	for {
 		select {
-		case <-c.ctx.Done():
+		case <-c.ctx.Done(): // Channel is being force closed
 			return
-		case <-c.ticker.C:
+		case <-c.stopInputChan: // Channel is closing, push any remaining messages and kill the input loop
 			c.propagateBatch(true)
-		case m := <-c.input:
-			c.messages = append(c.messages, m...)
-			if len(c.messages) >= c.bp.Number {
-				c.ticker.Reset(c.bp.Period)
-				c.propagateBatch(false)
+			<-c.inputStoppedChan
+			return
+		case <-c.ticker.C: // Batch period has expired
+			c.propagateBatch(true)
+		case m, ok := <-c.input: // Messages received on the input channel
+			if ok {
+				c.size.Add(int32(len(m)))
+				c.messages = append(c.messages, m...)
+				if len(c.messages) >= c.bp.Number {
+					c.ticker.Reset(c.bp.Period)
+					c.propagateBatch(false)
+				}
+			} else {
+				// The input channel has been closed - gracefully close the Channel
+				c.propagateBatch(true)
+				<-c.inputStoppedChan
+				return
 			}
 		}
 	}
@@ -184,7 +213,8 @@ func (c *Channel[T]) propagateBatch(batchAll bool) {
 }
 
 // Loop that manages serving batches to receivers.
-func (c *Channel[T]) serveLoop() {
+func (c *Channel[T]) outputLoop() {
+	closing := false
 	for {
 		n, err := func() ([]*T, error) {
 			c.batchLock.Lock()
@@ -205,9 +235,18 @@ func (c *Channel[T]) serveLoop() {
 		}
 
 		select {
-		case <-c.ctx.Done():
+		case <-c.ctx.Done(): // Channel has been forcefully closed
+			close(c.output)
 			return
-		case c.output <- n:
+		case <-c.inputStoppedChan: // Channel is closing
+			closing = true
+		case c.output <- n: // A batch has been sent to a receiver
+			c.size.Add(int32(len(n) * -1))
+			if closing && c.size.Load() == 0 {
+				c.outputStoppedChan <- struct{}{}
+				close(c.output)
+				return
+			}
 		}
 	}
 }
