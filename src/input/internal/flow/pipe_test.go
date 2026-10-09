@@ -19,12 +19,12 @@ var rng = test.NewRng(0)
 
 func TestSendAndReceive_SendsAndReceivesTheSameMessage(t *testing.T) {
 	// Arrange
-	ch := makeChannel(1, time.Duration(1)*time.Minute)
+	ch := makePipe(1, time.Duration(1)*time.Minute)
 	defer ch.Close(t.Context())
 	m := buildMessage()
 
 	// Act
-	if err := ch.Send(m); err != nil {
+	if err := ch.Send(t.Context(), m); err != nil {
 		t.Fatal(err)
 	}
 	r, err := ch.Receive(t.Context())
@@ -46,11 +46,11 @@ func TestSendAndReceive_SendsAndReceivesTheSameMessage(t *testing.T) {
 func TestReceive_ReceivesBatchedInput(t *testing.T) {
 	// Arrange
 	bSize := 10
-	ch := makeChannel(bSize, time.Duration(1)*time.Minute)
+	ch := makePipe(bSize, time.Duration(1)*time.Minute)
 	defer ch.Close(t.Context())
 	m := buildMessages(bSize)
 	for i := range bSize {
-		if err := ch.Send(m[i]); err != nil {
+		if err := ch.Send(t.Context(), m[i]); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -68,10 +68,10 @@ func TestReceive_ReceivesBatchedInput(t *testing.T) {
 func TestReceive_ReceivesUnfilledBatchAfterBatchPeriod(t *testing.T) {
 	// Arrange
 	bSize := 10
-	ch := makeChannel(bSize, time.Duration(1)*time.Millisecond)
+	ch := makePipe(bSize, time.Duration(1)*time.Millisecond)
 	defer ch.Close(t.Context())
 	m := buildMessage()
-	if err := ch.Send(m); err != nil {
+	if err := ch.Send(t.Context(), m); err != nil {
 		t.Fatal(err)
 	}
 
@@ -85,14 +85,14 @@ func TestReceive_ReceivesUnfilledBatchAfterBatchPeriod(t *testing.T) {
 	assert.Equal(t, 1, len(r))
 }
 
-func TestClose_WaitsForChannelToBeEmpty(t *testing.T) {
+func TestClose_WaitsForPipeToBeEmpty(t *testing.T) {
 	// Arrange
 	bSize := 1
 	nM := 2
-	ch := makeChannel(bSize, time.Duration(1)*time.Minute)
+	ch := makePipe(bSize, time.Duration(1)*time.Minute)
 	m := buildMessages(nM)
 	for i := range nM {
-		if err := ch.Send(m[i]); err != nil {
+		if err := ch.Send(t.Context(), m[i]); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -113,12 +113,12 @@ func TestClose_WaitsForChannelToBeEmpty(t *testing.T) {
 	assert.Equal(t, nM, len(rM))
 }
 
-func TestClose_ForceClosesChannelIfContextIsCancelled(t *testing.T) {
+func TestClose_ForceClosesPipeIfContextIsCancelled(t *testing.T) {
 	// Arrange
 	ctx, cancel := context.WithCancel(t.Context())
-	ch := makeChannel(1, time.Duration(1)*time.Minute)
+	ch := makePipe(1, time.Duration(1)*time.Minute)
 	m := buildMessage()
-	if err := ch.Send(m); err != nil {
+	if err := ch.Send(t.Context(), m); err != nil {
 		cancel()
 		t.Fatal(err)
 	}
@@ -129,62 +129,62 @@ func TestClose_ForceClosesChannelIfContextIsCancelled(t *testing.T) {
 	wg.Wait()
 }
 
-func TestSend_ErrorsIfChannelIsClosed(t *testing.T) {
+func TestSend_ErrorsIfPipeIsClosed(t *testing.T) {
 	// Arrange
-	ch := makeChannel(1, time.Duration(1)*time.Minute)
+	ch := makePipe(1, time.Duration(1)*time.Minute)
 	m := buildMessage()
 	ch.Close(t.Context())
 
 	// Act
-	err := ch.Send(m)
+	err := ch.Send(t.Context(), m)
 
 	// Assert
 	assert.Error(t, err)
 }
 
-func TestSend_ErrorsIfChannelIsClosing(t *testing.T) {
+func TestSend_ErrorsIfPipeIsClosing(t *testing.T) {
 	// Arrange
-	ch := makeChannel(1, time.Duration(1)*time.Minute)
+	ch := makePipe(1, time.Duration(1)*time.Minute)
 	m := buildMessages(2)
-	if err := ch.Send(m[0]); err != nil {
+	if err := ch.Send(t.Context(), m[0]); err != nil {
 		t.Fatal(err)
 	}
 	startCloseRoutine(t.Context(), t, ch)
 
 	// Act
-	err := ch.Send(m[1])
+	err := ch.Send(t.Context(), m[1])
 
 	// Assert
 	assert.Error(t, err)
 }
 
-func TestChannel_UnderHighLoad(t *testing.T) {
-	const nChannels = 100
-	const nMsgsPerChannel = 10000
+func TestPipe_UnderHighLoad(t *testing.T) {
+	const nPipes = 100
+	const nMsgsPerPipe = 10000
 	const batchSize = 10
 	const batchPeriod = time.Duration(1) * time.Second
 
-	// Create the channels
+	// Create the pipes
 	bp := NewBatchPolicy(batchSize, batchPeriod)
-	channels := make([]*Channel[TestMessage], nChannels)
-	for i := range nChannels {
-		channels[i] = NewChannel[TestMessage](bp)
+	pipes := make([]*Pipe[TestMessage], nPipes)
+	for i := range nPipes {
+		pipes[i] = NewPipe[TestMessage](bp)
 	}
 
 	// Start publishing & subscribing routines
 	wg := &sync.WaitGroup{}
-	sendErrs := make([]error, nChannels)
-	receiveErrs := make([]error, nChannels)
-	startTimes := make([]time.Time, nChannels)
-	durations := make([]time.Duration, nChannels)
-	latencies := make([][]float64, nChannels)
+	sendErrs := make([]error, nPipes)
+	receiveErrs := make([]error, nPipes)
+	startTimes := make([]time.Time, nPipes)
+	durations := make([]time.Duration, nPipes)
+	latencies := make([][]float64, nPipes)
 	publishFunc := func(i int) {
 		defer wg.Done()
-		msgs := buildMessages(nMsgsPerChannel)
+		msgs := buildMessages(nMsgsPerPipe)
 		startTimes[i] = time.Now()
-		for j := range nMsgsPerChannel {
+		for j := range nMsgsPerPipe {
 			msgs[j].timeValue = time.Now()
-			if err := channels[i].Send(msgs[j]); err != nil {
+			if err := pipes[i].Send(t.Context(), msgs[j]); err != nil {
 				sendErrs[i] = err
 				return
 			}
@@ -192,11 +192,11 @@ func TestChannel_UnderHighLoad(t *testing.T) {
 	}
 	receiveFunc := func(i int) {
 		defer wg.Done()
-		msgs := make([]*TestMessage, nMsgsPerChannel)
-		latencies[i] = make([]float64, nMsgsPerChannel)
+		msgs := make([]*TestMessage, nMsgsPerPipe)
+		latencies[i] = make([]float64, nMsgsPerPipe)
 		received := 0
-		for received < nMsgsPerChannel {
-			if batch, err := channels[i].Receive(t.Context()); err != nil {
+		for received < nMsgsPerPipe {
+			if batch, err := pipes[i].Receive(t.Context()); err != nil {
 				receiveErrs[i] = err
 				return
 			} else {
@@ -209,7 +209,7 @@ func TestChannel_UnderHighLoad(t *testing.T) {
 		}
 		durations[i] = time.Since(startTimes[i])
 	}
-	for i := range nChannels {
+	for i := range nPipes {
 		wg.Add(2)
 		go receiveFunc(i)
 		go publishFunc(i)
@@ -232,9 +232,9 @@ func TestChannel_UnderHighLoad(t *testing.T) {
 		t.Fatal("Errors were returned while trying to receive messages")
 	}
 
-	rates := make([]float64, nChannels)
-	for i := range nChannels {
-		rates[i] = (time.Second.Seconds() / durations[i].Seconds()) * nMsgsPerChannel
+	rates := make([]float64, nPipes)
+	for i := range nPipes {
+		rates[i] = (time.Second.Seconds() / durations[i].Seconds()) * nMsgsPerPipe
 	}
 
 	minRate := slices.Min(rates)
@@ -288,7 +288,7 @@ func meanMany(values [][]float64) float64 {
 	return total / float64(n)
 }
 
-func startCloseRoutine(ctx context.Context, t *testing.T, ch *Channel[TestMessage]) *sync.WaitGroup {
+func startCloseRoutine(ctx context.Context, t *testing.T, ch *Pipe[TestMessage]) *sync.WaitGroup {
 	wg := sync.WaitGroup{}
 	c := util.NewAsyncCond()
 	wg.Go(func() {
@@ -302,9 +302,9 @@ func startCloseRoutine(ctx context.Context, t *testing.T, ch *Channel[TestMessag
 	return &wg
 }
 
-func makeChannel(batchSize int, period time.Duration) *Channel[TestMessage] {
+func makePipe(batchSize int, period time.Duration) *Pipe[TestMessage] {
 	bp := NewBatchPolicy(batchSize, period)
-	return NewChannel[TestMessage](bp)
+	return NewPipe[TestMessage](bp)
 }
 
 func buildMessages(n int) []*TestMessage {

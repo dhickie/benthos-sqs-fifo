@@ -10,19 +10,19 @@ import (
 	"time"
 )
 
-// Channel represents a medium for asynchronously sending messages of any type to one or more receivers.
+// Pipe represents a medium for asynchronously sending messages of any type to one or more receivers.
 // They are fully threadsafe, and can be used by any number of goroutines simultaneously for both sending and receiving.
-// Messages sent to the channel are batched according to the batch policy provided when creating the channel. They are
+// Messages sent to the pipe are batched according to the batch policy provided upon creation. They are
 // only propagated to any receivers when either the number of pending messages reaches the maximum batch size, or the
 // duration since the previous pushed batch is greater than the maximum batch period.
 //
-// Channels are strictly FIFO and ordering is guaranteed.
-type Channel[T any] struct {
-	ctx    context.Context    // The context for the lifetime of the channel - cancelled when the channel has closed
+// Pipes are strictly FIFO and ordering is guaranteed.
+type Pipe[T any] struct {
+	ctx    context.Context    // The context for the lifetime of the pipe - cancelled when the pipe has closed
 	cancel context.CancelFunc // The function to cancel the lifetime context
 
 	bp   *BatchPolicy  // The batch policy that governs when batches are propagated to receivers
-	size *atomic.Int32 // The number of messages waiting to be received in the channel
+	size *atomic.Int32 // The number of messages waiting to be received in the pipe
 
 	input  chan []*T // The input channel for incoming messages
 	output chan []*T // The output channel for outgoing batches of messages
@@ -32,25 +32,25 @@ type Channel[T any] struct {
 	messages []*T   // Collection of pending un-batched messages
 	batches  [][]*T // Pending batches that haven't yet been received
 
-	closeInitChan     chan struct{} // Channel that is sent to when Channel closure is being initiated
+	closeInitChan     chan struct{} // Channel that is sent to when pipe closure is being initiated
 	stopInputChan     chan struct{} // Channel that is sent to when the input loop should stop
 	stopOutputChan    chan struct{} // Channel that is sent to when the output loop should stop
 	inputStoppedChan  chan struct{} // Channel that is sent to when the input loop has stopped
 	outputStoppedChan chan struct{} // Channel that is sent to when the output loop has stopped
-	closed            bool          // Set to true when the channel is closed
+	closed            bool          // Set to true when the pipe is closed
 
 	batchLock *sync.Mutex       // The lock for providing thread safe access to the batch collection
 	batchCond *util.ContextCond // Used for signalling a receiver thread that a new batch is available
-	closeLock *sync.Mutex       // Protects access to the closed/closing bools
+	closeLock *sync.Mutex       // Ensures that a single call to Close is processed at a time, providing safe closure
 	wg        *sync.WaitGroup   // Used to wait for the batching and serving loops to exit
 }
 
-// NewChannel returns a pointer to a new channel that can send and receive messages of the specified type, and applies
+// NewPipe returns a pointer to a new pipe that can send and receive messages of the specified type, and applies
 // the provided batching policy to any sent messages before propagating messages to receivers.
-func NewChannel[T any](bp *BatchPolicy) *Channel[T] {
+func NewPipe[T any](bp *BatchPolicy) *Pipe[T] {
 	bLock := &sync.Mutex{}
 	ctx, cancel := context.WithCancel(context.Background())
-	c := &Channel[T]{
+	c := &Pipe[T]{
 		ctx:               ctx,
 		cancel:            cancel,
 		bp:                bp,
@@ -77,10 +77,10 @@ func NewChannel[T any](bp *BatchPolicy) *Channel[T] {
 	return c
 }
 
-// Send sends the provided message(s) to the Channel.
-// Blocks indefinitely if the Channel is already closed.
+// Send sends the provided message(s) to the pipe.
+// Blocks indefinitely if the pipe is already closed.
 // Returns an error if ctx is cancelled.
-func (c *Channel[T]) Send(ctx context.Context, m ...*T) error {
+func (c *Pipe[T]) Send(ctx context.Context, m ...*T) error {
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
@@ -89,17 +89,17 @@ func (c *Channel[T]) Send(ctx context.Context, m ...*T) error {
 	}
 }
 
-// SendChan returns a go channel that can be used to send messages to the Channel, for example if needed for use with a
-// select statement. If the channel is closed, it will asynchronously gracefully close the overall Channel.
-// If the Channel is already closed when the channel is sent to, it will block indefinitely.
-func (c *Channel[T]) SendChan() chan<- []*T {
+// SendChan returns a channel that can be used to send messages to the pipe, for example if needed for use with a
+// select statement. If the channel is closed, it will asynchronously gracefully close the pipe.
+// If the pipe is already closed when the channel is sent to, it will block indefinitely.
+func (c *Pipe[T]) SendChan() chan<- []*T {
 	return c.input
 }
 
-// Receive receives the next batch of messages from the channel, blocking until one is available.
-// Returns an error if the channel is already closed, or is forcefully closed while waiting for messages to be available.
+// Receive receives the next batch of messages from the pipe, blocking until one is available.
+// Returns an error if the pipe is already closed, or is forcefully closed while waiting for messages to be available.
 // If the provided context is cancelled, any wait for a new batch is abandoned and an error is returned.
-func (c *Channel[T]) Receive(ctx context.Context) ([]*T, error) {
+func (c *Pipe[T]) Receive(ctx context.Context) ([]*T, error) {
 	select {
 	case <-c.ctx.Done():
 		return nil, c.ctx.Err()
@@ -112,17 +112,17 @@ func (c *Channel[T]) Receive(ctx context.Context) ([]*T, error) {
 	}
 }
 
-// ReceiveChan returns a channel that can be used to receive batches of messages from the Channel, for example if
-// needed for use with a select statement. If the overall channel is closed, this channel will be closed when there are
+// ReceiveChan returns a channel that can be used to receive batches of messages from the pipe, for example if
+// needed for use with a select statement. If the pipe is closed, this channel will be closed when there are
 // no more messages remaining.
-func (c *Channel[T]) ReceiveChan() <-chan []*T {
+func (c *Pipe[T]) ReceiveChan() <-chan []*T {
 	return c.output
 }
 
-// Close initiates a graceful closure of the channel, and blocks until any remaining messages in the channel have been
-// received. Any attempts to send more messages while the channel is closing will return an error. If the context
-// provided to Close is cancelled while waiting, the channel is forcefully closed and any pending messages are lost.
-func (c *Channel[T]) Close(ctx context.Context) {
+// Close initiates a graceful closure of the pipe, and blocks until any remaining messages in the pipe have been
+// received. Any attempts to send more messages while the pipe is closing will return an error. If the context
+// provided to Close is cancelled while waiting, the pipe is forcefully closed and any pending messages are lost.
+func (c *Pipe[T]) Close(ctx context.Context) {
 	c.closeLock.Lock()
 	defer c.closeLock.Unlock()
 
@@ -139,7 +139,7 @@ func (c *Channel[T]) Close(ctx context.Context) {
 	case <-c.outputStoppedChan:
 	}
 
-	// Cancel the Channel context
+	// Cancel the lifetime context
 	c.cancel()
 
 	// Wait for all the loops to exit
@@ -147,11 +147,11 @@ func (c *Channel[T]) Close(ctx context.Context) {
 	c.closed = true
 }
 
-// Loop that manages the closure of the Channel, ensuring graceful termination
-func (c *Channel[T]) closeLoop() {
+// Loop that manages the closure of the pipe, ensuring graceful termination
+func (c *Pipe[T]) closeLoop() {
 	for {
 		select {
-		case <-c.ctx.Done(): // The Channel is being force closed - kill the loop
+		case <-c.ctx.Done(): // The pipe is being force closed - kill the loop
 			return
 		case <-c.closeInitChan: // Graceful close has been initiated - tell the input loop to stop
 			c.stopInputChan <- struct{}{}
@@ -164,12 +164,12 @@ func (c *Channel[T]) closeLoop() {
 }
 
 // Loop that manages the batching and propagation of incoming messages according to the channel's batch policy.
-func (c *Channel[T]) inputLoop() {
+func (c *Pipe[T]) inputLoop() {
 	for {
 		select {
-		case <-c.ctx.Done(): // Channel is being force closed
+		case <-c.ctx.Done(): // Pipe is being force closed
 			return
-		case <-c.stopInputChan: // Channel is closing, push any remaining messages and kill the input loop
+		case <-c.stopInputChan: // Pipe is closing, push any remaining messages and kill the input loop
 			c.propagateBatch(true)
 			<-c.inputStoppedChan
 			return
@@ -184,7 +184,7 @@ func (c *Channel[T]) inputLoop() {
 					c.propagateBatch(false)
 				}
 			} else {
-				// The input channel has been closed - gracefully close the Channel
+				// The input channel has been closed - gracefully close the pipe
 				c.propagateBatch(true)
 				<-c.inputStoppedChan
 				return
@@ -196,7 +196,7 @@ func (c *Channel[T]) inputLoop() {
 // Batches pending messages and makes them available to receivers.
 // If batchAll is true, all pending messages will be batched regardless of whether they fill full batches.
 // If batchAll is false, messages are only batched if they can fill a full batch.
-func (c *Channel[T]) propagateBatch(batchAll bool) {
+func (c *Pipe[T]) propagateBatch(batchAll bool) {
 	c.batchLock.Lock()
 	defer c.batchLock.Unlock()
 
@@ -213,7 +213,7 @@ func (c *Channel[T]) propagateBatch(batchAll bool) {
 }
 
 // Loop that manages serving batches to receivers.
-func (c *Channel[T]) outputLoop() {
+func (c *Pipe[T]) outputLoop() {
 	closing := false
 	for {
 		n, err := func() ([]*T, error) {
@@ -235,10 +235,10 @@ func (c *Channel[T]) outputLoop() {
 		}
 
 		select {
-		case <-c.ctx.Done(): // Channel has been forcefully closed
+		case <-c.ctx.Done(): // Pipe has been forcefully closed
 			close(c.output)
 			return
-		case <-c.inputStoppedChan: // Channel is closing
+		case <-c.inputStoppedChan: // Pipe is closing
 			closing = true
 		case c.output <- n: // A batch has been sent to a receiver
 			c.size.Add(int32(len(n) * -1))
