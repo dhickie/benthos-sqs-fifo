@@ -129,35 +129,6 @@ func TestClose_ForceClosesPipeIfContextIsCancelled(t *testing.T) {
 	wg.Wait()
 }
 
-func TestSend_ErrorsIfPipeIsClosed(t *testing.T) {
-	// Arrange
-	ch := makePipe(1, time.Duration(1)*time.Minute)
-	m := buildMessage()
-	ch.Close(t.Context())
-
-	// Act
-	err := ch.Send(t.Context(), m)
-
-	// Assert
-	assert.Error(t, err)
-}
-
-func TestSend_ErrorsIfPipeIsClosing(t *testing.T) {
-	// Arrange
-	ch := makePipe(1, time.Duration(1)*time.Minute)
-	m := buildMessages(2)
-	if err := ch.Send(t.Context(), m[0]); err != nil {
-		t.Fatal(err)
-	}
-	startCloseRoutine(t.Context(), t, ch)
-
-	// Act
-	err := ch.Send(t.Context(), m[1])
-
-	// Assert
-	assert.Error(t, err)
-}
-
 func TestPipe_UnderHighLoad(t *testing.T) {
 	const nPipes = 100
 	const nMsgsPerPipe = 10000

@@ -32,12 +32,14 @@ type Pipe[T any] struct {
 	messages []*T   // Collection of pending un-batched messages
 	batches  [][]*T // Pending batches that haven't yet been received
 
-	closeInitChan     chan struct{} // Channel that is sent to when pipe closure is being initiated
-	stopInputChan     chan struct{} // Channel that is sent to when the input loop should stop
-	stopOutputChan    chan struct{} // Channel that is sent to when the output loop should stop
-	inputStoppedChan  chan struct{} // Channel that is sent to when the input loop has stopped
-	outputStoppedChan chan struct{} // Channel that is sent to when the output loop has stopped
-	closed            bool          // Set to true when the pipe is closed
+	closeInitChan         chan struct{}      // Channel that is sent to when pipe closure is being initiated
+	stopInputChan         chan struct{}      // Channel that is sent to when the input loop should stop
+	stopOutputChan        chan struct{}      // Channel that is sent to when the output loop should stop
+	inputStoppedChan      chan struct{}      // Channel that is sent to when the input loop has stopped
+	inputStoppedCtx       context.Context    // Context that is cancelled when the input loop has stopped
+	inputStoppedCtxCancel context.CancelFunc // Function for cancelling the input stopped ctx
+	outputStoppedChan     chan struct{}      // Channel that is sent to when the output loop has stopped
+	closed                bool               // Set to true when the pipe is closed
 
 	batchLock *sync.Mutex       // The lock for providing thread safe access to the batch collection
 	batchCond *util.ContextCond // Used for signalling a receiver thread that a new batch is available
@@ -50,26 +52,29 @@ type Pipe[T any] struct {
 func NewPipe[T any](bp *BatchPolicy) *Pipe[T] {
 	bLock := &sync.Mutex{}
 	ctx, cancel := context.WithCancel(context.Background())
+	iCtx, iCancel := context.WithCancel(context.Background())
 	c := &Pipe[T]{
-		ctx:               ctx,
-		cancel:            cancel,
-		bp:                bp,
-		input:             make(chan []*T),
-		output:            make(chan []*T),
-		messages:          make([]*T, 0),
-		ticker:            time.NewTicker(bp.Period),
-		batches:           make([][]*T, 0),
-		batchLock:         bLock,
-		batchCond:         util.NewContextCond(bLock),
-		closeInitChan:     make(chan struct{}, 1),
-		stopInputChan:     make(chan struct{}, 1),
-		stopOutputChan:    make(chan struct{}, 1),
-		inputStoppedChan:  make(chan struct{}, 1),
-		outputStoppedChan: make(chan struct{}, 1),
-		closed:            false,
-		closeLock:         &sync.Mutex{},
-		wg:                &sync.WaitGroup{},
-		size:              new(atomic.Int32),
+		ctx:                   ctx,
+		cancel:                cancel,
+		bp:                    bp,
+		input:                 make(chan []*T),
+		output:                make(chan []*T),
+		messages:              make([]*T, 0),
+		ticker:                time.NewTicker(bp.Period),
+		batches:               make([][]*T, 0),
+		batchLock:             bLock,
+		batchCond:             util.NewContextCond(bLock),
+		closeInitChan:         make(chan struct{}, 1),
+		stopInputChan:         make(chan struct{}, 1),
+		stopOutputChan:        make(chan struct{}, 1),
+		inputStoppedChan:      make(chan struct{}, 1),
+		inputStoppedCtx:       iCtx,
+		inputStoppedCtxCancel: iCancel,
+		outputStoppedChan:     make(chan struct{}, 1),
+		closed:                false,
+		closeLock:             &sync.Mutex{},
+		wg:                    &sync.WaitGroup{},
+		size:                  new(atomic.Int32),
 	}
 	c.wg.Go(c.closeLoop)
 	c.wg.Go(c.inputLoop)
@@ -171,7 +176,8 @@ func (c *Pipe[T]) inputLoop() {
 			return
 		case <-c.stopInputChan: // Pipe is closing, push any remaining messages and kill the input loop
 			c.propagateBatch(true)
-			<-c.inputStoppedChan
+			c.inputStoppedChan <- struct{}{}
+			c.inputStoppedCtxCancel()
 			return
 		case <-c.ticker.C: // Batch period has expired
 			c.propagateBatch(true)
@@ -186,7 +192,8 @@ func (c *Pipe[T]) inputLoop() {
 			} else {
 				// The input channel has been closed - gracefully close the pipe
 				c.propagateBatch(true)
-				<-c.inputStoppedChan
+				c.inputStoppedChan <- struct{}{}
+				c.inputStoppedCtxCancel()
 				return
 			}
 		}
@@ -215,37 +222,57 @@ func (c *Pipe[T]) propagateBatch(batchAll bool) {
 // Loop that manages serving batches to receivers.
 func (c *Pipe[T]) outputLoop() {
 	closing := false
-	for {
-		n, err := func() ([]*T, error) {
-			c.batchLock.Lock()
-			defer c.batchLock.Unlock()
+	batchSent := false
+	stopFunc := func() {
+		c.outputStoppedChan <- struct{}{}
+		close(c.output)
+	}
+	nextFunc := func() ([]*T, bool, error) { // Returns true if there are no more messages to serve
+		c.batchLock.Lock()
+		defer c.batchLock.Unlock()
 
-			for len(c.batches) == 0 {
-				if err := c.batchCond.Wait(c.ctx); err != nil {
-					return nil, err
+		for len(c.batches) == 0 {
+			if closing {
+				if err := c.batchCond.Wait(c.ctx); err != nil { // No need to wait for a signal that the input loop has stopped
+					return nil, false, err
+				}
+			} else {
+				if err1, err2 := c.batchCond.Wait2(c.ctx, c.inputStoppedCtx); err1 != nil {
+					return nil, false, err1
+				} else if err2 != nil && c.size.Load() == 0 {
+					return nil, true, nil // The read loop has stopped and the pipe is empty
+				} else if err2 != nil {
+					closing = true // The read loop has stopped but there are more batches to serve
 				}
 			}
-			next := c.batches[0]
-			c.batches = c.batches[1:]
-			return next, nil
-		}()
+		}
+		next := c.batches[0]
+		c.batches = c.batches[1:]
+		return next, false, nil
+	}
 
-		if err != nil {
+	for {
+		nextBatch, finished, err := nextFunc()
+		if finished || err != nil {
+			stopFunc()
 			return
 		}
 
-		select {
-		case <-c.ctx.Done(): // Pipe has been forcefully closed
-			close(c.output)
-			return
-		case <-c.inputStoppedChan: // Pipe is closing
-			closing = true
-		case c.output <- n: // A batch has been sent to a receiver
-			c.size.Add(int32(len(n) * -1))
-			if closing && c.size.Load() == 0 {
-				c.outputStoppedChan <- struct{}{}
-				close(c.output)
+		batchSent = false
+		for !batchSent {
+			select {
+			case <-c.ctx.Done(): // Pipe has been forcefully closed
+				stopFunc()
 				return
+			case <-c.inputStoppedChan: // Pipe is closing
+				closing = true
+			case c.output <- nextBatch: // A batch has been sent to a receiver
+				batchSent = true
+				c.size.Add(int32(len(nextBatch) * -1))
+				if closing && c.size.Load() == 0 {
+					stopFunc()
+					return
+				}
 			}
 		}
 	}

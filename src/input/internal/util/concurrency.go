@@ -26,6 +26,14 @@ func NewContextCond(l sync.Locker) *ContextCond {
 func (c *ContextCond) Wait(ctx context.Context) error {
 	c.l.Unlock()
 
+	// Immediately exit if ctx is already cancelled
+	select {
+	case <-ctx.Done():
+		c.l.Lock()
+		return ctx.Err()
+	default:
+	}
+
 	select {
 	case <-ctx.Done():
 		c.l.Lock()
@@ -33,6 +41,37 @@ func (c *ContextCond) Wait(ctx context.Context) error {
 	case <-c.ch:
 		c.l.Lock()
 		return nil
+	}
+}
+
+// Wait2 waits until either a signal is provided to the cond or either provided context is cancelled.
+// The thread calling Wait must currently hold the underlying lock before calling this method.
+// If the first context is cancelled, its error is returned as the first error. If the second context is cancelled,
+// its error is returned as the second error.
+func (c *ContextCond) Wait2(ctx1, ctx2 context.Context) (error, error) {
+	c.l.Unlock()
+
+	// Immediately exist if either of the contexts are already cancelled
+	select {
+	case <-ctx1.Done():
+		c.l.Lock()
+		return ctx1.Err(), nil
+	case <-ctx2.Done():
+		c.l.Lock()
+		return nil, ctx2.Err()
+	default:
+	}
+
+	select {
+	case <-ctx1.Done():
+		c.l.Lock()
+		return ctx1.Err(), nil
+	case <-ctx2.Done():
+		c.l.Lock()
+		return nil, ctx2.Err()
+	case <-c.ch:
+		c.l.Lock()
+		return nil, nil
 	}
 }
 
