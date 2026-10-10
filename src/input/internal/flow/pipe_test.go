@@ -19,15 +19,15 @@ var rng = test.NewRng(0)
 
 func TestSendAndReceive_SendsAndReceivesTheSameMessage(t *testing.T) {
 	// Arrange
-	ch := makePipe(1, time.Duration(1)*time.Minute)
-	defer ch.Close(t.Context())
+	p := makePipe(1, time.Duration(1)*time.Minute)
+	defer p.Close(t.Context())
 	m := buildMessage()
 
 	// Act
-	if err := ch.Send(t.Context(), m); err != nil {
+	if err := p.Send(t.Context(), m); err != nil {
 		t.Fatal(err)
 	}
-	r, err := ch.Receive(t.Context())
+	r, err := p.Receive(t.Context())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -43,20 +43,34 @@ func TestSendAndReceive_SendsAndReceivesTheSameMessage(t *testing.T) {
 	assert.Equal(t, m.timeValue, rM.timeValue)
 }
 
+func TestChannels_CanSendAndReceiveMessages(t *testing.T) {
+	// Arrange
+	p := makePipe(1, time.Duration(1)*time.Minute)
+	defer p.Close(t.Context())
+	m := buildMessage()
+
+	// Act
+	p.SendChan() <- []*TestMessage{m}
+	rM := <-p.ReceiveChan()
+
+	// Assert
+	assert.Equal(t, 1, len(rM))
+}
+
 func TestReceive_ReceivesBatchedInput(t *testing.T) {
 	// Arrange
 	bSize := 10
-	ch := makePipe(bSize, time.Duration(1)*time.Minute)
-	defer ch.Close(t.Context())
+	p := makePipe(bSize, time.Duration(1)*time.Minute)
+	defer p.Close(t.Context())
 	m := buildMessages(bSize)
 	for i := range bSize {
-		if err := ch.Send(t.Context(), m[i]); err != nil {
+		if err := p.Send(t.Context(), m[i]); err != nil {
 			t.Fatal(err)
 		}
 	}
 
 	// Act
-	r, err := ch.Receive(t.Context())
+	r, err := p.Receive(t.Context())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -68,15 +82,15 @@ func TestReceive_ReceivesBatchedInput(t *testing.T) {
 func TestReceive_ReceivesUnfilledBatchAfterBatchPeriod(t *testing.T) {
 	// Arrange
 	bSize := 10
-	ch := makePipe(bSize, time.Duration(1)*time.Millisecond)
-	defer ch.Close(t.Context())
+	p := makePipe(bSize, time.Duration(1)*time.Millisecond)
+	defer p.Close(t.Context())
 	m := buildMessage()
-	if err := ch.Send(t.Context(), m); err != nil {
+	if err := p.Send(t.Context(), m); err != nil {
 		t.Fatal(err)
 	}
 
 	// Act
-	r, err := ch.Receive(t.Context())
+	r, err := p.Receive(t.Context())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -89,19 +103,19 @@ func TestClose_WaitsForPipeToBeEmpty(t *testing.T) {
 	// Arrange
 	bSize := 1
 	nM := 2
-	ch := makePipe(bSize, time.Duration(1)*time.Minute)
+	p := makePipe(bSize, time.Duration(1)*time.Minute)
 	m := buildMessages(nM)
 	for i := range nM {
-		if err := ch.Send(t.Context(), m[i]); err != nil {
+		if err := p.Send(t.Context(), m[i]); err != nil {
 			t.Fatal(err)
 		}
 	}
 
 	// Act
-	wg := startCloseRoutine(t.Context(), t, ch)
+	wg := startCloseRoutine(t.Context(), t, p)
 	rM := make([]*TestMessage, 0)
 	for range nM {
-		if r, err := ch.Receive(t.Context()); err != nil {
+		if r, err := p.Receive(t.Context()); err != nil {
 			t.Fatal(err)
 		} else {
 			rM = append(rM, r...)
@@ -116,15 +130,15 @@ func TestClose_WaitsForPipeToBeEmpty(t *testing.T) {
 func TestClose_ForceClosesPipeIfContextIsCancelled(t *testing.T) {
 	// Arrange
 	ctx, cancel := context.WithCancel(t.Context())
-	ch := makePipe(1, time.Duration(1)*time.Minute)
+	p := makePipe(1, time.Duration(1)*time.Minute)
 	m := buildMessage()
-	if err := ch.Send(t.Context(), m); err != nil {
+	if err := p.Send(t.Context(), m); err != nil {
 		cancel()
 		t.Fatal(err)
 	}
 
 	// Act & Assert
-	wg := startCloseRoutine(ctx, t, ch)
+	wg := startCloseRoutine(ctx, t, p)
 	cancel()
 	wg.Wait()
 }
