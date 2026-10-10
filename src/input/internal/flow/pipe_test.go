@@ -6,6 +6,7 @@ import (
 	"dhickie/benthos-sqs-fifo/src/input/internal/test"
 	"dhickie/benthos-sqs-fifo/src/input/internal/util"
 	"fmt"
+	"log/slog"
 	"slices"
 	"sync"
 	"testing"
@@ -153,7 +154,7 @@ func TestPipe_UnderHighLoad(t *testing.T) {
 	bp := NewBatchPolicy(batchSize, batchPeriod)
 	pipes := make([]*Pipe[TestMessage], nPipes)
 	for i := range nPipes {
-		pipes[i] = NewPipe[TestMessage](bp)
+		pipes[i] = NewPipe[TestMessage]("testpipe", bp, slog.Default())
 	}
 
 	// Start publishing & subscribing routines
@@ -289,7 +290,7 @@ func startCloseRoutine(ctx context.Context, t *testing.T, ch *Pipe[TestMessage])
 
 func makePipe(batchSize int, period time.Duration) *Pipe[TestMessage] {
 	bp := NewBatchPolicy(batchSize, period)
-	return NewPipe[TestMessage](bp)
+	return NewPipe[TestMessage]("testpipe", bp, slog.Default())
 }
 
 func buildMessages(n int) []*TestMessage {

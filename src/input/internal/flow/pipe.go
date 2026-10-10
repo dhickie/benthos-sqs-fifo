@@ -4,10 +4,17 @@ import (
 	"context"
 	"dhickie/benthos-sqs-fifo/src/input/internal/util"
 	"errors"
+	"log/slog"
 	"slices"
 	"sync"
 	"sync/atomic"
 	"time"
+)
+
+const (
+	logPropPipeName   = "pipeName"
+	logPropNumMsgs    = "numMsgs"
+	logPropNumBatches = "numBatches"
 )
 
 // Pipe represents a medium for asynchronously sending messages of any type to one or more receivers.
@@ -18,6 +25,8 @@ import (
 //
 // Pipes are strictly FIFO and ordering is guaranteed.
 type Pipe[T any] struct {
+	name string // A name for the pipe - used in logging
+
 	ctx    context.Context    // The context for the lifetime of the pipe - cancelled when the pipe has closed
 	cancel context.CancelFunc // The function to cancel the lifetime context
 
@@ -45,15 +54,18 @@ type Pipe[T any] struct {
 	batchCond *util.ContextCond // Used for signalling a receiver thread that a new batch is available
 	closeLock *sync.Mutex       // Ensures that a single call to Close is processed at a time, providing safe closure
 	wg        *sync.WaitGroup   // Used to wait for the batching and serving loops to exit
+
+	logger *slog.Logger
 }
 
 // NewPipe returns a pointer to a new pipe that can send and receive messages of the specified type, and applies
 // the provided batching policy to any sent messages before propagating messages to receivers.
-func NewPipe[T any](bp *BatchPolicy) *Pipe[T] {
+func NewPipe[T any](name string, bp *BatchPolicy, logger *slog.Logger) *Pipe[T] {
 	bLock := &sync.Mutex{}
 	ctx, cancel := context.WithCancel(context.Background())
 	iCtx, iCancel := context.WithCancel(context.Background())
 	c := &Pipe[T]{
+		name:                  name,
 		ctx:                   ctx,
 		cancel:                cancel,
 		bp:                    bp,
@@ -75,6 +87,7 @@ func NewPipe[T any](bp *BatchPolicy) *Pipe[T] {
 		closeLock:             &sync.Mutex{},
 		wg:                    &sync.WaitGroup{},
 		size:                  new(atomic.Int32),
+		logger:                logger,
 	}
 	c.wg.Go(c.closeLoop)
 	c.wg.Go(c.inputLoop)
@@ -107,7 +120,11 @@ func (c *Pipe[T]) SendChan() chan<- []*T {
 func (c *Pipe[T]) Receive(ctx context.Context) ([]*T, error) {
 	select {
 	case <-c.ctx.Done():
+		c.logger.Debug("Pipe closed while waiting for batch", logPropPipeName, c.name)
 		return nil, c.ctx.Err()
+	case <-ctx.Done():
+		c.logger.Debug("Context cancelled while waiting for batch", logPropPipeName, c.name)
+		return nil, ctx.Err()
 	case m, ok := <-c.output:
 		if ok {
 			return m, nil
@@ -131,7 +148,10 @@ func (c *Pipe[T]) Close(ctx context.Context) {
 	c.closeLock.Lock()
 	defer c.closeLock.Unlock()
 
+	c.logger.Debug("Pipe closing", logPropPipeName, c.name)
+
 	if c.closed {
+		c.logger.Debug("Pipe already closed", logPropPipeName, c.name)
 		return
 	}
 
@@ -141,7 +161,9 @@ func (c *Pipe[T]) Close(ctx context.Context) {
 	// Wait for either the closure to finish, or the context to be cancelled
 	select {
 	case <-ctx.Done():
+		c.logger.Debug("Context cancelled while waiting for graceful closure", logPropPipeName, c.name)
 	case <-c.outputStoppedChan:
+		c.logger.Debug("Pipe closed gracefully", logPropPipeName, c.name)
 	}
 
 	// Cancel the lifetime context
@@ -150,19 +172,24 @@ func (c *Pipe[T]) Close(ctx context.Context) {
 	// Wait for all the loops to exit
 	c.wg.Wait()
 	c.closed = true
+	c.logger.Debug("Pipe closure complete", logPropPipeName, c.name)
 }
 
 // Loop that manages the closure of the pipe, ensuring graceful termination
 func (c *Pipe[T]) closeLoop() {
 	for {
 		select {
-		case <-c.ctx.Done(): // The pipe is being force closed - kill the loop
+		case <-c.ctx.Done(): // Force closure - kill the loop
+			c.logger.Debug("Close loop: lifetime context cancelled - killing loop", logPropPipeName, c.name)
 			return
-		case <-c.closeInitChan: // Graceful close has been initiated - tell the input loop to stop
+		case <-c.closeInitChan: // Tell the input loop to stop
+			c.logger.Debug("Close loop: closure initiated", logPropPipeName, c.name)
 			c.stopInputChan <- struct{}{}
-		case <-c.inputStoppedChan: // The input loop has stopped, tell the output loop to stop when empty
+		case <-c.inputStoppedChan: // Tell the output loop to stop when empty
+			c.logger.Debug("Close loop: input loop stopped", logPropPipeName, c.name)
 			c.stopOutputChan <- struct{}{}
-		case <-c.outputStoppedChan: // Graceful stop is complete, kill the loop
+		case <-c.outputStoppedChan:
+			c.logger.Debug("Close loop: output loop stopped - killing loop", logPropPipeName, c.name)
 			return
 		}
 	}
@@ -172,17 +199,21 @@ func (c *Pipe[T]) closeLoop() {
 func (c *Pipe[T]) inputLoop() {
 	for {
 		select {
-		case <-c.ctx.Done(): // Pipe is being force closed
+		case <-c.ctx.Done():
+			c.logger.Debug("Input loop: lifetime context cancelled - killing loop", logPropPipeName, c.name)
 			return
-		case <-c.stopInputChan: // Pipe is closing, push any remaining messages and kill the input loop
+		case <-c.stopInputChan:
+			c.logger.Debug("Input loop: stop instruction received, flushing pending messages", logPropPipeName, c.name)
 			c.propagateBatch(true)
 			c.inputStoppedChan <- struct{}{}
-			c.inputStoppedCtxCancel()
+			c.inputStoppedCtxCancel() // Needed to tell the batch wait cond to stop waiting for any new batches
 			return
 		case <-c.ticker.C: // Batch period has expired
+			c.logger.Debug("Input loop: batch period expired", logPropPipeName, c.name)
 			c.propagateBatch(true)
 		case m, ok := <-c.input: // Messages received on the input channel
 			if ok {
+				c.logger.Debug("Input loop: received new messages", logPropPipeName, c.name, logPropNumMsgs, len(m))
 				c.size.Add(int32(len(m)))
 				c.messages = append(c.messages, m...)
 				if len(c.messages) >= c.bp.Number {
@@ -191,6 +222,7 @@ func (c *Pipe[T]) inputLoop() {
 				}
 			} else {
 				// The input channel has been closed - gracefully close the pipe
+				c.logger.Debug("Input loop: input channel closed - killing loop", logPropPipeName, c.name)
 				c.propagateBatch(true)
 				c.inputStoppedChan <- struct{}{}
 				c.inputStoppedCtxCancel()
@@ -213,6 +245,7 @@ func (c *Pipe[T]) propagateBatch(batchAll bool) {
 			if len(c.batches) == 0 {
 				c.batchCond.Signal()
 			}
+			c.logger.Debug("Input loop: batch propagated", logPropPipeName, c.name, logPropNumMsgs, len(v))
 			c.batches = append(c.batches, v)
 			c.messages = c.messages[len(v):]
 		}
@@ -224,6 +257,7 @@ func (c *Pipe[T]) outputLoop() {
 	closing := false
 	batchSent := false
 	stopFunc := func() {
+		c.logger.Debug("Output loop: stopping", logPropPipeName, c.name)
 		c.outputStoppedChan <- struct{}{}
 		close(c.output)
 	}
@@ -234,14 +268,18 @@ func (c *Pipe[T]) outputLoop() {
 		for len(c.batches) == 0 {
 			if closing {
 				if err := c.batchCond.Wait(c.ctx); err != nil { // No need to wait for a signal that the input loop has stopped
+					c.logger.Debug("Output loop: lifetime context cancelled while waiting for batch", logPropPipeName, c.name)
 					return nil, false, err
 				}
 			} else {
 				if err1, err2 := c.batchCond.Wait2(c.ctx, c.inputStoppedCtx); err1 != nil {
+					c.logger.Debug("Output loop: lifetime context cancelled while waiting for batch", logPropPipeName, c.name)
 					return nil, false, err1
 				} else if err2 != nil && c.size.Load() == 0 {
+					c.logger.Debug("Output loop: received stop, batches empty", logPropPipeName, c.name)
 					return nil, true, nil // The read loop has stopped and the pipe is empty
 				} else if err2 != nil {
+					c.logger.Debug("Output loop: received stop, batches remaining", logPropPipeName, c.name, logPropNumBatches, len(c.batches))
 					closing = true // The read loop has stopped but there are more batches to serve
 				}
 			}
@@ -262,14 +300,18 @@ func (c *Pipe[T]) outputLoop() {
 		for !batchSent {
 			select {
 			case <-c.ctx.Done(): // Pipe has been forcefully closed
+				c.logger.Debug("Output loop: lifetime context cancelled while waiting for receiver", logPropPipeName, c.name)
 				stopFunc()
 				return
-			case <-c.inputStoppedChan: // Pipe is closing
+			case <-c.inputStoppedChan:
+				c.logger.Debug("Output loop: received stop, batches remaining", logPropPipeName, c.name, logPropNumBatches, len(c.batches))
 				closing = true
-			case c.output <- nextBatch: // A batch has been sent to a receiver
+			case c.output <- nextBatch:
+				c.logger.Debug("Output loop: batch received", logPropPipeName, c.name, logPropNumMsgs, len(nextBatch))
 				batchSent = true
 				c.size.Add(int32(len(nextBatch) * -1))
 				if closing && c.size.Load() == 0 {
+					c.logger.Debug("Output loop: closure complete", logPropPipeName, c.name)
 					stopFunc()
 					return
 				}
