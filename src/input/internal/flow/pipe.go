@@ -9,6 +9,8 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 const (
@@ -24,7 +26,8 @@ const (
 // duration since the previous pushed batch is greater than the maximum batch period.
 //
 // Pipes are strictly FIFO and ordering is guaranteed.
-type Pipe[T any] struct {
+type Pipe struct {
+	id   string // A unique identifier for the pipe
 	name string // A name for the pipe - used in logging
 
 	ctx    context.Context    // The context for the lifetime of the pipe - cancelled when the pipe has closed
@@ -33,13 +36,13 @@ type Pipe[T any] struct {
 	bp   *BatchPolicy  // The batch policy that governs when batches are propagated to receivers
 	size *atomic.Int32 // The number of messages waiting to be received in the pipe
 
-	input  chan []*T // The input channel for incoming messages
-	output chan []*T // The output channel for outgoing batches of messages
+	input  chan []any // The input channel for incoming messages
+	output chan []any // The output channel for outgoing batches of messages
 
 	ticker *time.Ticker // The ticker that governs the pushing of batches according to the batch policy
 
-	messages []*T   // Collection of pending un-batched messages
-	batches  [][]*T // Pending batches that haven't yet been received
+	messages []any   // Collection of pending un-batched messages
+	batches  [][]any // Pending batches that haven't yet been received
 
 	closeInitChan         chan struct{}      // Channel that is sent to when pipe closure is being initiated
 	stopInputChan         chan struct{}      // Channel that is sent to when the input loop should stop
@@ -60,20 +63,21 @@ type Pipe[T any] struct {
 
 // NewPipe returns a pointer to a new pipe that can send and receive messages of the specified type, and applies
 // the provided batching policy to any sent messages before propagating messages to receivers.
-func NewPipe[T any](name string, bp *BatchPolicy, logger *slog.Logger) *Pipe[T] {
+func NewPipe[T any](name string, bp *BatchPolicy, logger *slog.Logger) *Pipe {
 	bLock := &sync.Mutex{}
 	ctx, cancel := context.WithCancel(context.Background())
 	iCtx, iCancel := context.WithCancel(context.Background())
-	c := &Pipe[T]{
+	c := &Pipe{
+		id:                    uuid.NewString(),
 		name:                  name,
 		ctx:                   ctx,
 		cancel:                cancel,
 		bp:                    bp,
-		input:                 make(chan []*T),
-		output:                make(chan []*T),
-		messages:              make([]*T, 0),
+		input:                 make(chan []any),
+		output:                make(chan []any),
+		messages:              make([]any, 0),
 		ticker:                time.NewTicker(bp.Period),
-		batches:               make([][]*T, 0),
+		batches:               make([][]any, 0),
 		batchLock:             bLock,
 		batchCond:             util.NewContextCond(bLock),
 		closeInitChan:         make(chan struct{}, 1),
@@ -98,7 +102,7 @@ func NewPipe[T any](name string, bp *BatchPolicy, logger *slog.Logger) *Pipe[T] 
 // Send sends the provided message(s) to the pipe.
 // Blocks indefinitely if the pipe is already closed.
 // Returns an error if ctx is cancelled.
-func (c *Pipe[T]) Send(ctx context.Context, m ...*T) error {
+func (c *Pipe) Send(ctx context.Context, m ...any) error {
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
@@ -110,14 +114,14 @@ func (c *Pipe[T]) Send(ctx context.Context, m ...*T) error {
 // SendChan returns a channel that can be used to send messages to the pipe, for example if needed for use with a
 // select statement. If the channel is closed, it will asynchronously gracefully close the pipe.
 // If the pipe is already closed when the channel is sent to, it will block indefinitely.
-func (c *Pipe[T]) SendChan() chan<- []*T {
+func (c *Pipe) SendChan() chan<- []any {
 	return c.input
 }
 
 // Receive receives the next batch of messages from the pipe, blocking until one is available.
 // Returns an error if the pipe is already closed, or is forcefully closed while waiting for messages to be available.
 // If the provided context is cancelled, any wait for a new batch is abandoned and an error is returned.
-func (c *Pipe[T]) Receive(ctx context.Context) ([]*T, error) {
+func (c *Pipe) Receive(ctx context.Context) ([]any, error) {
 	select {
 	case <-c.ctx.Done():
 		c.logger.Debug("Pipe closed while waiting for batch", logPropPipeName, c.name)
@@ -137,14 +141,14 @@ func (c *Pipe[T]) Receive(ctx context.Context) ([]*T, error) {
 // ReceiveChan returns a channel that can be used to receive batches of messages from the pipe, for example if
 // needed for use with a select statement. If the pipe is closed, this channel will be closed when there are
 // no more messages remaining.
-func (c *Pipe[T]) ReceiveChan() <-chan []*T {
+func (c *Pipe) ReceiveChan() <-chan []any {
 	return c.output
 }
 
 // Close initiates a graceful closure of the pipe, and blocks until any remaining messages in the pipe have been
 // received. Any attempts to send more messages while the pipe is closing will return an error. If the context
 // provided to Close is cancelled while waiting, the pipe is forcefully closed and any pending messages are lost.
-func (c *Pipe[T]) Close(ctx context.Context) {
+func (c *Pipe) Close(ctx context.Context) {
 	c.closeLock.Lock()
 	defer c.closeLock.Unlock()
 
@@ -176,7 +180,7 @@ func (c *Pipe[T]) Close(ctx context.Context) {
 }
 
 // Loop that manages the closure of the pipe, ensuring graceful termination
-func (c *Pipe[T]) closeLoop() {
+func (c *Pipe) closeLoop() {
 	for {
 		select {
 		case <-c.ctx.Done(): // Force closure - kill the loop
@@ -196,7 +200,7 @@ func (c *Pipe[T]) closeLoop() {
 }
 
 // Loop that manages the batching and propagation of incoming messages according to the channel's batch policy.
-func (c *Pipe[T]) inputLoop() {
+func (c *Pipe) inputLoop() {
 	for {
 		select {
 		case <-c.ctx.Done():
@@ -235,7 +239,7 @@ func (c *Pipe[T]) inputLoop() {
 // Batches pending messages and makes them available to receivers.
 // If batchAll is true, all pending messages will be batched regardless of whether they fill full batches.
 // If batchAll is false, messages are only batched if they can fill a full batch.
-func (c *Pipe[T]) propagateBatch(batchAll bool) {
+func (c *Pipe) propagateBatch(batchAll bool) {
 	c.batchLock.Lock()
 	defer c.batchLock.Unlock()
 
@@ -253,7 +257,7 @@ func (c *Pipe[T]) propagateBatch(batchAll bool) {
 }
 
 // Loop that manages serving batches to receivers.
-func (c *Pipe[T]) outputLoop() {
+func (c *Pipe) outputLoop() {
 	closing := false
 	batchSent := false
 	stopFunc := func() {
@@ -261,7 +265,7 @@ func (c *Pipe[T]) outputLoop() {
 		c.outputStoppedChan <- struct{}{}
 		close(c.output)
 	}
-	nextFunc := func() ([]*T, bool, error) { // Returns true if there are no more messages to serve
+	nextFunc := func() ([]any, bool, error) { // Returns true if there are no more messages to serve
 		c.batchLock.Lock()
 		defer c.batchLock.Unlock()
 
