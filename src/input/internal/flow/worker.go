@@ -1,44 +1,62 @@
 package flow
 
-type Worker struct {
-	input  chan any
-	output chan any
-	f      func(any) (any, error)
+type WorkerPool struct {
+	workers  []*Worker
+	workChan chan *WorkItem
 }
 
-func NewWorker(input chan any, output chan any, f func(any) (any, error)) *Worker {
+func NewWorkerPool(numWorkers int) *WorkerPool {
+	workers := make([]*Worker, numWorkers)
+	input := make(chan *WorkItem)
+	for i := range numWorkers {
+		workers[i] = NewWorker(input)
+	}
+	return &WorkerPool{
+		workers:  workers,
+		workChan: input,
+	}
+}
+
+func (p *WorkerPool) Do(h *Handler, w []any, o *Pipe) {
+	f := func() ([]any, error) {
+		return h.Handle(w)
+	}
+	wi := NewWorkItem(f, o)
+	p.workChan <- wi
+}
+
+type Worker struct {
+	input chan *WorkItem
+}
+
+func NewWorker(input chan *WorkItem) *Worker {
 	w := &Worker{
-		input:  input,
-		output: output,
-		f:      f,
+		input: input,
 	}
 
-	go w.Run()
+	go w.run()
 	return w
 }
 
-type WorkerPool struct {
-	workers []*Worker
-}
-
-func NewWorkerPool(input chan any, output chan any, f func(any) (any, error), numWorkers int) *WorkerPool {
-	workers := make([]*Worker, numWorkers)
-	for i := range workers {
-		workers[i] = NewWorker(input, output, f)
-	}
-
-	return &WorkerPool{
-		workers: workers,
-	}
-}
-
-func (w *Worker) Run() {
-	var i any
-	var r any
+func (w *Worker) run() {
+	var i *WorkItem
+	var r []any
 	//var err error
 	for { // TODO: Handle context cancellation
 		i = <-w.input
-		r, _ = w.f(i) // TODO: Handle errors
-		w.output <- r
+		r, _ = i.f() // TODO: Handle errors
+		i.output.SendChan() <- r
+	}
+}
+
+type WorkItem struct {
+	f      func() ([]any, error)
+	output *Pipe
+}
+
+func NewWorkItem(f func() ([]any, error), output *Pipe) *WorkItem {
+	return &WorkItem{
+		f:      f,
+		output: output,
 	}
 }
