@@ -7,6 +7,7 @@ import (
 	"dhickie/benthos-sqs-fifo/src/input/internal/util"
 	"fmt"
 	"log/slog"
+	"reflect"
 	"slices"
 	"sync"
 	"testing"
@@ -17,6 +18,27 @@ import (
 )
 
 var rng = test.NewRng(0)
+
+func TestSendAndReceive_UseSameTypeForMessage(t *testing.T) {
+	// Arrange
+	p := makePipe(1, time.Duration(1)*time.Minute)
+	defer p.Close(t.Context())
+	m := buildMessage()
+
+	// Act
+	if err := p.Send(t.Context(), m); err != nil {
+		t.Fatal(err)
+	}
+	r, err := p.Receive(t.Context())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Assert
+	sentType := reflect.TypeOf(m)
+	receivedType := reflect.TypeOf(r[0])
+	assert.Equal(t, sentType, receivedType)
+}
 
 func TestSendAndReceive_SendsAndReceivesTheSameMessage(t *testing.T) {
 	// Arrange
@@ -35,7 +57,7 @@ func TestSendAndReceive_SendsAndReceivesTheSameMessage(t *testing.T) {
 
 	// Assert
 	assert.Equal(t, 1, len(r))
-	rM := r[0]
+	rM := r[0].(*TestMessage)
 	assert.Equal(t, m.intValue, rM.intValue)
 	assert.Equal(t, m.int32Value, rM.int32Value)
 	assert.Equal(t, m.strValue, rM.strValue)
@@ -51,7 +73,7 @@ func TestChannels_CanSendAndReceiveMessages(t *testing.T) {
 	m := buildMessage()
 
 	// Act
-	p.SendChan() <- []*TestMessage{m}
+	p.SendChan() <- []any{m}
 	rM := <-p.ReceiveChan()
 
 	// Assert
@@ -114,7 +136,7 @@ func TestClose_WaitsForPipeToBeEmpty(t *testing.T) {
 
 	// Act
 	wg := startCloseRoutine(t.Context(), t, p)
-	rM := make([]*TestMessage, 0)
+	rM := make([]any, 0)
 	for range nM {
 		if r, err := p.Receive(t.Context()); err != nil {
 			t.Fatal(err)
@@ -152,9 +174,9 @@ func TestPipe_UnderHighLoad(t *testing.T) {
 
 	// Create the pipes
 	bp := NewBatchPolicy(batchSize, batchPeriod)
-	pipes := make([]*Pipe[TestMessage], nPipes)
+	pipes := make([]*Pipe, nPipes)
 	for i := range nPipes {
-		pipes[i] = NewPipe[TestMessage]("testpipe", bp, slog.Default())
+		pipes[i] = NewPipe("testpipe", bp, slog.Default())
 	}
 
 	// Start publishing & subscribing routines
@@ -187,8 +209,9 @@ func TestPipe_UnderHighLoad(t *testing.T) {
 				return
 			} else {
 				for _, v := range batch {
-					latencies[i][received] = float64(time.Since(v.timeValue).Nanoseconds())
-					msgs[received] = v
+					m := v.(*TestMessage)
+					latencies[i][received] = float64(time.Since(m.timeValue).Nanoseconds())
+					msgs[received] = m
 					received++
 				}
 			}
@@ -274,7 +297,7 @@ func meanMany(values [][]float64) float64 {
 	return total / float64(n)
 }
 
-func startCloseRoutine(ctx context.Context, t *testing.T, ch *Pipe[TestMessage]) *sync.WaitGroup {
+func startCloseRoutine(ctx context.Context, t *testing.T, ch *Pipe) *sync.WaitGroup {
 	wg := sync.WaitGroup{}
 	c := util.NewAsyncCond()
 	wg.Go(func() {
@@ -288,9 +311,9 @@ func startCloseRoutine(ctx context.Context, t *testing.T, ch *Pipe[TestMessage])
 	return &wg
 }
 
-func makePipe(batchSize int, period time.Duration) *Pipe[TestMessage] {
+func makePipe(batchSize int, period time.Duration) *Pipe {
 	bp := NewBatchPolicy(batchSize, period)
-	return NewPipe[TestMessage]("testpipe", bp, slog.Default())
+	return NewPipe("testpipe", bp, slog.Default())
 }
 
 func buildMessages(n int) []*TestMessage {

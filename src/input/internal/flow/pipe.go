@@ -63,7 +63,7 @@ type Pipe struct {
 
 // NewPipe returns a pointer to a new pipe that can send and receive messages of the specified type, and applies
 // the provided batching policy to any sent messages before propagating messages to receivers.
-func NewPipe[T any](name string, bp *BatchPolicy, logger *slog.Logger) *Pipe {
+func NewPipe(name string, bp *BatchPolicy, logger *slog.Logger) *Pipe {
 	bLock := &sync.Mutex{}
 	ctx, cancel := context.WithCancel(context.Background())
 	iCtx, iCancel := context.WithCancel(context.Background())
