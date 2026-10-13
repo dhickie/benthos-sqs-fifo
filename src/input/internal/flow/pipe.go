@@ -102,11 +102,16 @@ func NewPipe(name string, bp *BatchPolicy, logger *slog.Logger) *Pipe {
 // Send sends the provided message(s) to the pipe.
 // Blocks indefinitely if the pipe is already closed.
 // Returns an error if ctx is cancelled.
-func (c *Pipe) Send(ctx context.Context, m ...any) error {
+func (c *Pipe) Send[T any](ctx context.Context, m ...T) error {
+	mConv := make([]any, len(m))
+	for i, v := range m {
+		mConv[i] = v
+	}
+
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
-	case c.input <- m:
+	case c.input <- mConv:
 		return nil
 	}
 }

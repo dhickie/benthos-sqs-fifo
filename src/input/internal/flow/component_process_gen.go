@@ -2,7 +2,7 @@
 
 package flow
 
-func (c *Component) processLoop1(p1 *Pipe) {
+func (c *Component) ProcessLoop1(p1 *Pipe) {
 	var work []any
 
 	for {
@@ -13,7 +13,7 @@ func (c *Component) processLoop1(p1 *Pipe) {
 	}
 }
 
-func (c *Component) processLoop2(p1 *Pipe, p2 *Pipe) {
+func (c *Component) ProcessLoop2(p1 *Pipe, p2 *Pipe) {
 	var work []any
 
 	for {
@@ -26,7 +26,7 @@ func (c *Component) processLoop2(p1 *Pipe, p2 *Pipe) {
 	}
 }
 
-func (c *Component) processLoop3(p1 *Pipe, p2 *Pipe, p3 *Pipe) {
+func (c *Component) ProcessLoop3(p1 *Pipe, p2 *Pipe, p3 *Pipe) {
 	var work []any
 
 	for {
@@ -41,7 +41,7 @@ func (c *Component) processLoop3(p1 *Pipe, p2 *Pipe, p3 *Pipe) {
 	}
 }
 
-func (c *Component) processLoop4(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe) {
+func (c *Component) ProcessLoop4(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe) {
 	var work []any
 
 	for {
@@ -58,7 +58,7 @@ func (c *Component) processLoop4(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe) {
 	}
 }
 
-func (c *Component) processLoop5(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pipe) {
+func (c *Component) ProcessLoop5(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pipe) {
 	var work []any
 
 	for {
@@ -77,7 +77,7 @@ func (c *Component) processLoop5(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pip
 	}
 }
 
-func (c *Component) processLoop6(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pipe, p6 *Pipe) {
+func (c *Component) ProcessLoop6(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pipe, p6 *Pipe) {
 	var work []any
 
 	for {
@@ -98,7 +98,7 @@ func (c *Component) processLoop6(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pip
 	}
 }
 
-func (c *Component) processLoop7(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pipe, p6 *Pipe, p7 *Pipe) {
+func (c *Component) ProcessLoop7(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pipe, p6 *Pipe, p7 *Pipe) {
 	var work []any
 
 	for {
@@ -121,7 +121,7 @@ func (c *Component) processLoop7(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pip
 	}
 }
 
-func (c *Component) processLoop8(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pipe, p6 *Pipe, p7 *Pipe, p8 *Pipe) {
+func (c *Component) ProcessLoop8(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pipe, p6 *Pipe, p7 *Pipe, p8 *Pipe) {
 	var work []any
 
 	for {
@@ -146,7 +146,7 @@ func (c *Component) processLoop8(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pip
 	}
 }
 
-func (c *Component) processLoop9(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pipe, p6 *Pipe, p7 *Pipe, p8 *Pipe, p9 *Pipe) {
+func (c *Component) ProcessLoop9(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pipe, p6 *Pipe, p7 *Pipe, p8 *Pipe, p9 *Pipe) {
 	var work []any
 
 	for {
@@ -173,7 +173,7 @@ func (c *Component) processLoop9(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pip
 	}
 }
 
-func (c *Component) processLoop10(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pipe, p6 *Pipe, p7 *Pipe, p8 *Pipe, p9 *Pipe, p10 *Pipe) {
+func (c *Component) ProcessLoop10(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pipe, p6 *Pipe, p7 *Pipe, p8 *Pipe, p9 *Pipe, p10 *Pipe) {
 	var work []any
 
 	for {
@@ -202,7 +202,7 @@ func (c *Component) processLoop10(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pi
 	}
 }
 
-func (c *Component) processLoop11(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pipe, p6 *Pipe, p7 *Pipe, p8 *Pipe, p9 *Pipe, p10 *Pipe, p11 *Pipe) {
+func (c *Component) ProcessLoop11(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pipe, p6 *Pipe, p7 *Pipe, p8 *Pipe, p9 *Pipe, p10 *Pipe, p11 *Pipe) {
 	var work []any
 
 	for {
@@ -233,7 +233,7 @@ func (c *Component) processLoop11(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pi
 	}
 }
 
-func (c *Component) processLoop12(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pipe, p6 *Pipe, p7 *Pipe, p8 *Pipe, p9 *Pipe, p10 *Pipe, p11 *Pipe, p12 *Pipe) {
+func (c *Component) ProcessLoop12(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pipe, p6 *Pipe, p7 *Pipe, p8 *Pipe, p9 *Pipe, p10 *Pipe, p11 *Pipe, p12 *Pipe) {
 	var work []any
 
 	for {
@@ -266,7 +266,7 @@ func (c *Component) processLoop12(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pi
 	}
 }
 
-func (c *Component) processLoop13(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pipe, p6 *Pipe, p7 *Pipe, p8 *Pipe, p9 *Pipe, p10 *Pipe, p11 *Pipe, p12 *Pipe, p13 *Pipe) {
+func (c *Component) ProcessLoop13(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pipe, p6 *Pipe, p7 *Pipe, p8 *Pipe, p9 *Pipe, p10 *Pipe, p11 *Pipe, p12 *Pipe, p13 *Pipe) {
 	var work []any
 
 	for {
@@ -301,7 +301,7 @@ func (c *Component) processLoop13(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pi
 	}
 }
 
-func (c *Component) processLoop14(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pipe, p6 *Pipe, p7 *Pipe, p8 *Pipe, p9 *Pipe, p10 *Pipe, p11 *Pipe, p12 *Pipe, p13 *Pipe, p14 *Pipe) {
+func (c *Component) ProcessLoop14(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pipe, p6 *Pipe, p7 *Pipe, p8 *Pipe, p9 *Pipe, p10 *Pipe, p11 *Pipe, p12 *Pipe, p13 *Pipe, p14 *Pipe) {
 	var work []any
 
 	for {
@@ -338,7 +338,7 @@ func (c *Component) processLoop14(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pi
 	}
 }
 
-func (c *Component) processLoop15(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pipe, p6 *Pipe, p7 *Pipe, p8 *Pipe, p9 *Pipe, p10 *Pipe, p11 *Pipe, p12 *Pipe, p13 *Pipe, p14 *Pipe, p15 *Pipe) {
+func (c *Component) ProcessLoop15(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pipe, p6 *Pipe, p7 *Pipe, p8 *Pipe, p9 *Pipe, p10 *Pipe, p11 *Pipe, p12 *Pipe, p13 *Pipe, p14 *Pipe, p15 *Pipe) {
 	var work []any
 
 	for {
@@ -377,7 +377,7 @@ func (c *Component) processLoop15(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pi
 	}
 }
 
-func (c *Component) processLoop16(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pipe, p6 *Pipe, p7 *Pipe, p8 *Pipe, p9 *Pipe, p10 *Pipe, p11 *Pipe, p12 *Pipe, p13 *Pipe, p14 *Pipe, p15 *Pipe, p16 *Pipe) {
+func (c *Component) ProcessLoop16(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pipe, p6 *Pipe, p7 *Pipe, p8 *Pipe, p9 *Pipe, p10 *Pipe, p11 *Pipe, p12 *Pipe, p13 *Pipe, p14 *Pipe, p15 *Pipe, p16 *Pipe) {
 	var work []any
 
 	for {
@@ -418,7 +418,7 @@ func (c *Component) processLoop16(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pi
 	}
 }
 
-func (c *Component) processLoop17(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pipe, p6 *Pipe, p7 *Pipe, p8 *Pipe, p9 *Pipe, p10 *Pipe, p11 *Pipe, p12 *Pipe, p13 *Pipe, p14 *Pipe, p15 *Pipe, p16 *Pipe, p17 *Pipe) {
+func (c *Component) ProcessLoop17(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pipe, p6 *Pipe, p7 *Pipe, p8 *Pipe, p9 *Pipe, p10 *Pipe, p11 *Pipe, p12 *Pipe, p13 *Pipe, p14 *Pipe, p15 *Pipe, p16 *Pipe, p17 *Pipe) {
 	var work []any
 
 	for {
@@ -461,7 +461,7 @@ func (c *Component) processLoop17(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pi
 	}
 }
 
-func (c *Component) processLoop18(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pipe, p6 *Pipe, p7 *Pipe, p8 *Pipe, p9 *Pipe, p10 *Pipe, p11 *Pipe, p12 *Pipe, p13 *Pipe, p14 *Pipe, p15 *Pipe, p16 *Pipe, p17 *Pipe, p18 *Pipe) {
+func (c *Component) ProcessLoop18(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pipe, p6 *Pipe, p7 *Pipe, p8 *Pipe, p9 *Pipe, p10 *Pipe, p11 *Pipe, p12 *Pipe, p13 *Pipe, p14 *Pipe, p15 *Pipe, p16 *Pipe, p17 *Pipe, p18 *Pipe) {
 	var work []any
 
 	for {
@@ -506,7 +506,7 @@ func (c *Component) processLoop18(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pi
 	}
 }
 
-func (c *Component) processLoop19(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pipe, p6 *Pipe, p7 *Pipe, p8 *Pipe, p9 *Pipe, p10 *Pipe, p11 *Pipe, p12 *Pipe, p13 *Pipe, p14 *Pipe, p15 *Pipe, p16 *Pipe, p17 *Pipe, p18 *Pipe, p19 *Pipe) {
+func (c *Component) ProcessLoop19(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pipe, p6 *Pipe, p7 *Pipe, p8 *Pipe, p9 *Pipe, p10 *Pipe, p11 *Pipe, p12 *Pipe, p13 *Pipe, p14 *Pipe, p15 *Pipe, p16 *Pipe, p17 *Pipe, p18 *Pipe, p19 *Pipe) {
 	var work []any
 
 	for {
@@ -553,7 +553,7 @@ func (c *Component) processLoop19(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pi
 	}
 }
 
-func (c *Component) processLoop20(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pipe, p6 *Pipe, p7 *Pipe, p8 *Pipe, p9 *Pipe, p10 *Pipe, p11 *Pipe, p12 *Pipe, p13 *Pipe, p14 *Pipe, p15 *Pipe, p16 *Pipe, p17 *Pipe, p18 *Pipe, p19 *Pipe, p20 *Pipe) {
+func (c *Component) ProcessLoop20(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pipe, p6 *Pipe, p7 *Pipe, p8 *Pipe, p9 *Pipe, p10 *Pipe, p11 *Pipe, p12 *Pipe, p13 *Pipe, p14 *Pipe, p15 *Pipe, p16 *Pipe, p17 *Pipe, p18 *Pipe, p19 *Pipe, p20 *Pipe) {
 	var work []any
 
 	for {

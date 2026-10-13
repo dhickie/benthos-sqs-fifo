@@ -42,7 +42,7 @@ func NewComponent(couplings []HandlerCoupling, maxConcurrency int) *Component {
 	}
 
 	cValue := reflect.ValueOf(c)
-	pMethod := cValue.MethodByName("processLoop" + strconv.Itoa(len(couplings)))
+	pMethod := cValue.MethodByName("ProcessLoop" + strconv.Itoa(len(couplings)))
 	args := make([]reflect.Value, len(couplings))
 	for i, v := range couplings {
 		args[i] = reflect.ValueOf(v.inputPipe)

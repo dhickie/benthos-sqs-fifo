@@ -3,7 +3,7 @@
 package flow
 
 
-func (c *Component) processLoop1(p1 *Pipe) {
+func (c *Component) ProcessLoop1(p1 *Pipe) {
 	var work []any
 
     for {
@@ -15,7 +15,7 @@ func (c *Component) processLoop1(p1 *Pipe) {
 }
 
 {{range .}}
-func (c *Component) processLoop{{.Size}}(p1 *Pipe{{range .Indices}}, p{{.}} *Pipe{{end}}) {
+func (c *Component) ProcessLoop{{.Size}}(p1 *Pipe{{range .Indices}}, p{{.}} *Pipe{{end}}) {
 	var work []any
 
     for {
