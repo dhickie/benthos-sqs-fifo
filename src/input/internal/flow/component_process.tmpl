@@ -8,8 +8,10 @@ func (c *Component) ProcessLoop1(p1 *Pipe) {
 
     for {
 	    select {
+	    case <- c.ctx.Done(): // Component is shutting down
+	        return
 	    case work = <-p1.ReceiveChan():
-	    	c.processWork(work, p1)
+	    	c.processWork(c.ctx, work, p1)
 	    }
 	}
 }
@@ -20,10 +22,12 @@ func (c *Component) ProcessLoop{{.Size}}(p1 *Pipe{{range .Indices}}, p{{.}} *Pip
 
     for {
 	    select {
+	    case <- c.ctx.Done(): // Component is shutting down
+	        return
 	    case work = <-p1.ReceiveChan():
-	    	c.processWork(work, p1){{range .Indices}}
+	    	c.processWork(c.ctx, work, p1){{range .Indices}}
 	    case work = <-p{{.}}.ReceiveChan():
-	        c.processWork(work, p{{.}}){{end}}
+	        c.processWork(c.ctx, work, p{{.}}){{end}}
 	    }
 	}
 }

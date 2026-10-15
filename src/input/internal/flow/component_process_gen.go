@@ -7,36 +7,64 @@ func (c *Component) ProcessLoop1(p1 *Pipe) {
 
 	for {
 		select {
+		case <-c.ctx.Done(): // Component is shutting down
+			return
 		case work = <-p1.ReceiveChan():
-			c.processWork(work, p1)
+			c.processWork(c.ctx, work, p1)
 		}
 	}
 }
 
 func (c *Component) ProcessLoop2(p1 *Pipe, p2 *Pipe) {
 	var work []any
+	var ok bool
 
 	for {
 		select {
-		case work = <-p1.ReceiveChan():
-			c.processWork(work, p1)
-		case work = <-p2.ReceiveChan():
-			c.processWork(work, p2)
+		case <-c.ctx.Done(): // Component is shutting down
+			return
+		case work, ok = <-p1.ReceiveChan():
+			if !ok {
+				c.ProcessLoop1(p2)
+				return
+			}
+			c.processWork(c.ctx, work, p1)
+		case work, ok = <-p2.ReceiveChan():
+			if !ok {
+				c.ProcessLoop1(p1)
+				return
+			}
+			c.processWork(c.ctx, work, p2)
 		}
 	}
 }
 
 func (c *Component) ProcessLoop3(p1 *Pipe, p2 *Pipe, p3 *Pipe) {
 	var work []any
+	var ok bool
 
 	for {
 		select {
-		case work = <-p1.ReceiveChan():
-			c.processWork(work, p1)
+		case <-c.ctx.Done(): // Component is shutting down
+			return
+		case work, ok = <-p1.ReceiveChan():
+			if !ok {
+				c.ProcessLoop2(p2, p3)
+				return
+			}
+			c.processWork(c.ctx, work, p1)
 		case work = <-p2.ReceiveChan():
-			c.processWork(work, p2)
+			if !ok {
+				c.ProcessLoop2(p1, p3)
+				return
+			}
+			c.processWork(c.ctx, work, p2)
 		case work = <-p3.ReceiveChan():
-			c.processWork(work, p3)
+			if !ok {
+				c.ProcessLoop2(p1, p2)
+				return
+			}
+			c.processWork(c.ctx, work, p3)
 		}
 	}
 }
@@ -46,14 +74,16 @@ func (c *Component) ProcessLoop4(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe) {
 
 	for {
 		select {
+		case <-c.ctx.Done(): // Component is shutting down
+			return
 		case work = <-p1.ReceiveChan():
-			c.processWork(work, p1)
+			c.processWork(c.ctx, work, p1)
 		case work = <-p2.ReceiveChan():
-			c.processWork(work, p2)
+			c.processWork(c.ctx, work, p2)
 		case work = <-p3.ReceiveChan():
-			c.processWork(work, p3)
+			c.processWork(c.ctx, work, p3)
 		case work = <-p4.ReceiveChan():
-			c.processWork(work, p4)
+			c.processWork(c.ctx, work, p4)
 		}
 	}
 }
@@ -63,16 +93,18 @@ func (c *Component) ProcessLoop5(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pip
 
 	for {
 		select {
+		case <-c.ctx.Done(): // Component is shutting down
+			return
 		case work = <-p1.ReceiveChan():
-			c.processWork(work, p1)
+			c.processWork(c.ctx, work, p1)
 		case work = <-p2.ReceiveChan():
-			c.processWork(work, p2)
+			c.processWork(c.ctx, work, p2)
 		case work = <-p3.ReceiveChan():
-			c.processWork(work, p3)
+			c.processWork(c.ctx, work, p3)
 		case work = <-p4.ReceiveChan():
-			c.processWork(work, p4)
+			c.processWork(c.ctx, work, p4)
 		case work = <-p5.ReceiveChan():
-			c.processWork(work, p5)
+			c.processWork(c.ctx, work, p5)
 		}
 	}
 }
@@ -82,18 +114,20 @@ func (c *Component) ProcessLoop6(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pip
 
 	for {
 		select {
+		case <-c.ctx.Done(): // Component is shutting down
+			return
 		case work = <-p1.ReceiveChan():
-			c.processWork(work, p1)
+			c.processWork(c.ctx, work, p1)
 		case work = <-p2.ReceiveChan():
-			c.processWork(work, p2)
+			c.processWork(c.ctx, work, p2)
 		case work = <-p3.ReceiveChan():
-			c.processWork(work, p3)
+			c.processWork(c.ctx, work, p3)
 		case work = <-p4.ReceiveChan():
-			c.processWork(work, p4)
+			c.processWork(c.ctx, work, p4)
 		case work = <-p5.ReceiveChan():
-			c.processWork(work, p5)
+			c.processWork(c.ctx, work, p5)
 		case work = <-p6.ReceiveChan():
-			c.processWork(work, p6)
+			c.processWork(c.ctx, work, p6)
 		}
 	}
 }
@@ -103,20 +137,22 @@ func (c *Component) ProcessLoop7(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pip
 
 	for {
 		select {
+		case <-c.ctx.Done(): // Component is shutting down
+			return
 		case work = <-p1.ReceiveChan():
-			c.processWork(work, p1)
+			c.processWork(c.ctx, work, p1)
 		case work = <-p2.ReceiveChan():
-			c.processWork(work, p2)
+			c.processWork(c.ctx, work, p2)
 		case work = <-p3.ReceiveChan():
-			c.processWork(work, p3)
+			c.processWork(c.ctx, work, p3)
 		case work = <-p4.ReceiveChan():
-			c.processWork(work, p4)
+			c.processWork(c.ctx, work, p4)
 		case work = <-p5.ReceiveChan():
-			c.processWork(work, p5)
+			c.processWork(c.ctx, work, p5)
 		case work = <-p6.ReceiveChan():
-			c.processWork(work, p6)
+			c.processWork(c.ctx, work, p6)
 		case work = <-p7.ReceiveChan():
-			c.processWork(work, p7)
+			c.processWork(c.ctx, work, p7)
 		}
 	}
 }
@@ -126,22 +162,24 @@ func (c *Component) ProcessLoop8(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pip
 
 	for {
 		select {
+		case <-c.ctx.Done(): // Component is shutting down
+			return
 		case work = <-p1.ReceiveChan():
-			c.processWork(work, p1)
+			c.processWork(c.ctx, work, p1)
 		case work = <-p2.ReceiveChan():
-			c.processWork(work, p2)
+			c.processWork(c.ctx, work, p2)
 		case work = <-p3.ReceiveChan():
-			c.processWork(work, p3)
+			c.processWork(c.ctx, work, p3)
 		case work = <-p4.ReceiveChan():
-			c.processWork(work, p4)
+			c.processWork(c.ctx, work, p4)
 		case work = <-p5.ReceiveChan():
-			c.processWork(work, p5)
+			c.processWork(c.ctx, work, p5)
 		case work = <-p6.ReceiveChan():
-			c.processWork(work, p6)
+			c.processWork(c.ctx, work, p6)
 		case work = <-p7.ReceiveChan():
-			c.processWork(work, p7)
+			c.processWork(c.ctx, work, p7)
 		case work = <-p8.ReceiveChan():
-			c.processWork(work, p8)
+			c.processWork(c.ctx, work, p8)
 		}
 	}
 }
@@ -151,24 +189,26 @@ func (c *Component) ProcessLoop9(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pip
 
 	for {
 		select {
+		case <-c.ctx.Done(): // Component is shutting down
+			return
 		case work = <-p1.ReceiveChan():
-			c.processWork(work, p1)
+			c.processWork(c.ctx, work, p1)
 		case work = <-p2.ReceiveChan():
-			c.processWork(work, p2)
+			c.processWork(c.ctx, work, p2)
 		case work = <-p3.ReceiveChan():
-			c.processWork(work, p3)
+			c.processWork(c.ctx, work, p3)
 		case work = <-p4.ReceiveChan():
-			c.processWork(work, p4)
+			c.processWork(c.ctx, work, p4)
 		case work = <-p5.ReceiveChan():
-			c.processWork(work, p5)
+			c.processWork(c.ctx, work, p5)
 		case work = <-p6.ReceiveChan():
-			c.processWork(work, p6)
+			c.processWork(c.ctx, work, p6)
 		case work = <-p7.ReceiveChan():
-			c.processWork(work, p7)
+			c.processWork(c.ctx, work, p7)
 		case work = <-p8.ReceiveChan():
-			c.processWork(work, p8)
+			c.processWork(c.ctx, work, p8)
 		case work = <-p9.ReceiveChan():
-			c.processWork(work, p9)
+			c.processWork(c.ctx, work, p9)
 		}
 	}
 }
@@ -178,26 +218,28 @@ func (c *Component) ProcessLoop10(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pi
 
 	for {
 		select {
+		case <-c.ctx.Done(): // Component is shutting down
+			return
 		case work = <-p1.ReceiveChan():
-			c.processWork(work, p1)
+			c.processWork(c.ctx, work, p1)
 		case work = <-p2.ReceiveChan():
-			c.processWork(work, p2)
+			c.processWork(c.ctx, work, p2)
 		case work = <-p3.ReceiveChan():
-			c.processWork(work, p3)
+			c.processWork(c.ctx, work, p3)
 		case work = <-p4.ReceiveChan():
-			c.processWork(work, p4)
+			c.processWork(c.ctx, work, p4)
 		case work = <-p5.ReceiveChan():
-			c.processWork(work, p5)
+			c.processWork(c.ctx, work, p5)
 		case work = <-p6.ReceiveChan():
-			c.processWork(work, p6)
+			c.processWork(c.ctx, work, p6)
 		case work = <-p7.ReceiveChan():
-			c.processWork(work, p7)
+			c.processWork(c.ctx, work, p7)
 		case work = <-p8.ReceiveChan():
-			c.processWork(work, p8)
+			c.processWork(c.ctx, work, p8)
 		case work = <-p9.ReceiveChan():
-			c.processWork(work, p9)
+			c.processWork(c.ctx, work, p9)
 		case work = <-p10.ReceiveChan():
-			c.processWork(work, p10)
+			c.processWork(c.ctx, work, p10)
 		}
 	}
 }
@@ -207,28 +249,30 @@ func (c *Component) ProcessLoop11(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pi
 
 	for {
 		select {
+		case <-c.ctx.Done(): // Component is shutting down
+			return
 		case work = <-p1.ReceiveChan():
-			c.processWork(work, p1)
+			c.processWork(c.ctx, work, p1)
 		case work = <-p2.ReceiveChan():
-			c.processWork(work, p2)
+			c.processWork(c.ctx, work, p2)
 		case work = <-p3.ReceiveChan():
-			c.processWork(work, p3)
+			c.processWork(c.ctx, work, p3)
 		case work = <-p4.ReceiveChan():
-			c.processWork(work, p4)
+			c.processWork(c.ctx, work, p4)
 		case work = <-p5.ReceiveChan():
-			c.processWork(work, p5)
+			c.processWork(c.ctx, work, p5)
 		case work = <-p6.ReceiveChan():
-			c.processWork(work, p6)
+			c.processWork(c.ctx, work, p6)
 		case work = <-p7.ReceiveChan():
-			c.processWork(work, p7)
+			c.processWork(c.ctx, work, p7)
 		case work = <-p8.ReceiveChan():
-			c.processWork(work, p8)
+			c.processWork(c.ctx, work, p8)
 		case work = <-p9.ReceiveChan():
-			c.processWork(work, p9)
+			c.processWork(c.ctx, work, p9)
 		case work = <-p10.ReceiveChan():
-			c.processWork(work, p10)
+			c.processWork(c.ctx, work, p10)
 		case work = <-p11.ReceiveChan():
-			c.processWork(work, p11)
+			c.processWork(c.ctx, work, p11)
 		}
 	}
 }
@@ -238,30 +282,32 @@ func (c *Component) ProcessLoop12(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pi
 
 	for {
 		select {
+		case <-c.ctx.Done(): // Component is shutting down
+			return
 		case work = <-p1.ReceiveChan():
-			c.processWork(work, p1)
+			c.processWork(c.ctx, work, p1)
 		case work = <-p2.ReceiveChan():
-			c.processWork(work, p2)
+			c.processWork(c.ctx, work, p2)
 		case work = <-p3.ReceiveChan():
-			c.processWork(work, p3)
+			c.processWork(c.ctx, work, p3)
 		case work = <-p4.ReceiveChan():
-			c.processWork(work, p4)
+			c.processWork(c.ctx, work, p4)
 		case work = <-p5.ReceiveChan():
-			c.processWork(work, p5)
+			c.processWork(c.ctx, work, p5)
 		case work = <-p6.ReceiveChan():
-			c.processWork(work, p6)
+			c.processWork(c.ctx, work, p6)
 		case work = <-p7.ReceiveChan():
-			c.processWork(work, p7)
+			c.processWork(c.ctx, work, p7)
 		case work = <-p8.ReceiveChan():
-			c.processWork(work, p8)
+			c.processWork(c.ctx, work, p8)
 		case work = <-p9.ReceiveChan():
-			c.processWork(work, p9)
+			c.processWork(c.ctx, work, p9)
 		case work = <-p10.ReceiveChan():
-			c.processWork(work, p10)
+			c.processWork(c.ctx, work, p10)
 		case work = <-p11.ReceiveChan():
-			c.processWork(work, p11)
+			c.processWork(c.ctx, work, p11)
 		case work = <-p12.ReceiveChan():
-			c.processWork(work, p12)
+			c.processWork(c.ctx, work, p12)
 		}
 	}
 }
@@ -271,32 +317,34 @@ func (c *Component) ProcessLoop13(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pi
 
 	for {
 		select {
+		case <-c.ctx.Done(): // Component is shutting down
+			return
 		case work = <-p1.ReceiveChan():
-			c.processWork(work, p1)
+			c.processWork(c.ctx, work, p1)
 		case work = <-p2.ReceiveChan():
-			c.processWork(work, p2)
+			c.processWork(c.ctx, work, p2)
 		case work = <-p3.ReceiveChan():
-			c.processWork(work, p3)
+			c.processWork(c.ctx, work, p3)
 		case work = <-p4.ReceiveChan():
-			c.processWork(work, p4)
+			c.processWork(c.ctx, work, p4)
 		case work = <-p5.ReceiveChan():
-			c.processWork(work, p5)
+			c.processWork(c.ctx, work, p5)
 		case work = <-p6.ReceiveChan():
-			c.processWork(work, p6)
+			c.processWork(c.ctx, work, p6)
 		case work = <-p7.ReceiveChan():
-			c.processWork(work, p7)
+			c.processWork(c.ctx, work, p7)
 		case work = <-p8.ReceiveChan():
-			c.processWork(work, p8)
+			c.processWork(c.ctx, work, p8)
 		case work = <-p9.ReceiveChan():
-			c.processWork(work, p9)
+			c.processWork(c.ctx, work, p9)
 		case work = <-p10.ReceiveChan():
-			c.processWork(work, p10)
+			c.processWork(c.ctx, work, p10)
 		case work = <-p11.ReceiveChan():
-			c.processWork(work, p11)
+			c.processWork(c.ctx, work, p11)
 		case work = <-p12.ReceiveChan():
-			c.processWork(work, p12)
+			c.processWork(c.ctx, work, p12)
 		case work = <-p13.ReceiveChan():
-			c.processWork(work, p13)
+			c.processWork(c.ctx, work, p13)
 		}
 	}
 }
@@ -306,34 +354,36 @@ func (c *Component) ProcessLoop14(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pi
 
 	for {
 		select {
+		case <-c.ctx.Done(): // Component is shutting down
+			return
 		case work = <-p1.ReceiveChan():
-			c.processWork(work, p1)
+			c.processWork(c.ctx, work, p1)
 		case work = <-p2.ReceiveChan():
-			c.processWork(work, p2)
+			c.processWork(c.ctx, work, p2)
 		case work = <-p3.ReceiveChan():
-			c.processWork(work, p3)
+			c.processWork(c.ctx, work, p3)
 		case work = <-p4.ReceiveChan():
-			c.processWork(work, p4)
+			c.processWork(c.ctx, work, p4)
 		case work = <-p5.ReceiveChan():
-			c.processWork(work, p5)
+			c.processWork(c.ctx, work, p5)
 		case work = <-p6.ReceiveChan():
-			c.processWork(work, p6)
+			c.processWork(c.ctx, work, p6)
 		case work = <-p7.ReceiveChan():
-			c.processWork(work, p7)
+			c.processWork(c.ctx, work, p7)
 		case work = <-p8.ReceiveChan():
-			c.processWork(work, p8)
+			c.processWork(c.ctx, work, p8)
 		case work = <-p9.ReceiveChan():
-			c.processWork(work, p9)
+			c.processWork(c.ctx, work, p9)
 		case work = <-p10.ReceiveChan():
-			c.processWork(work, p10)
+			c.processWork(c.ctx, work, p10)
 		case work = <-p11.ReceiveChan():
-			c.processWork(work, p11)
+			c.processWork(c.ctx, work, p11)
 		case work = <-p12.ReceiveChan():
-			c.processWork(work, p12)
+			c.processWork(c.ctx, work, p12)
 		case work = <-p13.ReceiveChan():
-			c.processWork(work, p13)
+			c.processWork(c.ctx, work, p13)
 		case work = <-p14.ReceiveChan():
-			c.processWork(work, p14)
+			c.processWork(c.ctx, work, p14)
 		}
 	}
 }
@@ -343,36 +393,38 @@ func (c *Component) ProcessLoop15(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pi
 
 	for {
 		select {
+		case <-c.ctx.Done(): // Component is shutting down
+			return
 		case work = <-p1.ReceiveChan():
-			c.processWork(work, p1)
+			c.processWork(c.ctx, work, p1)
 		case work = <-p2.ReceiveChan():
-			c.processWork(work, p2)
+			c.processWork(c.ctx, work, p2)
 		case work = <-p3.ReceiveChan():
-			c.processWork(work, p3)
+			c.processWork(c.ctx, work, p3)
 		case work = <-p4.ReceiveChan():
-			c.processWork(work, p4)
+			c.processWork(c.ctx, work, p4)
 		case work = <-p5.ReceiveChan():
-			c.processWork(work, p5)
+			c.processWork(c.ctx, work, p5)
 		case work = <-p6.ReceiveChan():
-			c.processWork(work, p6)
+			c.processWork(c.ctx, work, p6)
 		case work = <-p7.ReceiveChan():
-			c.processWork(work, p7)
+			c.processWork(c.ctx, work, p7)
 		case work = <-p8.ReceiveChan():
-			c.processWork(work, p8)
+			c.processWork(c.ctx, work, p8)
 		case work = <-p9.ReceiveChan():
-			c.processWork(work, p9)
+			c.processWork(c.ctx, work, p9)
 		case work = <-p10.ReceiveChan():
-			c.processWork(work, p10)
+			c.processWork(c.ctx, work, p10)
 		case work = <-p11.ReceiveChan():
-			c.processWork(work, p11)
+			c.processWork(c.ctx, work, p11)
 		case work = <-p12.ReceiveChan():
-			c.processWork(work, p12)
+			c.processWork(c.ctx, work, p12)
 		case work = <-p13.ReceiveChan():
-			c.processWork(work, p13)
+			c.processWork(c.ctx, work, p13)
 		case work = <-p14.ReceiveChan():
-			c.processWork(work, p14)
+			c.processWork(c.ctx, work, p14)
 		case work = <-p15.ReceiveChan():
-			c.processWork(work, p15)
+			c.processWork(c.ctx, work, p15)
 		}
 	}
 }
@@ -382,38 +434,40 @@ func (c *Component) ProcessLoop16(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pi
 
 	for {
 		select {
+		case <-c.ctx.Done(): // Component is shutting down
+			return
 		case work = <-p1.ReceiveChan():
-			c.processWork(work, p1)
+			c.processWork(c.ctx, work, p1)
 		case work = <-p2.ReceiveChan():
-			c.processWork(work, p2)
+			c.processWork(c.ctx, work, p2)
 		case work = <-p3.ReceiveChan():
-			c.processWork(work, p3)
+			c.processWork(c.ctx, work, p3)
 		case work = <-p4.ReceiveChan():
-			c.processWork(work, p4)
+			c.processWork(c.ctx, work, p4)
 		case work = <-p5.ReceiveChan():
-			c.processWork(work, p5)
+			c.processWork(c.ctx, work, p5)
 		case work = <-p6.ReceiveChan():
-			c.processWork(work, p6)
+			c.processWork(c.ctx, work, p6)
 		case work = <-p7.ReceiveChan():
-			c.processWork(work, p7)
+			c.processWork(c.ctx, work, p7)
 		case work = <-p8.ReceiveChan():
-			c.processWork(work, p8)
+			c.processWork(c.ctx, work, p8)
 		case work = <-p9.ReceiveChan():
-			c.processWork(work, p9)
+			c.processWork(c.ctx, work, p9)
 		case work = <-p10.ReceiveChan():
-			c.processWork(work, p10)
+			c.processWork(c.ctx, work, p10)
 		case work = <-p11.ReceiveChan():
-			c.processWork(work, p11)
+			c.processWork(c.ctx, work, p11)
 		case work = <-p12.ReceiveChan():
-			c.processWork(work, p12)
+			c.processWork(c.ctx, work, p12)
 		case work = <-p13.ReceiveChan():
-			c.processWork(work, p13)
+			c.processWork(c.ctx, work, p13)
 		case work = <-p14.ReceiveChan():
-			c.processWork(work, p14)
+			c.processWork(c.ctx, work, p14)
 		case work = <-p15.ReceiveChan():
-			c.processWork(work, p15)
+			c.processWork(c.ctx, work, p15)
 		case work = <-p16.ReceiveChan():
-			c.processWork(work, p16)
+			c.processWork(c.ctx, work, p16)
 		}
 	}
 }
@@ -423,40 +477,42 @@ func (c *Component) ProcessLoop17(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pi
 
 	for {
 		select {
+		case <-c.ctx.Done(): // Component is shutting down
+			return
 		case work = <-p1.ReceiveChan():
-			c.processWork(work, p1)
+			c.processWork(c.ctx, work, p1)
 		case work = <-p2.ReceiveChan():
-			c.processWork(work, p2)
+			c.processWork(c.ctx, work, p2)
 		case work = <-p3.ReceiveChan():
-			c.processWork(work, p3)
+			c.processWork(c.ctx, work, p3)
 		case work = <-p4.ReceiveChan():
-			c.processWork(work, p4)
+			c.processWork(c.ctx, work, p4)
 		case work = <-p5.ReceiveChan():
-			c.processWork(work, p5)
+			c.processWork(c.ctx, work, p5)
 		case work = <-p6.ReceiveChan():
-			c.processWork(work, p6)
+			c.processWork(c.ctx, work, p6)
 		case work = <-p7.ReceiveChan():
-			c.processWork(work, p7)
+			c.processWork(c.ctx, work, p7)
 		case work = <-p8.ReceiveChan():
-			c.processWork(work, p8)
+			c.processWork(c.ctx, work, p8)
 		case work = <-p9.ReceiveChan():
-			c.processWork(work, p9)
+			c.processWork(c.ctx, work, p9)
 		case work = <-p10.ReceiveChan():
-			c.processWork(work, p10)
+			c.processWork(c.ctx, work, p10)
 		case work = <-p11.ReceiveChan():
-			c.processWork(work, p11)
+			c.processWork(c.ctx, work, p11)
 		case work = <-p12.ReceiveChan():
-			c.processWork(work, p12)
+			c.processWork(c.ctx, work, p12)
 		case work = <-p13.ReceiveChan():
-			c.processWork(work, p13)
+			c.processWork(c.ctx, work, p13)
 		case work = <-p14.ReceiveChan():
-			c.processWork(work, p14)
+			c.processWork(c.ctx, work, p14)
 		case work = <-p15.ReceiveChan():
-			c.processWork(work, p15)
+			c.processWork(c.ctx, work, p15)
 		case work = <-p16.ReceiveChan():
-			c.processWork(work, p16)
+			c.processWork(c.ctx, work, p16)
 		case work = <-p17.ReceiveChan():
-			c.processWork(work, p17)
+			c.processWork(c.ctx, work, p17)
 		}
 	}
 }
@@ -466,42 +522,44 @@ func (c *Component) ProcessLoop18(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pi
 
 	for {
 		select {
+		case <-c.ctx.Done(): // Component is shutting down
+			return
 		case work = <-p1.ReceiveChan():
-			c.processWork(work, p1)
+			c.processWork(c.ctx, work, p1)
 		case work = <-p2.ReceiveChan():
-			c.processWork(work, p2)
+			c.processWork(c.ctx, work, p2)
 		case work = <-p3.ReceiveChan():
-			c.processWork(work, p3)
+			c.processWork(c.ctx, work, p3)
 		case work = <-p4.ReceiveChan():
-			c.processWork(work, p4)
+			c.processWork(c.ctx, work, p4)
 		case work = <-p5.ReceiveChan():
-			c.processWork(work, p5)
+			c.processWork(c.ctx, work, p5)
 		case work = <-p6.ReceiveChan():
-			c.processWork(work, p6)
+			c.processWork(c.ctx, work, p6)
 		case work = <-p7.ReceiveChan():
-			c.processWork(work, p7)
+			c.processWork(c.ctx, work, p7)
 		case work = <-p8.ReceiveChan():
-			c.processWork(work, p8)
+			c.processWork(c.ctx, work, p8)
 		case work = <-p9.ReceiveChan():
-			c.processWork(work, p9)
+			c.processWork(c.ctx, work, p9)
 		case work = <-p10.ReceiveChan():
-			c.processWork(work, p10)
+			c.processWork(c.ctx, work, p10)
 		case work = <-p11.ReceiveChan():
-			c.processWork(work, p11)
+			c.processWork(c.ctx, work, p11)
 		case work = <-p12.ReceiveChan():
-			c.processWork(work, p12)
+			c.processWork(c.ctx, work, p12)
 		case work = <-p13.ReceiveChan():
-			c.processWork(work, p13)
+			c.processWork(c.ctx, work, p13)
 		case work = <-p14.ReceiveChan():
-			c.processWork(work, p14)
+			c.processWork(c.ctx, work, p14)
 		case work = <-p15.ReceiveChan():
-			c.processWork(work, p15)
+			c.processWork(c.ctx, work, p15)
 		case work = <-p16.ReceiveChan():
-			c.processWork(work, p16)
+			c.processWork(c.ctx, work, p16)
 		case work = <-p17.ReceiveChan():
-			c.processWork(work, p17)
+			c.processWork(c.ctx, work, p17)
 		case work = <-p18.ReceiveChan():
-			c.processWork(work, p18)
+			c.processWork(c.ctx, work, p18)
 		}
 	}
 }
@@ -511,44 +569,46 @@ func (c *Component) ProcessLoop19(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pi
 
 	for {
 		select {
+		case <-c.ctx.Done(): // Component is shutting down
+			return
 		case work = <-p1.ReceiveChan():
-			c.processWork(work, p1)
+			c.processWork(c.ctx, work, p1)
 		case work = <-p2.ReceiveChan():
-			c.processWork(work, p2)
+			c.processWork(c.ctx, work, p2)
 		case work = <-p3.ReceiveChan():
-			c.processWork(work, p3)
+			c.processWork(c.ctx, work, p3)
 		case work = <-p4.ReceiveChan():
-			c.processWork(work, p4)
+			c.processWork(c.ctx, work, p4)
 		case work = <-p5.ReceiveChan():
-			c.processWork(work, p5)
+			c.processWork(c.ctx, work, p5)
 		case work = <-p6.ReceiveChan():
-			c.processWork(work, p6)
+			c.processWork(c.ctx, work, p6)
 		case work = <-p7.ReceiveChan():
-			c.processWork(work, p7)
+			c.processWork(c.ctx, work, p7)
 		case work = <-p8.ReceiveChan():
-			c.processWork(work, p8)
+			c.processWork(c.ctx, work, p8)
 		case work = <-p9.ReceiveChan():
-			c.processWork(work, p9)
+			c.processWork(c.ctx, work, p9)
 		case work = <-p10.ReceiveChan():
-			c.processWork(work, p10)
+			c.processWork(c.ctx, work, p10)
 		case work = <-p11.ReceiveChan():
-			c.processWork(work, p11)
+			c.processWork(c.ctx, work, p11)
 		case work = <-p12.ReceiveChan():
-			c.processWork(work, p12)
+			c.processWork(c.ctx, work, p12)
 		case work = <-p13.ReceiveChan():
-			c.processWork(work, p13)
+			c.processWork(c.ctx, work, p13)
 		case work = <-p14.ReceiveChan():
-			c.processWork(work, p14)
+			c.processWork(c.ctx, work, p14)
 		case work = <-p15.ReceiveChan():
-			c.processWork(work, p15)
+			c.processWork(c.ctx, work, p15)
 		case work = <-p16.ReceiveChan():
-			c.processWork(work, p16)
+			c.processWork(c.ctx, work, p16)
 		case work = <-p17.ReceiveChan():
-			c.processWork(work, p17)
+			c.processWork(c.ctx, work, p17)
 		case work = <-p18.ReceiveChan():
-			c.processWork(work, p18)
+			c.processWork(c.ctx, work, p18)
 		case work = <-p19.ReceiveChan():
-			c.processWork(work, p19)
+			c.processWork(c.ctx, work, p19)
 		}
 	}
 }
@@ -558,46 +618,48 @@ func (c *Component) ProcessLoop20(p1 *Pipe, p2 *Pipe, p3 *Pipe, p4 *Pipe, p5 *Pi
 
 	for {
 		select {
+		case <-c.ctx.Done(): // Component is shutting down
+			return
 		case work = <-p1.ReceiveChan():
-			c.processWork(work, p1)
+			c.processWork(c.ctx, work, p1)
 		case work = <-p2.ReceiveChan():
-			c.processWork(work, p2)
+			c.processWork(c.ctx, work, p2)
 		case work = <-p3.ReceiveChan():
-			c.processWork(work, p3)
+			c.processWork(c.ctx, work, p3)
 		case work = <-p4.ReceiveChan():
-			c.processWork(work, p4)
+			c.processWork(c.ctx, work, p4)
 		case work = <-p5.ReceiveChan():
-			c.processWork(work, p5)
+			c.processWork(c.ctx, work, p5)
 		case work = <-p6.ReceiveChan():
-			c.processWork(work, p6)
+			c.processWork(c.ctx, work, p6)
 		case work = <-p7.ReceiveChan():
-			c.processWork(work, p7)
+			c.processWork(c.ctx, work, p7)
 		case work = <-p8.ReceiveChan():
-			c.processWork(work, p8)
+			c.processWork(c.ctx, work, p8)
 		case work = <-p9.ReceiveChan():
-			c.processWork(work, p9)
+			c.processWork(c.ctx, work, p9)
 		case work = <-p10.ReceiveChan():
-			c.processWork(work, p10)
+			c.processWork(c.ctx, work, p10)
 		case work = <-p11.ReceiveChan():
-			c.processWork(work, p11)
+			c.processWork(c.ctx, work, p11)
 		case work = <-p12.ReceiveChan():
-			c.processWork(work, p12)
+			c.processWork(c.ctx, work, p12)
 		case work = <-p13.ReceiveChan():
-			c.processWork(work, p13)
+			c.processWork(c.ctx, work, p13)
 		case work = <-p14.ReceiveChan():
-			c.processWork(work, p14)
+			c.processWork(c.ctx, work, p14)
 		case work = <-p15.ReceiveChan():
-			c.processWork(work, p15)
+			c.processWork(c.ctx, work, p15)
 		case work = <-p16.ReceiveChan():
-			c.processWork(work, p16)
+			c.processWork(c.ctx, work, p16)
 		case work = <-p17.ReceiveChan():
-			c.processWork(work, p17)
+			c.processWork(c.ctx, work, p17)
 		case work = <-p18.ReceiveChan():
-			c.processWork(work, p18)
+			c.processWork(c.ctx, work, p18)
 		case work = <-p19.ReceiveChan():
-			c.processWork(work, p19)
+			c.processWork(c.ctx, work, p19)
 		case work = <-p20.ReceiveChan():
-			c.processWork(work, p20)
+			c.processWork(c.ctx, work, p20)
 		}
 	}
 }

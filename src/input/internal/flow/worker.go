@@ -1,5 +1,7 @@
 package flow
 
+import "context"
+
 type WorkerPool struct {
 	workers  []*Worker
 	workChan chan *WorkItem
@@ -17,12 +19,16 @@ func NewWorkerPool(numWorkers int) *WorkerPool {
 	}
 }
 
-func (p *WorkerPool) Do(h *Handler, w []any, o *Pipe) {
+func (p *WorkerPool) Do(ctx context.Context, h *Handler, w []any, o *Pipe) {
 	f := func() ([]any, error) {
-		return h.Handle(w)
+		return h.Handle(ctx, w)
 	}
 	wi := NewWorkItem(f, o)
-	p.workChan <- wi
+
+	select {
+	case <-ctx.Done():
+	case p.workChan <- wi:
+	}
 }
 
 type Worker struct {

@@ -1,8 +1,7 @@
-//go:generate go run generate.go
-
 package flow
 
 import (
+	"context"
 	"reflect"
 	"strconv"
 )
@@ -11,6 +10,9 @@ type Component struct {
 	inputMap  map[string]*Handler // Map of input pipe IDs to handlers
 	outputMap map[string]*Pipe    // Map of handler IDs to output pipes
 	inputs    []*Pipe             // All the input pipes
+
+	ctx    context.Context // Lifetime context
+	cancel context.CancelFunc
 
 	workerPool *WorkerPool
 }
@@ -34,10 +36,13 @@ func NewComponent(couplings []HandlerCoupling, maxConcurrency int) *Component {
 		outputMap[c.handler.id] = c.outputPipe
 	}
 
+	ctx, cancel := context.WithCancel(context.Background())
 	c := &Component{
 		inputMap:   inputMap,
 		outputMap:  outputMap,
 		inputs:     inputs,
+		ctx:        ctx,
+		cancel:     cancel,
 		workerPool: pool,
 	}
 
@@ -52,8 +57,8 @@ func NewComponent(couplings []HandlerCoupling, maxConcurrency int) *Component {
 	return c
 }
 
-func (c *Component) processWork(work []any, pipe *Pipe) {
+func (c *Component) processWork(ctx context.Context, work []any, pipe *Pipe) {
 	handler := c.inputMap[pipe.id]
 	outputChan := c.outputMap[handler.id]
-	c.workerPool.Do(handler, work, outputChan)
+	c.workerPool.Do(ctx, handler, work, outputChan)
 }

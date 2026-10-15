@@ -338,7 +338,7 @@ func (t *MessageTracker) refreshVisibility(ctx context.Context) {
 				return
 			}
 
-			dref := util.SelectDeref(batch)
+			dref := util.TransformDeref(batch)
 			t.logger.Warnf("Error refreshing message visibility: %v\nAffected message IDs: %v",
 				err, dref)
 			continue

@@ -10,7 +10,7 @@ import (
 	"text/template"
 )
 
-const maxHandlers = 20
+const maxChannels = 100
 
 type genData struct {
 	Size    int
@@ -19,21 +19,21 @@ type genData struct {
 
 func main() {
 	// Generate the input data for the template
-	data := make([]genData, maxHandlers-1)
-	for i := range maxHandlers - 1 {
+	data := make([]genData, maxChannels)
+	for i := range maxChannels {
 		indices := make([]int, i+1)
 		for j := range indices {
-			indices[j] = j + 2
+			indices[j] = j
 		}
 
 		data[i] = genData{
-			Size:    i + 2,
+			Size:    i + 1,
 			Indices: indices,
 		}
 	}
 
 	// Read the template
-	tmpl, err := template.ParseFiles("component_process.tmpl")
+	tmpl, err := template.ParseFiles("select_template.tmpl")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -51,7 +51,7 @@ func main() {
 	}
 
 	// Write the new source file
-	if err = os.WriteFile("component_process_gen.go", source, 0644); err != nil {
+	if err = os.WriteFile("select_generated.go", source, 0644); err != nil {
 		log.Fatal(err)
 	}
 }
