@@ -1,6 +1,7 @@
 package flow
 
 import (
+	"context"
 	"log/slog"
 	"strconv"
 	"testing"
@@ -9,11 +10,14 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var bp = NewBatchPolicy(1, time.Second)
+var l = slog.Default()
+
 func TestComponent_CanReceiveAndCarryOutWork(t *testing.T) {
 	// Arrange
 	input := []int{1, 2, 3, 4, 5}
 	expectedOutput := []string{"1", "2", "3", "4", "5"}
-	_, inP, outP := createComponent(itoa)
+	_, inP, outP := createComponent(t.Context(), itoa)
 
 	// Act
 	_ = inP.Send(t.Context(), input...)
@@ -34,7 +38,7 @@ func TestComponents_CanBeChainedTogether(t *testing.T) {
 	// Arrange
 	input := []int{123, 456}
 	expectedOutput := []string{"321", "654"}
-	_, inP, outP := createComponentChain(itoa, reverse)
+	_, inP, outP := createComponentChain(t.Context(), itoa, reverse)
 
 	// Act
 	_ = inP.Send(t.Context(), input...)
@@ -53,13 +57,74 @@ func TestComponents_CanBeChainedTogether(t *testing.T) {
 
 func TestComponents_CanContainMultipleHandlers(t *testing.T) {
 	// Arrange
-	input := []int{123, 456}
-	expectedOutput := []string{"321", "654"}
-	_, inP, outP := createMultiHandlerComponent(itoa, reverse)
+	in1 := []int{123, 456}
+	in2 := []string{"123", "456"}
+	expOut1 := []string{"123", "456"}
+	expOut2 := []string{"321", "654"}
+	_, inPipes, outPipes := createMultiHandlerComponent(t.Context(), itoa, reverse)
 
 	// Act
-	_ = inP.Send(t.Context(), input...)
-	result, _ := outP.Receive(t.Context())
+	_ = inPipes[0].Send(t.Context(), in1...)
+	_ = inPipes[1].Send(t.Context(), in2...)
+	result1, _ := outPipes[0].Receive(t.Context())
+	result2, _ := outPipes[1].Receive(t.Context())
+
+	// Assert
+	for i, v := range result1 {
+		vStr, ok := v.(string)
+		if !ok {
+			t.Fatal("Result type was not a string")
+		}
+
+		assert.Equal(t, expOut1[i], vStr)
+	}
+	for i, v := range result2 {
+		vStr, ok := v.(string)
+		if !ok {
+			t.Fatal("Result type was not a string")
+		}
+
+		assert.Equal(t, expOut2[i], vStr)
+	}
+}
+
+func TestComponent_Stops_WhenInputPipeHasClosed(t *testing.T) {
+	// Arrange
+	c, inP, _ := createComponent(t.Context(), itoa)
+
+	// Act
+	close(inP.SendChan())
+
+	// Assert
+	_, ok := <-c.Stopped()
+	assert.False(t, ok)
+}
+
+func TestComponent_Stops_WhenContextIsCancelled(t *testing.T) {
+	// Arrange
+	ctx, cancel := context.WithCancel(t.Context())
+	defer cancel()
+	c, _, _ := createComponent(ctx, itoa)
+
+	// Act
+	cancel()
+
+	// Assert
+	_, ok := <-c.Stopped()
+	assert.False(t, ok)
+}
+
+func TestComponent_WaitsToStop_UntilAllInputPipesAreClosed(t *testing.T) {
+	// Arrange
+	input := []string{"123", "456"}
+	expectedOutput := []string{"321", "654"}
+	c, inP, outP := createMultiHandlerComponent(t.Context(), itoa, reverse)
+
+	// Act
+	close(inP[0].SendChan())
+	_ = inP[1].Send(t.Context(), input...)
+	result, _ := outP[1].Receive(t.Context())
+	close(inP[1].SendChan())
 
 	// Assert
 	for i, v := range result {
@@ -70,9 +135,16 @@ func TestComponents_CanContainMultipleHandlers(t *testing.T) {
 
 		assert.Equal(t, expectedOutput[i], vStr)
 	}
+	_, ok := <-c.Stopped()
+	assert.False(t, ok)
 }
 
-func itoa(i []int) ([]string, error) {
+func TestComponent_ClosesOutputPipe_WhenWorkFinished(t *testing.T) {
+	// Arrange
+	c, inP, outP := createComponent(t.Context(), itoa)
+}
+
+func itoa(_ context.Context, i []int) ([]string, error) {
 	o := make([]string, len(i))
 	for i, v := range i {
 		o[i] = strconv.Itoa(v)
@@ -80,7 +152,7 @@ func itoa(i []int) ([]string, error) {
 	return o, nil
 }
 
-func reverse(str []string) ([]string, error) {
+func reverse(_ context.Context, str []string) ([]string, error) {
 	o := make([]string, len(str))
 	for i, v := range str {
 		r := []rune(v)
@@ -93,7 +165,7 @@ func reverse(str []string) ([]string, error) {
 	return o, nil
 }
 
-func createComponent(handleFunc func([]int) ([]string, error)) (*Component, *Pipe, *Pipe) {
+func createComponent(ctx context.Context, handleFunc func(context.Context, []int) ([]string, error)) (*Component, *Pipe, *Pipe) {
 	l := slog.Default()
 	bp := NewBatchPolicy(5, time.Second)
 	inP := NewPipe("input", bp, l)
@@ -105,46 +177,34 @@ func createComponent(handleFunc func([]int) ([]string, error)) (*Component, *Pip
 		outputPipe: outP,
 	}
 
-	return NewComponent([]HandlerCoupling{coupling}, 1), inP, outP
+	return NewComponent(ctx, []HandlerCoupling{coupling}, 1), inP, outP
 }
 
-func createComponentChain(f1 func([]int) ([]string, error), f2 func([]string) ([]string, error)) ([]*Component, *Pipe, *Pipe) {
-	hc, pIn, pOut := createHandlerCouplings(f1, f2)
-
-	c := []*Component{
-		NewComponent([]HandlerCoupling{hc[0]}, 1),
-		NewComponent([]HandlerCoupling{hc[1]}, 1),
-	}
-	return c, pIn, pOut
-}
-
-func createMultiHandlerComponent(f1 func([]int) ([]string, error), f2 func([]string) ([]string, error)) (*Component, *Pipe, *Pipe) {
-	hc, pIn, pOut := createHandlerCouplings(f1, f2)
-
-	c := NewComponent([]HandlerCoupling{hc[0], hc[1]}, 1)
-	return c, pIn, pOut
-}
-
-func createHandlerCouplings(f1 func([]int) ([]string, error), f2 func([]string) ([]string, error)) ([]HandlerCoupling, *Pipe, *Pipe) {
-	l := slog.Default()
-	bp := NewBatchPolicy(1, time.Second)
+func createComponentChain(ctx context.Context, f1 func(context.Context, []int) ([]string, error), f2 func(context.Context, []string) ([]string, error)) ([]*Component, *Pipe, *Pipe) {
 	p1 := NewPipe("input", bp, l)
 	p2 := NewPipe("intermediate", bp, l)
 	p3 := NewPipe("output", bp, l)
+	handler1 := NewHandler(f1)
+	handler2 := NewHandler(f2)
+	couplings1 := []HandlerCoupling{{handler1, p1, p2}}
+	couplings2 := []HandlerCoupling{{handler2, p2, p3}}
+	c1 := NewComponent(ctx, couplings1, 1)
+	c2 := NewComponent(ctx, couplings2, 1)
 
-	h1 := NewHandler(f1)
-	h2 := NewHandler(f2)
+	return []*Component{c1, c2}, p1, p3
+}
 
-	hc1 := HandlerCoupling{
-		handler:    h1,
-		inputPipe:  p1,
-		outputPipe: p2,
+func createMultiHandlerComponent(ctx context.Context, f1 func(context.Context, []int) ([]string, error), f2 func(context.Context, []string) ([]string, error)) (*Component, []*Pipe, []*Pipe) {
+	inP1 := NewPipe("input1", bp, l)
+	inP2 := NewPipe("input2", bp, l)
+	outP1 := NewPipe("output1", bp, l)
+	outP2 := NewPipe("output2", bp, l)
+	handler1 := NewHandler(f1)
+	handler2 := NewHandler(f2)
+	couplings := []HandlerCoupling{
+		{handler1, inP1, outP1},
+		{handler2, inP2, outP2},
 	}
-	hc2 := HandlerCoupling{
-		handler:    h2,
-		inputPipe:  p2,
-		outputPipe: p3,
-	}
-
-	return []HandlerCoupling{hc1, hc2}, p1, p3
+	c := NewComponent(ctx, couplings, 1)
+	return c, []*Pipe{inP1, inP2}, []*Pipe{outP1, outP2}
 }

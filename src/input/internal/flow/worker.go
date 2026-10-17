@@ -1,57 +1,95 @@
 package flow
 
-import "context"
+import (
+	"context"
+	"sync"
+)
 
 type WorkerPool struct {
 	workers  []*Worker
 	workChan chan *WorkItem
+
+	ctx     context.Context
+	wg      *sync.WaitGroup
+	stopped chan struct{}
 }
 
-func NewWorkerPool(numWorkers int) *WorkerPool {
+func NewWorkerPool(ctx context.Context, numWorkers int) *WorkerPool {
 	workers := make([]*Worker, numWorkers)
 	input := make(chan *WorkItem)
+	wg := &sync.WaitGroup{}
 	for i := range numWorkers {
-		workers[i] = NewWorker(input)
+		workers[i] = NewWorker(ctx, wg, input)
 	}
-	return &WorkerPool{
+
+	wp := &WorkerPool{
 		workers:  workers,
 		workChan: input,
+		ctx:      ctx,
+		wg:       wg,
+		stopped:  make(chan struct{}),
 	}
+	go wp.stoppedMonitor()
+
+	return wp
 }
 
-func (p *WorkerPool) Do(ctx context.Context, h *Handler, w []any, o *Pipe) {
+func (p *WorkerPool) Do(h *Handler, w []any, o *Pipe) error {
 	f := func() ([]any, error) {
-		return h.Handle(ctx, w)
+		return h.Handle(p.ctx, w)
 	}
 	wi := NewWorkItem(f, o)
 
 	select {
-	case <-ctx.Done():
+	case <-p.ctx.Done():
+		return p.ctx.Err()
 	case p.workChan <- wi:
+		return nil
 	}
+}
+
+func (p *WorkerPool) stoppedMonitor() {
+	p.wg.Wait()
+	close(p.stopped)
+	close(p.workChan)
 }
 
 type Worker struct {
 	input chan *WorkItem
+	ctx   context.Context
 }
 
-func NewWorker(input chan *WorkItem) *Worker {
+func NewWorker(ctx context.Context, wg *sync.WaitGroup, input chan *WorkItem) *Worker {
 	w := &Worker{
 		input: input,
+		ctx:   ctx,
 	}
 
-	go w.run()
+	wg.Go(w.run)
 	return w
 }
 
 func (w *Worker) run() {
 	var i *WorkItem
 	var r []any
-	//var err error
-	for { // TODO: Handle context cancellation
-		i = <-w.input
-		r, _ = i.f() // TODO: Handle errors
-		i.output.SendChan() <- r
+	var err error
+
+	for {
+		select {
+		case <-w.ctx.Done():
+			return
+		default:
+		}
+
+		select {
+		case <-w.ctx.Done():
+			return
+		case i = <-w.input:
+			if r, err = i.f(); err != nil { // TODO: Handle handler errors
+				return
+			}
+			i.output.SendChan() <- r
+		}
 	}
 }
 

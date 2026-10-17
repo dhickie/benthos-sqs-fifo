@@ -52,7 +52,7 @@ func (h *SqsHelper) ReceiveMessages(ctx context.Context, queueUrl string) ([]*mo
 	if res, err := h.client.ReceiveMessage(ctx, req); err != nil {
 		return nil, err
 	} else {
-		return util.Select(res.Messages, func(msg types.Message) *models.SqsMessage {
+		return util.Transform(res.Messages, func(msg types.Message) *models.SqsMessage {
 			return models.NewSqsMessage(msg, 30)
 		}), nil
 	}
@@ -60,7 +60,7 @@ func (h *SqsHelper) ReceiveMessages(ctx context.Context, queueUrl string) ([]*mo
 
 func (h *SqsHelper) DeleteMessages(ctx context.Context, queueUrl string, msgs []*models.SqsMessage) error {
 	req := &sqs.DeleteMessageBatchInput{
-		Entries: util.Select(msgs, func(m *models.SqsMessage) types.DeleteMessageBatchRequestEntry {
+		Entries: util.Transform(msgs, func(m *models.SqsMessage) types.DeleteMessageBatchRequestEntry {
 			return types.DeleteMessageBatchRequestEntry{
 				Id:            m.Msg.MessageId,
 				ReceiptHandle: m.Msg.ReceiptHandle,

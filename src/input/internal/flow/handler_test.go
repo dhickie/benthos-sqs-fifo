@@ -1,6 +1,7 @@
 package flow
 
 import (
+	"context"
 	"math"
 	"reflect"
 	"strconv"
@@ -40,7 +41,7 @@ func TestHandle_PassesMultipleValuesCorrectly(t *testing.T) {
 	expectedOut := []string{
 		"1", "2", "3", "4", "5",
 	}
-	handleFunc := func(i []int) ([]string, error) {
+	handleFunc := func(_ context.Context, i []int) ([]string, error) {
 		out := make([]string, len(i))
 		for i, v := range i {
 			out[i] = strconv.Itoa(v)
@@ -50,7 +51,7 @@ func TestHandle_PassesMultipleValuesCorrectly(t *testing.T) {
 	handler := NewHandler(handleFunc)
 
 	// Act
-	result, _ := handler.Handle(in)
+	result, _ := handler.Handle(t.Context(), in)
 
 	// Assert
 	for i, v := range result {
@@ -89,7 +90,7 @@ func testValue[Tin any, Tout any](t *testing.T, values map[reflect.Type]any) {
 	handler := NewHandler[Tin, Tout](h.handleTestInput)
 
 	// Act
-	output, _ := handler.Handle([]any{input})
+	output, _ := handler.Handle(t.Context(), []any{input})
 
 	// Assert
 	oConv, ok := output[0].(Tout)
@@ -116,7 +117,7 @@ func newTestHandler[Tin any, Tout any](t *testing.T, values map[reflect.Type]any
 	}
 }
 
-func (h *testHandler[Tin, Tout]) handleTestInput(in []Tin) ([]Tout, error) {
+func (h *testHandler[Tin, Tout]) handleTestInput(_ context.Context, in []Tin) ([]Tout, error) {
 	for i, v := range in {
 		assert.Equal(h.t, reflect.TypeOf(h.expectedInput[i]), reflect.TypeOf(v))
 		if h.assertInputValue {

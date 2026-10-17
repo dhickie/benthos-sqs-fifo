@@ -8,17 +8,29 @@ var selectMap = map[int]selectFunc{ {{range .}}
 	{{.Size}}: select{{.Size}},{{end}}
 }
 
-func Select(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
+// Select performs a non-reflective select operation using an array of channels of arbitrary length.
+// Returns when one of the channels is received from, is closed, or the provided context is cancelled.
+// The value from the channel, and whether the channel was closed, are stored in the provided v and ok pointers.
+// Returns the index of the channel that received/closed, and an error. The error is only populated if the context is
+// cancelled.
+func Select(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
 	return selectMap[len(ch)](ctx, ch, v, ok)
 }
 
 {{range .}}
-func select{{.Size}}(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
+func select{{.Size}}(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
-		return 0, false{{range .Indices}}
-	case v, ok = <-ch[{{.}}]:
-		return {{.}}, true{{end}}
+	    return 0, ctx.Err()
+	default:
+	}
+
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err(){{range .Indices}}
+	case *v, *ok = <-*ch[{{.}}]:
+		return {{.}}, nil{{end}}
 	}
 }
 {{end}}

@@ -97,7 +97,7 @@ func SeedTestMessages(t *testing.T, rngSeed int64, sqsHelper *SqsHelper, queueUr
 func CreateMessagesWithDeadline(nGroups, nMsgs, deadlineSeconds int) []*models.SqsMessage {
 	msgs := CreateMessages(nGroups, nMsgs)
 
-	util.Select(msgs, func(m *models.SqsMessage) *models.SqsMessage {
+	util.Transform(msgs, func(m *models.SqsMessage) *models.SqsMessage {
 		m.Deadline = time.Now().Add(time.Duration(deadlineSeconds) * time.Second)
 		return m
 	})
@@ -106,7 +106,7 @@ func CreateMessagesWithDeadline(nGroups, nMsgs, deadlineSeconds int) []*models.S
 }
 
 func BatchSuccessResult(msgs []*models.SqsMessage) *aws.BatchOpResult {
-	ids := util.Select(msgs, func(m *models.SqsMessage) *aws.BatchItemSuccess {
+	ids := util.Transform(msgs, func(m *models.SqsMessage) *aws.BatchItemSuccess {
 		return &aws.BatchItemSuccess{
 			MsgId: *m.Msg.MessageId,
 		}

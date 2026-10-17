@@ -107,10806 +107,11511 @@ var selectMap = map[int]selectFunc{
 	100: select100,
 }
 
-func Select(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
+// Select performs a non-reflective select operation using an array of channels of arbitrary length.
+// Returns when one of the channels is received from, is closed, or the provided context is cancelled.
+// The value from the channel, and whether the channel was closed, are stored in the provided v and ok pointers.
+// Returns the index of the channel that received/closed, and an error. The error is only populated if the context is
+// cancelled.
+func Select(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
 	return selectMap[len(ch)](ctx, ch, v, ok)
 }
 
-func select1(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
+func select1(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
+		return 0, ctx.Err()
+	default:
 	}
+
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	}
+}
+
+func select2(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
+	}
+
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	}
+}
+
+func select3(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
+	}
+
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	}
+}
+
+func select4(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
+	}
+
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	}
+}
+
+func select5(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
+	}
+
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	}
+}
+
+func select6(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
+	}
+
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	}
+}
+
+func select7(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
+	}
+
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	}
+}
+
+func select8(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
+	}
+
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	}
+}
+
+func select9(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
+	}
+
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	}
+}
+
+func select10(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
+	}
+
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	}
+}
+
+func select11(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
+	}
+
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	}
+}
+
+func select12(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
+	}
+
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	}
+}
+
+func select13(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
+	}
+
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	}
+}
+
+func select14(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
+	}
+
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	}
+}
+
+func select15(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
+	}
+
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	}
+}
+
+func select16(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
+	}
+
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	}
+}
+
+func select17(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
+	}
+
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	}
+}
+
+func select18(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
+	}
+
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	}
+}
+
+func select19(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
+	}
+
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	}
+}
+
+func select20(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
+	}
+
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	}
+}
+
+func select21(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
+	}
+
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	}
+}
+
+func select22(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
+	}
+
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	}
+}
+
+func select23(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
+	}
+
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	}
+}
+
+func select24(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
+	}
+
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	}
+}
+
+func select25(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
+	}
+
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	}
+}
+
+func select26(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
+	}
+
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	}
+}
+
+func select27(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
+	}
+
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	}
+}
+
+func select28(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
+	}
+
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	}
+}
+
+func select29(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
+	}
+
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	}
+}
+
+func select30(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
+	}
+
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	}
+}
+
+func select31(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
+	}
+
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	}
+}
+
+func select32(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
+	}
+
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	}
+}
+
+func select33(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
+	}
+
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	}
+}
+
+func select34(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
+	}
+
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	}
+}
+
+func select35(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
+	}
+
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	}
+}
+
+func select36(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
+	}
+
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	}
+}
+
+func select37(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
+	}
+
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	}
+}
+
+func select38(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
+	}
+
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	}
+}
+
+func select39(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
+	}
+
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	}
+}
+
+func select40(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
+	}
+
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	case *v, *ok = <-*ch[39]:
+		return 39, nil
+	}
+}
+
+func select41(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
+	}
+
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	case *v, *ok = <-*ch[39]:
+		return 39, nil
+	case *v, *ok = <-*ch[40]:
+		return 40, nil
+	}
+}
+
+func select42(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
+	}
+
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	case *v, *ok = <-*ch[39]:
+		return 39, nil
+	case *v, *ok = <-*ch[40]:
+		return 40, nil
+	case *v, *ok = <-*ch[41]:
+		return 41, nil
+	}
+}
+
+func select43(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
+	}
+
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	case *v, *ok = <-*ch[39]:
+		return 39, nil
+	case *v, *ok = <-*ch[40]:
+		return 40, nil
+	case *v, *ok = <-*ch[41]:
+		return 41, nil
+	case *v, *ok = <-*ch[42]:
+		return 42, nil
+	}
+}
+
+func select44(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
+	}
+
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	case *v, *ok = <-*ch[39]:
+		return 39, nil
+	case *v, *ok = <-*ch[40]:
+		return 40, nil
+	case *v, *ok = <-*ch[41]:
+		return 41, nil
+	case *v, *ok = <-*ch[42]:
+		return 42, nil
+	case *v, *ok = <-*ch[43]:
+		return 43, nil
+	}
+}
+
+func select45(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
+	}
+
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	case *v, *ok = <-*ch[39]:
+		return 39, nil
+	case *v, *ok = <-*ch[40]:
+		return 40, nil
+	case *v, *ok = <-*ch[41]:
+		return 41, nil
+	case *v, *ok = <-*ch[42]:
+		return 42, nil
+	case *v, *ok = <-*ch[43]:
+		return 43, nil
+	case *v, *ok = <-*ch[44]:
+		return 44, nil
+	}
+}
+
+func select46(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
+	}
+
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	case *v, *ok = <-*ch[39]:
+		return 39, nil
+	case *v, *ok = <-*ch[40]:
+		return 40, nil
+	case *v, *ok = <-*ch[41]:
+		return 41, nil
+	case *v, *ok = <-*ch[42]:
+		return 42, nil
+	case *v, *ok = <-*ch[43]:
+		return 43, nil
+	case *v, *ok = <-*ch[44]:
+		return 44, nil
+	case *v, *ok = <-*ch[45]:
+		return 45, nil
+	}
+}
+
+func select47(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
+	}
+
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	case *v, *ok = <-*ch[39]:
+		return 39, nil
+	case *v, *ok = <-*ch[40]:
+		return 40, nil
+	case *v, *ok = <-*ch[41]:
+		return 41, nil
+	case *v, *ok = <-*ch[42]:
+		return 42, nil
+	case *v, *ok = <-*ch[43]:
+		return 43, nil
+	case *v, *ok = <-*ch[44]:
+		return 44, nil
+	case *v, *ok = <-*ch[45]:
+		return 45, nil
+	case *v, *ok = <-*ch[46]:
+		return 46, nil
+	}
+}
+
+func select48(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
+	}
+
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	case *v, *ok = <-*ch[39]:
+		return 39, nil
+	case *v, *ok = <-*ch[40]:
+		return 40, nil
+	case *v, *ok = <-*ch[41]:
+		return 41, nil
+	case *v, *ok = <-*ch[42]:
+		return 42, nil
+	case *v, *ok = <-*ch[43]:
+		return 43, nil
+	case *v, *ok = <-*ch[44]:
+		return 44, nil
+	case *v, *ok = <-*ch[45]:
+		return 45, nil
+	case *v, *ok = <-*ch[46]:
+		return 46, nil
+	case *v, *ok = <-*ch[47]:
+		return 47, nil
+	}
 }
 
-func select2(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
+func select49(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
+		return 0, ctx.Err()
+	default:
 	}
-}
 
-func select3(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
 	select {
 	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	case *v, *ok = <-*ch[39]:
+		return 39, nil
+	case *v, *ok = <-*ch[40]:
+		return 40, nil
+	case *v, *ok = <-*ch[41]:
+		return 41, nil
+	case *v, *ok = <-*ch[42]:
+		return 42, nil
+	case *v, *ok = <-*ch[43]:
+		return 43, nil
+	case *v, *ok = <-*ch[44]:
+		return 44, nil
+	case *v, *ok = <-*ch[45]:
+		return 45, nil
+	case *v, *ok = <-*ch[46]:
+		return 46, nil
+	case *v, *ok = <-*ch[47]:
+		return 47, nil
+	case *v, *ok = <-*ch[48]:
+		return 48, nil
 	}
 }
 
-func select4(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
+func select50(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
+		return 0, ctx.Err()
+	default:
 	}
-}
 
-func select5(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
 	select {
 	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	case *v, *ok = <-*ch[39]:
+		return 39, nil
+	case *v, *ok = <-*ch[40]:
+		return 40, nil
+	case *v, *ok = <-*ch[41]:
+		return 41, nil
+	case *v, *ok = <-*ch[42]:
+		return 42, nil
+	case *v, *ok = <-*ch[43]:
+		return 43, nil
+	case *v, *ok = <-*ch[44]:
+		return 44, nil
+	case *v, *ok = <-*ch[45]:
+		return 45, nil
+	case *v, *ok = <-*ch[46]:
+		return 46, nil
+	case *v, *ok = <-*ch[47]:
+		return 47, nil
+	case *v, *ok = <-*ch[48]:
+		return 48, nil
+	case *v, *ok = <-*ch[49]:
+		return 49, nil
 	}
 }
 
-func select6(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
+func select51(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
 	}
-}
 
-func select7(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	case *v, *ok = <-*ch[39]:
+		return 39, nil
+	case *v, *ok = <-*ch[40]:
+		return 40, nil
+	case *v, *ok = <-*ch[41]:
+		return 41, nil
+	case *v, *ok = <-*ch[42]:
+		return 42, nil
+	case *v, *ok = <-*ch[43]:
+		return 43, nil
+	case *v, *ok = <-*ch[44]:
+		return 44, nil
+	case *v, *ok = <-*ch[45]:
+		return 45, nil
+	case *v, *ok = <-*ch[46]:
+		return 46, nil
+	case *v, *ok = <-*ch[47]:
+		return 47, nil
+	case *v, *ok = <-*ch[48]:
+		return 48, nil
+	case *v, *ok = <-*ch[49]:
+		return 49, nil
+	case *v, *ok = <-*ch[50]:
+		return 50, nil
 	}
 }
 
-func select8(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
+func select52(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
 	}
-}
 
-func select9(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	case *v, *ok = <-*ch[39]:
+		return 39, nil
+	case *v, *ok = <-*ch[40]:
+		return 40, nil
+	case *v, *ok = <-*ch[41]:
+		return 41, nil
+	case *v, *ok = <-*ch[42]:
+		return 42, nil
+	case *v, *ok = <-*ch[43]:
+		return 43, nil
+	case *v, *ok = <-*ch[44]:
+		return 44, nil
+	case *v, *ok = <-*ch[45]:
+		return 45, nil
+	case *v, *ok = <-*ch[46]:
+		return 46, nil
+	case *v, *ok = <-*ch[47]:
+		return 47, nil
+	case *v, *ok = <-*ch[48]:
+		return 48, nil
+	case *v, *ok = <-*ch[49]:
+		return 49, nil
+	case *v, *ok = <-*ch[50]:
+		return 50, nil
+	case *v, *ok = <-*ch[51]:
+		return 51, nil
 	}
 }
 
-func select10(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
+func select53(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
 	}
-}
 
-func select11(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	case *v, *ok = <-*ch[39]:
+		return 39, nil
+	case *v, *ok = <-*ch[40]:
+		return 40, nil
+	case *v, *ok = <-*ch[41]:
+		return 41, nil
+	case *v, *ok = <-*ch[42]:
+		return 42, nil
+	case *v, *ok = <-*ch[43]:
+		return 43, nil
+	case *v, *ok = <-*ch[44]:
+		return 44, nil
+	case *v, *ok = <-*ch[45]:
+		return 45, nil
+	case *v, *ok = <-*ch[46]:
+		return 46, nil
+	case *v, *ok = <-*ch[47]:
+		return 47, nil
+	case *v, *ok = <-*ch[48]:
+		return 48, nil
+	case *v, *ok = <-*ch[49]:
+		return 49, nil
+	case *v, *ok = <-*ch[50]:
+		return 50, nil
+	case *v, *ok = <-*ch[51]:
+		return 51, nil
+	case *v, *ok = <-*ch[52]:
+		return 52, nil
 	}
 }
 
-func select12(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
+func select54(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
 	}
-}
 
-func select13(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	case *v, *ok = <-*ch[39]:
+		return 39, nil
+	case *v, *ok = <-*ch[40]:
+		return 40, nil
+	case *v, *ok = <-*ch[41]:
+		return 41, nil
+	case *v, *ok = <-*ch[42]:
+		return 42, nil
+	case *v, *ok = <-*ch[43]:
+		return 43, nil
+	case *v, *ok = <-*ch[44]:
+		return 44, nil
+	case *v, *ok = <-*ch[45]:
+		return 45, nil
+	case *v, *ok = <-*ch[46]:
+		return 46, nil
+	case *v, *ok = <-*ch[47]:
+		return 47, nil
+	case *v, *ok = <-*ch[48]:
+		return 48, nil
+	case *v, *ok = <-*ch[49]:
+		return 49, nil
+	case *v, *ok = <-*ch[50]:
+		return 50, nil
+	case *v, *ok = <-*ch[51]:
+		return 51, nil
+	case *v, *ok = <-*ch[52]:
+		return 52, nil
+	case *v, *ok = <-*ch[53]:
+		return 53, nil
 	}
 }
 
-func select14(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
+func select55(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
 	}
-}
 
-func select15(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	case *v, *ok = <-*ch[39]:
+		return 39, nil
+	case *v, *ok = <-*ch[40]:
+		return 40, nil
+	case *v, *ok = <-*ch[41]:
+		return 41, nil
+	case *v, *ok = <-*ch[42]:
+		return 42, nil
+	case *v, *ok = <-*ch[43]:
+		return 43, nil
+	case *v, *ok = <-*ch[44]:
+		return 44, nil
+	case *v, *ok = <-*ch[45]:
+		return 45, nil
+	case *v, *ok = <-*ch[46]:
+		return 46, nil
+	case *v, *ok = <-*ch[47]:
+		return 47, nil
+	case *v, *ok = <-*ch[48]:
+		return 48, nil
+	case *v, *ok = <-*ch[49]:
+		return 49, nil
+	case *v, *ok = <-*ch[50]:
+		return 50, nil
+	case *v, *ok = <-*ch[51]:
+		return 51, nil
+	case *v, *ok = <-*ch[52]:
+		return 52, nil
+	case *v, *ok = <-*ch[53]:
+		return 53, nil
+	case *v, *ok = <-*ch[54]:
+		return 54, nil
 	}
 }
 
-func select16(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
+func select56(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
 	}
-}
 
-func select17(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	case *v, *ok = <-*ch[39]:
+		return 39, nil
+	case *v, *ok = <-*ch[40]:
+		return 40, nil
+	case *v, *ok = <-*ch[41]:
+		return 41, nil
+	case *v, *ok = <-*ch[42]:
+		return 42, nil
+	case *v, *ok = <-*ch[43]:
+		return 43, nil
+	case *v, *ok = <-*ch[44]:
+		return 44, nil
+	case *v, *ok = <-*ch[45]:
+		return 45, nil
+	case *v, *ok = <-*ch[46]:
+		return 46, nil
+	case *v, *ok = <-*ch[47]:
+		return 47, nil
+	case *v, *ok = <-*ch[48]:
+		return 48, nil
+	case *v, *ok = <-*ch[49]:
+		return 49, nil
+	case *v, *ok = <-*ch[50]:
+		return 50, nil
+	case *v, *ok = <-*ch[51]:
+		return 51, nil
+	case *v, *ok = <-*ch[52]:
+		return 52, nil
+	case *v, *ok = <-*ch[53]:
+		return 53, nil
+	case *v, *ok = <-*ch[54]:
+		return 54, nil
+	case *v, *ok = <-*ch[55]:
+		return 55, nil
 	}
 }
 
-func select18(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
+func select57(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
 	}
-}
 
-func select19(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	case *v, *ok = <-*ch[39]:
+		return 39, nil
+	case *v, *ok = <-*ch[40]:
+		return 40, nil
+	case *v, *ok = <-*ch[41]:
+		return 41, nil
+	case *v, *ok = <-*ch[42]:
+		return 42, nil
+	case *v, *ok = <-*ch[43]:
+		return 43, nil
+	case *v, *ok = <-*ch[44]:
+		return 44, nil
+	case *v, *ok = <-*ch[45]:
+		return 45, nil
+	case *v, *ok = <-*ch[46]:
+		return 46, nil
+	case *v, *ok = <-*ch[47]:
+		return 47, nil
+	case *v, *ok = <-*ch[48]:
+		return 48, nil
+	case *v, *ok = <-*ch[49]:
+		return 49, nil
+	case *v, *ok = <-*ch[50]:
+		return 50, nil
+	case *v, *ok = <-*ch[51]:
+		return 51, nil
+	case *v, *ok = <-*ch[52]:
+		return 52, nil
+	case *v, *ok = <-*ch[53]:
+		return 53, nil
+	case *v, *ok = <-*ch[54]:
+		return 54, nil
+	case *v, *ok = <-*ch[55]:
+		return 55, nil
+	case *v, *ok = <-*ch[56]:
+		return 56, nil
 	}
 }
 
-func select20(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
+func select58(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
 	}
-}
 
-func select21(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	case *v, *ok = <-*ch[39]:
+		return 39, nil
+	case *v, *ok = <-*ch[40]:
+		return 40, nil
+	case *v, *ok = <-*ch[41]:
+		return 41, nil
+	case *v, *ok = <-*ch[42]:
+		return 42, nil
+	case *v, *ok = <-*ch[43]:
+		return 43, nil
+	case *v, *ok = <-*ch[44]:
+		return 44, nil
+	case *v, *ok = <-*ch[45]:
+		return 45, nil
+	case *v, *ok = <-*ch[46]:
+		return 46, nil
+	case *v, *ok = <-*ch[47]:
+		return 47, nil
+	case *v, *ok = <-*ch[48]:
+		return 48, nil
+	case *v, *ok = <-*ch[49]:
+		return 49, nil
+	case *v, *ok = <-*ch[50]:
+		return 50, nil
+	case *v, *ok = <-*ch[51]:
+		return 51, nil
+	case *v, *ok = <-*ch[52]:
+		return 52, nil
+	case *v, *ok = <-*ch[53]:
+		return 53, nil
+	case *v, *ok = <-*ch[54]:
+		return 54, nil
+	case *v, *ok = <-*ch[55]:
+		return 55, nil
+	case *v, *ok = <-*ch[56]:
+		return 56, nil
+	case *v, *ok = <-*ch[57]:
+		return 57, nil
 	}
 }
 
-func select22(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
+func select59(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
 	}
-}
 
-func select23(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	case *v, *ok = <-*ch[39]:
+		return 39, nil
+	case *v, *ok = <-*ch[40]:
+		return 40, nil
+	case *v, *ok = <-*ch[41]:
+		return 41, nil
+	case *v, *ok = <-*ch[42]:
+		return 42, nil
+	case *v, *ok = <-*ch[43]:
+		return 43, nil
+	case *v, *ok = <-*ch[44]:
+		return 44, nil
+	case *v, *ok = <-*ch[45]:
+		return 45, nil
+	case *v, *ok = <-*ch[46]:
+		return 46, nil
+	case *v, *ok = <-*ch[47]:
+		return 47, nil
+	case *v, *ok = <-*ch[48]:
+		return 48, nil
+	case *v, *ok = <-*ch[49]:
+		return 49, nil
+	case *v, *ok = <-*ch[50]:
+		return 50, nil
+	case *v, *ok = <-*ch[51]:
+		return 51, nil
+	case *v, *ok = <-*ch[52]:
+		return 52, nil
+	case *v, *ok = <-*ch[53]:
+		return 53, nil
+	case *v, *ok = <-*ch[54]:
+		return 54, nil
+	case *v, *ok = <-*ch[55]:
+		return 55, nil
+	case *v, *ok = <-*ch[56]:
+		return 56, nil
+	case *v, *ok = <-*ch[57]:
+		return 57, nil
+	case *v, *ok = <-*ch[58]:
+		return 58, nil
 	}
 }
 
-func select24(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
+func select60(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
 	}
-}
 
-func select25(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	case *v, *ok = <-*ch[39]:
+		return 39, nil
+	case *v, *ok = <-*ch[40]:
+		return 40, nil
+	case *v, *ok = <-*ch[41]:
+		return 41, nil
+	case *v, *ok = <-*ch[42]:
+		return 42, nil
+	case *v, *ok = <-*ch[43]:
+		return 43, nil
+	case *v, *ok = <-*ch[44]:
+		return 44, nil
+	case *v, *ok = <-*ch[45]:
+		return 45, nil
+	case *v, *ok = <-*ch[46]:
+		return 46, nil
+	case *v, *ok = <-*ch[47]:
+		return 47, nil
+	case *v, *ok = <-*ch[48]:
+		return 48, nil
+	case *v, *ok = <-*ch[49]:
+		return 49, nil
+	case *v, *ok = <-*ch[50]:
+		return 50, nil
+	case *v, *ok = <-*ch[51]:
+		return 51, nil
+	case *v, *ok = <-*ch[52]:
+		return 52, nil
+	case *v, *ok = <-*ch[53]:
+		return 53, nil
+	case *v, *ok = <-*ch[54]:
+		return 54, nil
+	case *v, *ok = <-*ch[55]:
+		return 55, nil
+	case *v, *ok = <-*ch[56]:
+		return 56, nil
+	case *v, *ok = <-*ch[57]:
+		return 57, nil
+	case *v, *ok = <-*ch[58]:
+		return 58, nil
+	case *v, *ok = <-*ch[59]:
+		return 59, nil
 	}
 }
 
-func select26(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
+func select61(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
 	}
-}
 
-func select27(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	case *v, *ok = <-*ch[39]:
+		return 39, nil
+	case *v, *ok = <-*ch[40]:
+		return 40, nil
+	case *v, *ok = <-*ch[41]:
+		return 41, nil
+	case *v, *ok = <-*ch[42]:
+		return 42, nil
+	case *v, *ok = <-*ch[43]:
+		return 43, nil
+	case *v, *ok = <-*ch[44]:
+		return 44, nil
+	case *v, *ok = <-*ch[45]:
+		return 45, nil
+	case *v, *ok = <-*ch[46]:
+		return 46, nil
+	case *v, *ok = <-*ch[47]:
+		return 47, nil
+	case *v, *ok = <-*ch[48]:
+		return 48, nil
+	case *v, *ok = <-*ch[49]:
+		return 49, nil
+	case *v, *ok = <-*ch[50]:
+		return 50, nil
+	case *v, *ok = <-*ch[51]:
+		return 51, nil
+	case *v, *ok = <-*ch[52]:
+		return 52, nil
+	case *v, *ok = <-*ch[53]:
+		return 53, nil
+	case *v, *ok = <-*ch[54]:
+		return 54, nil
+	case *v, *ok = <-*ch[55]:
+		return 55, nil
+	case *v, *ok = <-*ch[56]:
+		return 56, nil
+	case *v, *ok = <-*ch[57]:
+		return 57, nil
+	case *v, *ok = <-*ch[58]:
+		return 58, nil
+	case *v, *ok = <-*ch[59]:
+		return 59, nil
+	case *v, *ok = <-*ch[60]:
+		return 60, nil
 	}
 }
 
-func select28(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
+func select62(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
 	}
-}
 
-func select29(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	case *v, *ok = <-*ch[39]:
+		return 39, nil
+	case *v, *ok = <-*ch[40]:
+		return 40, nil
+	case *v, *ok = <-*ch[41]:
+		return 41, nil
+	case *v, *ok = <-*ch[42]:
+		return 42, nil
+	case *v, *ok = <-*ch[43]:
+		return 43, nil
+	case *v, *ok = <-*ch[44]:
+		return 44, nil
+	case *v, *ok = <-*ch[45]:
+		return 45, nil
+	case *v, *ok = <-*ch[46]:
+		return 46, nil
+	case *v, *ok = <-*ch[47]:
+		return 47, nil
+	case *v, *ok = <-*ch[48]:
+		return 48, nil
+	case *v, *ok = <-*ch[49]:
+		return 49, nil
+	case *v, *ok = <-*ch[50]:
+		return 50, nil
+	case *v, *ok = <-*ch[51]:
+		return 51, nil
+	case *v, *ok = <-*ch[52]:
+		return 52, nil
+	case *v, *ok = <-*ch[53]:
+		return 53, nil
+	case *v, *ok = <-*ch[54]:
+		return 54, nil
+	case *v, *ok = <-*ch[55]:
+		return 55, nil
+	case *v, *ok = <-*ch[56]:
+		return 56, nil
+	case *v, *ok = <-*ch[57]:
+		return 57, nil
+	case *v, *ok = <-*ch[58]:
+		return 58, nil
+	case *v, *ok = <-*ch[59]:
+		return 59, nil
+	case *v, *ok = <-*ch[60]:
+		return 60, nil
+	case *v, *ok = <-*ch[61]:
+		return 61, nil
 	}
 }
 
-func select30(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
+func select63(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
 	}
-}
 
-func select31(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	case *v, *ok = <-*ch[39]:
+		return 39, nil
+	case *v, *ok = <-*ch[40]:
+		return 40, nil
+	case *v, *ok = <-*ch[41]:
+		return 41, nil
+	case *v, *ok = <-*ch[42]:
+		return 42, nil
+	case *v, *ok = <-*ch[43]:
+		return 43, nil
+	case *v, *ok = <-*ch[44]:
+		return 44, nil
+	case *v, *ok = <-*ch[45]:
+		return 45, nil
+	case *v, *ok = <-*ch[46]:
+		return 46, nil
+	case *v, *ok = <-*ch[47]:
+		return 47, nil
+	case *v, *ok = <-*ch[48]:
+		return 48, nil
+	case *v, *ok = <-*ch[49]:
+		return 49, nil
+	case *v, *ok = <-*ch[50]:
+		return 50, nil
+	case *v, *ok = <-*ch[51]:
+		return 51, nil
+	case *v, *ok = <-*ch[52]:
+		return 52, nil
+	case *v, *ok = <-*ch[53]:
+		return 53, nil
+	case *v, *ok = <-*ch[54]:
+		return 54, nil
+	case *v, *ok = <-*ch[55]:
+		return 55, nil
+	case *v, *ok = <-*ch[56]:
+		return 56, nil
+	case *v, *ok = <-*ch[57]:
+		return 57, nil
+	case *v, *ok = <-*ch[58]:
+		return 58, nil
+	case *v, *ok = <-*ch[59]:
+		return 59, nil
+	case *v, *ok = <-*ch[60]:
+		return 60, nil
+	case *v, *ok = <-*ch[61]:
+		return 61, nil
+	case *v, *ok = <-*ch[62]:
+		return 62, nil
 	}
 }
 
-func select32(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
+func select64(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
 	}
-}
 
-func select33(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	case *v, *ok = <-*ch[39]:
+		return 39, nil
+	case *v, *ok = <-*ch[40]:
+		return 40, nil
+	case *v, *ok = <-*ch[41]:
+		return 41, nil
+	case *v, *ok = <-*ch[42]:
+		return 42, nil
+	case *v, *ok = <-*ch[43]:
+		return 43, nil
+	case *v, *ok = <-*ch[44]:
+		return 44, nil
+	case *v, *ok = <-*ch[45]:
+		return 45, nil
+	case *v, *ok = <-*ch[46]:
+		return 46, nil
+	case *v, *ok = <-*ch[47]:
+		return 47, nil
+	case *v, *ok = <-*ch[48]:
+		return 48, nil
+	case *v, *ok = <-*ch[49]:
+		return 49, nil
+	case *v, *ok = <-*ch[50]:
+		return 50, nil
+	case *v, *ok = <-*ch[51]:
+		return 51, nil
+	case *v, *ok = <-*ch[52]:
+		return 52, nil
+	case *v, *ok = <-*ch[53]:
+		return 53, nil
+	case *v, *ok = <-*ch[54]:
+		return 54, nil
+	case *v, *ok = <-*ch[55]:
+		return 55, nil
+	case *v, *ok = <-*ch[56]:
+		return 56, nil
+	case *v, *ok = <-*ch[57]:
+		return 57, nil
+	case *v, *ok = <-*ch[58]:
+		return 58, nil
+	case *v, *ok = <-*ch[59]:
+		return 59, nil
+	case *v, *ok = <-*ch[60]:
+		return 60, nil
+	case *v, *ok = <-*ch[61]:
+		return 61, nil
+	case *v, *ok = <-*ch[62]:
+		return 62, nil
+	case *v, *ok = <-*ch[63]:
+		return 63, nil
 	}
 }
 
-func select34(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
+func select65(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
 	}
-}
 
-func select35(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	case *v, *ok = <-*ch[39]:
+		return 39, nil
+	case *v, *ok = <-*ch[40]:
+		return 40, nil
+	case *v, *ok = <-*ch[41]:
+		return 41, nil
+	case *v, *ok = <-*ch[42]:
+		return 42, nil
+	case *v, *ok = <-*ch[43]:
+		return 43, nil
+	case *v, *ok = <-*ch[44]:
+		return 44, nil
+	case *v, *ok = <-*ch[45]:
+		return 45, nil
+	case *v, *ok = <-*ch[46]:
+		return 46, nil
+	case *v, *ok = <-*ch[47]:
+		return 47, nil
+	case *v, *ok = <-*ch[48]:
+		return 48, nil
+	case *v, *ok = <-*ch[49]:
+		return 49, nil
+	case *v, *ok = <-*ch[50]:
+		return 50, nil
+	case *v, *ok = <-*ch[51]:
+		return 51, nil
+	case *v, *ok = <-*ch[52]:
+		return 52, nil
+	case *v, *ok = <-*ch[53]:
+		return 53, nil
+	case *v, *ok = <-*ch[54]:
+		return 54, nil
+	case *v, *ok = <-*ch[55]:
+		return 55, nil
+	case *v, *ok = <-*ch[56]:
+		return 56, nil
+	case *v, *ok = <-*ch[57]:
+		return 57, nil
+	case *v, *ok = <-*ch[58]:
+		return 58, nil
+	case *v, *ok = <-*ch[59]:
+		return 59, nil
+	case *v, *ok = <-*ch[60]:
+		return 60, nil
+	case *v, *ok = <-*ch[61]:
+		return 61, nil
+	case *v, *ok = <-*ch[62]:
+		return 62, nil
+	case *v, *ok = <-*ch[63]:
+		return 63, nil
+	case *v, *ok = <-*ch[64]:
+		return 64, nil
 	}
 }
 
-func select36(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
+func select66(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
 	}
-}
 
-func select37(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	case *v, *ok = <-*ch[39]:
+		return 39, nil
+	case *v, *ok = <-*ch[40]:
+		return 40, nil
+	case *v, *ok = <-*ch[41]:
+		return 41, nil
+	case *v, *ok = <-*ch[42]:
+		return 42, nil
+	case *v, *ok = <-*ch[43]:
+		return 43, nil
+	case *v, *ok = <-*ch[44]:
+		return 44, nil
+	case *v, *ok = <-*ch[45]:
+		return 45, nil
+	case *v, *ok = <-*ch[46]:
+		return 46, nil
+	case *v, *ok = <-*ch[47]:
+		return 47, nil
+	case *v, *ok = <-*ch[48]:
+		return 48, nil
+	case *v, *ok = <-*ch[49]:
+		return 49, nil
+	case *v, *ok = <-*ch[50]:
+		return 50, nil
+	case *v, *ok = <-*ch[51]:
+		return 51, nil
+	case *v, *ok = <-*ch[52]:
+		return 52, nil
+	case *v, *ok = <-*ch[53]:
+		return 53, nil
+	case *v, *ok = <-*ch[54]:
+		return 54, nil
+	case *v, *ok = <-*ch[55]:
+		return 55, nil
+	case *v, *ok = <-*ch[56]:
+		return 56, nil
+	case *v, *ok = <-*ch[57]:
+		return 57, nil
+	case *v, *ok = <-*ch[58]:
+		return 58, nil
+	case *v, *ok = <-*ch[59]:
+		return 59, nil
+	case *v, *ok = <-*ch[60]:
+		return 60, nil
+	case *v, *ok = <-*ch[61]:
+		return 61, nil
+	case *v, *ok = <-*ch[62]:
+		return 62, nil
+	case *v, *ok = <-*ch[63]:
+		return 63, nil
+	case *v, *ok = <-*ch[64]:
+		return 64, nil
+	case *v, *ok = <-*ch[65]:
+		return 65, nil
 	}
 }
 
-func select38(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
+func select67(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
 	}
-}
 
-func select39(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	case *v, *ok = <-*ch[39]:
+		return 39, nil
+	case *v, *ok = <-*ch[40]:
+		return 40, nil
+	case *v, *ok = <-*ch[41]:
+		return 41, nil
+	case *v, *ok = <-*ch[42]:
+		return 42, nil
+	case *v, *ok = <-*ch[43]:
+		return 43, nil
+	case *v, *ok = <-*ch[44]:
+		return 44, nil
+	case *v, *ok = <-*ch[45]:
+		return 45, nil
+	case *v, *ok = <-*ch[46]:
+		return 46, nil
+	case *v, *ok = <-*ch[47]:
+		return 47, nil
+	case *v, *ok = <-*ch[48]:
+		return 48, nil
+	case *v, *ok = <-*ch[49]:
+		return 49, nil
+	case *v, *ok = <-*ch[50]:
+		return 50, nil
+	case *v, *ok = <-*ch[51]:
+		return 51, nil
+	case *v, *ok = <-*ch[52]:
+		return 52, nil
+	case *v, *ok = <-*ch[53]:
+		return 53, nil
+	case *v, *ok = <-*ch[54]:
+		return 54, nil
+	case *v, *ok = <-*ch[55]:
+		return 55, nil
+	case *v, *ok = <-*ch[56]:
+		return 56, nil
+	case *v, *ok = <-*ch[57]:
+		return 57, nil
+	case *v, *ok = <-*ch[58]:
+		return 58, nil
+	case *v, *ok = <-*ch[59]:
+		return 59, nil
+	case *v, *ok = <-*ch[60]:
+		return 60, nil
+	case *v, *ok = <-*ch[61]:
+		return 61, nil
+	case *v, *ok = <-*ch[62]:
+		return 62, nil
+	case *v, *ok = <-*ch[63]:
+		return 63, nil
+	case *v, *ok = <-*ch[64]:
+		return 64, nil
+	case *v, *ok = <-*ch[65]:
+		return 65, nil
+	case *v, *ok = <-*ch[66]:
+		return 66, nil
 	}
 }
 
-func select40(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
-	case v, ok = <-ch[39]:
-		return 39, true
+func select68(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
 	}
-}
 
-func select41(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
-	case v, ok = <-ch[39]:
-		return 39, true
-	case v, ok = <-ch[40]:
-		return 40, true
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	case *v, *ok = <-*ch[39]:
+		return 39, nil
+	case *v, *ok = <-*ch[40]:
+		return 40, nil
+	case *v, *ok = <-*ch[41]:
+		return 41, nil
+	case *v, *ok = <-*ch[42]:
+		return 42, nil
+	case *v, *ok = <-*ch[43]:
+		return 43, nil
+	case *v, *ok = <-*ch[44]:
+		return 44, nil
+	case *v, *ok = <-*ch[45]:
+		return 45, nil
+	case *v, *ok = <-*ch[46]:
+		return 46, nil
+	case *v, *ok = <-*ch[47]:
+		return 47, nil
+	case *v, *ok = <-*ch[48]:
+		return 48, nil
+	case *v, *ok = <-*ch[49]:
+		return 49, nil
+	case *v, *ok = <-*ch[50]:
+		return 50, nil
+	case *v, *ok = <-*ch[51]:
+		return 51, nil
+	case *v, *ok = <-*ch[52]:
+		return 52, nil
+	case *v, *ok = <-*ch[53]:
+		return 53, nil
+	case *v, *ok = <-*ch[54]:
+		return 54, nil
+	case *v, *ok = <-*ch[55]:
+		return 55, nil
+	case *v, *ok = <-*ch[56]:
+		return 56, nil
+	case *v, *ok = <-*ch[57]:
+		return 57, nil
+	case *v, *ok = <-*ch[58]:
+		return 58, nil
+	case *v, *ok = <-*ch[59]:
+		return 59, nil
+	case *v, *ok = <-*ch[60]:
+		return 60, nil
+	case *v, *ok = <-*ch[61]:
+		return 61, nil
+	case *v, *ok = <-*ch[62]:
+		return 62, nil
+	case *v, *ok = <-*ch[63]:
+		return 63, nil
+	case *v, *ok = <-*ch[64]:
+		return 64, nil
+	case *v, *ok = <-*ch[65]:
+		return 65, nil
+	case *v, *ok = <-*ch[66]:
+		return 66, nil
+	case *v, *ok = <-*ch[67]:
+		return 67, nil
 	}
 }
 
-func select42(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
-	case v, ok = <-ch[39]:
-		return 39, true
-	case v, ok = <-ch[40]:
-		return 40, true
-	case v, ok = <-ch[41]:
-		return 41, true
+func select69(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
 	}
-}
 
-func select43(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
-	case v, ok = <-ch[39]:
-		return 39, true
-	case v, ok = <-ch[40]:
-		return 40, true
-	case v, ok = <-ch[41]:
-		return 41, true
-	case v, ok = <-ch[42]:
-		return 42, true
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	case *v, *ok = <-*ch[39]:
+		return 39, nil
+	case *v, *ok = <-*ch[40]:
+		return 40, nil
+	case *v, *ok = <-*ch[41]:
+		return 41, nil
+	case *v, *ok = <-*ch[42]:
+		return 42, nil
+	case *v, *ok = <-*ch[43]:
+		return 43, nil
+	case *v, *ok = <-*ch[44]:
+		return 44, nil
+	case *v, *ok = <-*ch[45]:
+		return 45, nil
+	case *v, *ok = <-*ch[46]:
+		return 46, nil
+	case *v, *ok = <-*ch[47]:
+		return 47, nil
+	case *v, *ok = <-*ch[48]:
+		return 48, nil
+	case *v, *ok = <-*ch[49]:
+		return 49, nil
+	case *v, *ok = <-*ch[50]:
+		return 50, nil
+	case *v, *ok = <-*ch[51]:
+		return 51, nil
+	case *v, *ok = <-*ch[52]:
+		return 52, nil
+	case *v, *ok = <-*ch[53]:
+		return 53, nil
+	case *v, *ok = <-*ch[54]:
+		return 54, nil
+	case *v, *ok = <-*ch[55]:
+		return 55, nil
+	case *v, *ok = <-*ch[56]:
+		return 56, nil
+	case *v, *ok = <-*ch[57]:
+		return 57, nil
+	case *v, *ok = <-*ch[58]:
+		return 58, nil
+	case *v, *ok = <-*ch[59]:
+		return 59, nil
+	case *v, *ok = <-*ch[60]:
+		return 60, nil
+	case *v, *ok = <-*ch[61]:
+		return 61, nil
+	case *v, *ok = <-*ch[62]:
+		return 62, nil
+	case *v, *ok = <-*ch[63]:
+		return 63, nil
+	case *v, *ok = <-*ch[64]:
+		return 64, nil
+	case *v, *ok = <-*ch[65]:
+		return 65, nil
+	case *v, *ok = <-*ch[66]:
+		return 66, nil
+	case *v, *ok = <-*ch[67]:
+		return 67, nil
+	case *v, *ok = <-*ch[68]:
+		return 68, nil
 	}
 }
 
-func select44(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
-	case v, ok = <-ch[39]:
-		return 39, true
-	case v, ok = <-ch[40]:
-		return 40, true
-	case v, ok = <-ch[41]:
-		return 41, true
-	case v, ok = <-ch[42]:
-		return 42, true
-	case v, ok = <-ch[43]:
-		return 43, true
+func select70(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
 	}
-}
 
-func select45(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
-	case v, ok = <-ch[39]:
-		return 39, true
-	case v, ok = <-ch[40]:
-		return 40, true
-	case v, ok = <-ch[41]:
-		return 41, true
-	case v, ok = <-ch[42]:
-		return 42, true
-	case v, ok = <-ch[43]:
-		return 43, true
-	case v, ok = <-ch[44]:
-		return 44, true
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	case *v, *ok = <-*ch[39]:
+		return 39, nil
+	case *v, *ok = <-*ch[40]:
+		return 40, nil
+	case *v, *ok = <-*ch[41]:
+		return 41, nil
+	case *v, *ok = <-*ch[42]:
+		return 42, nil
+	case *v, *ok = <-*ch[43]:
+		return 43, nil
+	case *v, *ok = <-*ch[44]:
+		return 44, nil
+	case *v, *ok = <-*ch[45]:
+		return 45, nil
+	case *v, *ok = <-*ch[46]:
+		return 46, nil
+	case *v, *ok = <-*ch[47]:
+		return 47, nil
+	case *v, *ok = <-*ch[48]:
+		return 48, nil
+	case *v, *ok = <-*ch[49]:
+		return 49, nil
+	case *v, *ok = <-*ch[50]:
+		return 50, nil
+	case *v, *ok = <-*ch[51]:
+		return 51, nil
+	case *v, *ok = <-*ch[52]:
+		return 52, nil
+	case *v, *ok = <-*ch[53]:
+		return 53, nil
+	case *v, *ok = <-*ch[54]:
+		return 54, nil
+	case *v, *ok = <-*ch[55]:
+		return 55, nil
+	case *v, *ok = <-*ch[56]:
+		return 56, nil
+	case *v, *ok = <-*ch[57]:
+		return 57, nil
+	case *v, *ok = <-*ch[58]:
+		return 58, nil
+	case *v, *ok = <-*ch[59]:
+		return 59, nil
+	case *v, *ok = <-*ch[60]:
+		return 60, nil
+	case *v, *ok = <-*ch[61]:
+		return 61, nil
+	case *v, *ok = <-*ch[62]:
+		return 62, nil
+	case *v, *ok = <-*ch[63]:
+		return 63, nil
+	case *v, *ok = <-*ch[64]:
+		return 64, nil
+	case *v, *ok = <-*ch[65]:
+		return 65, nil
+	case *v, *ok = <-*ch[66]:
+		return 66, nil
+	case *v, *ok = <-*ch[67]:
+		return 67, nil
+	case *v, *ok = <-*ch[68]:
+		return 68, nil
+	case *v, *ok = <-*ch[69]:
+		return 69, nil
 	}
 }
 
-func select46(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
-	case v, ok = <-ch[39]:
-		return 39, true
-	case v, ok = <-ch[40]:
-		return 40, true
-	case v, ok = <-ch[41]:
-		return 41, true
-	case v, ok = <-ch[42]:
-		return 42, true
-	case v, ok = <-ch[43]:
-		return 43, true
-	case v, ok = <-ch[44]:
-		return 44, true
-	case v, ok = <-ch[45]:
-		return 45, true
+func select71(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
 	}
-}
 
-func select47(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
-	case v, ok = <-ch[39]:
-		return 39, true
-	case v, ok = <-ch[40]:
-		return 40, true
-	case v, ok = <-ch[41]:
-		return 41, true
-	case v, ok = <-ch[42]:
-		return 42, true
-	case v, ok = <-ch[43]:
-		return 43, true
-	case v, ok = <-ch[44]:
-		return 44, true
-	case v, ok = <-ch[45]:
-		return 45, true
-	case v, ok = <-ch[46]:
-		return 46, true
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	case *v, *ok = <-*ch[39]:
+		return 39, nil
+	case *v, *ok = <-*ch[40]:
+		return 40, nil
+	case *v, *ok = <-*ch[41]:
+		return 41, nil
+	case *v, *ok = <-*ch[42]:
+		return 42, nil
+	case *v, *ok = <-*ch[43]:
+		return 43, nil
+	case *v, *ok = <-*ch[44]:
+		return 44, nil
+	case *v, *ok = <-*ch[45]:
+		return 45, nil
+	case *v, *ok = <-*ch[46]:
+		return 46, nil
+	case *v, *ok = <-*ch[47]:
+		return 47, nil
+	case *v, *ok = <-*ch[48]:
+		return 48, nil
+	case *v, *ok = <-*ch[49]:
+		return 49, nil
+	case *v, *ok = <-*ch[50]:
+		return 50, nil
+	case *v, *ok = <-*ch[51]:
+		return 51, nil
+	case *v, *ok = <-*ch[52]:
+		return 52, nil
+	case *v, *ok = <-*ch[53]:
+		return 53, nil
+	case *v, *ok = <-*ch[54]:
+		return 54, nil
+	case *v, *ok = <-*ch[55]:
+		return 55, nil
+	case *v, *ok = <-*ch[56]:
+		return 56, nil
+	case *v, *ok = <-*ch[57]:
+		return 57, nil
+	case *v, *ok = <-*ch[58]:
+		return 58, nil
+	case *v, *ok = <-*ch[59]:
+		return 59, nil
+	case *v, *ok = <-*ch[60]:
+		return 60, nil
+	case *v, *ok = <-*ch[61]:
+		return 61, nil
+	case *v, *ok = <-*ch[62]:
+		return 62, nil
+	case *v, *ok = <-*ch[63]:
+		return 63, nil
+	case *v, *ok = <-*ch[64]:
+		return 64, nil
+	case *v, *ok = <-*ch[65]:
+		return 65, nil
+	case *v, *ok = <-*ch[66]:
+		return 66, nil
+	case *v, *ok = <-*ch[67]:
+		return 67, nil
+	case *v, *ok = <-*ch[68]:
+		return 68, nil
+	case *v, *ok = <-*ch[69]:
+		return 69, nil
+	case *v, *ok = <-*ch[70]:
+		return 70, nil
 	}
 }
 
-func select48(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
-	case v, ok = <-ch[39]:
-		return 39, true
-	case v, ok = <-ch[40]:
-		return 40, true
-	case v, ok = <-ch[41]:
-		return 41, true
-	case v, ok = <-ch[42]:
-		return 42, true
-	case v, ok = <-ch[43]:
-		return 43, true
-	case v, ok = <-ch[44]:
-		return 44, true
-	case v, ok = <-ch[45]:
-		return 45, true
-	case v, ok = <-ch[46]:
-		return 46, true
-	case v, ok = <-ch[47]:
-		return 47, true
+func select72(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
 	}
-}
 
-func select49(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
-	case v, ok = <-ch[39]:
-		return 39, true
-	case v, ok = <-ch[40]:
-		return 40, true
-	case v, ok = <-ch[41]:
-		return 41, true
-	case v, ok = <-ch[42]:
-		return 42, true
-	case v, ok = <-ch[43]:
-		return 43, true
-	case v, ok = <-ch[44]:
-		return 44, true
-	case v, ok = <-ch[45]:
-		return 45, true
-	case v, ok = <-ch[46]:
-		return 46, true
-	case v, ok = <-ch[47]:
-		return 47, true
-	case v, ok = <-ch[48]:
-		return 48, true
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	case *v, *ok = <-*ch[39]:
+		return 39, nil
+	case *v, *ok = <-*ch[40]:
+		return 40, nil
+	case *v, *ok = <-*ch[41]:
+		return 41, nil
+	case *v, *ok = <-*ch[42]:
+		return 42, nil
+	case *v, *ok = <-*ch[43]:
+		return 43, nil
+	case *v, *ok = <-*ch[44]:
+		return 44, nil
+	case *v, *ok = <-*ch[45]:
+		return 45, nil
+	case *v, *ok = <-*ch[46]:
+		return 46, nil
+	case *v, *ok = <-*ch[47]:
+		return 47, nil
+	case *v, *ok = <-*ch[48]:
+		return 48, nil
+	case *v, *ok = <-*ch[49]:
+		return 49, nil
+	case *v, *ok = <-*ch[50]:
+		return 50, nil
+	case *v, *ok = <-*ch[51]:
+		return 51, nil
+	case *v, *ok = <-*ch[52]:
+		return 52, nil
+	case *v, *ok = <-*ch[53]:
+		return 53, nil
+	case *v, *ok = <-*ch[54]:
+		return 54, nil
+	case *v, *ok = <-*ch[55]:
+		return 55, nil
+	case *v, *ok = <-*ch[56]:
+		return 56, nil
+	case *v, *ok = <-*ch[57]:
+		return 57, nil
+	case *v, *ok = <-*ch[58]:
+		return 58, nil
+	case *v, *ok = <-*ch[59]:
+		return 59, nil
+	case *v, *ok = <-*ch[60]:
+		return 60, nil
+	case *v, *ok = <-*ch[61]:
+		return 61, nil
+	case *v, *ok = <-*ch[62]:
+		return 62, nil
+	case *v, *ok = <-*ch[63]:
+		return 63, nil
+	case *v, *ok = <-*ch[64]:
+		return 64, nil
+	case *v, *ok = <-*ch[65]:
+		return 65, nil
+	case *v, *ok = <-*ch[66]:
+		return 66, nil
+	case *v, *ok = <-*ch[67]:
+		return 67, nil
+	case *v, *ok = <-*ch[68]:
+		return 68, nil
+	case *v, *ok = <-*ch[69]:
+		return 69, nil
+	case *v, *ok = <-*ch[70]:
+		return 70, nil
+	case *v, *ok = <-*ch[71]:
+		return 71, nil
 	}
 }
 
-func select50(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
-	case v, ok = <-ch[39]:
-		return 39, true
-	case v, ok = <-ch[40]:
-		return 40, true
-	case v, ok = <-ch[41]:
-		return 41, true
-	case v, ok = <-ch[42]:
-		return 42, true
-	case v, ok = <-ch[43]:
-		return 43, true
-	case v, ok = <-ch[44]:
-		return 44, true
-	case v, ok = <-ch[45]:
-		return 45, true
-	case v, ok = <-ch[46]:
-		return 46, true
-	case v, ok = <-ch[47]:
-		return 47, true
-	case v, ok = <-ch[48]:
-		return 48, true
-	case v, ok = <-ch[49]:
-		return 49, true
+func select73(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
 	}
-}
 
-func select51(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
-	case v, ok = <-ch[39]:
-		return 39, true
-	case v, ok = <-ch[40]:
-		return 40, true
-	case v, ok = <-ch[41]:
-		return 41, true
-	case v, ok = <-ch[42]:
-		return 42, true
-	case v, ok = <-ch[43]:
-		return 43, true
-	case v, ok = <-ch[44]:
-		return 44, true
-	case v, ok = <-ch[45]:
-		return 45, true
-	case v, ok = <-ch[46]:
-		return 46, true
-	case v, ok = <-ch[47]:
-		return 47, true
-	case v, ok = <-ch[48]:
-		return 48, true
-	case v, ok = <-ch[49]:
-		return 49, true
-	case v, ok = <-ch[50]:
-		return 50, true
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	case *v, *ok = <-*ch[39]:
+		return 39, nil
+	case *v, *ok = <-*ch[40]:
+		return 40, nil
+	case *v, *ok = <-*ch[41]:
+		return 41, nil
+	case *v, *ok = <-*ch[42]:
+		return 42, nil
+	case *v, *ok = <-*ch[43]:
+		return 43, nil
+	case *v, *ok = <-*ch[44]:
+		return 44, nil
+	case *v, *ok = <-*ch[45]:
+		return 45, nil
+	case *v, *ok = <-*ch[46]:
+		return 46, nil
+	case *v, *ok = <-*ch[47]:
+		return 47, nil
+	case *v, *ok = <-*ch[48]:
+		return 48, nil
+	case *v, *ok = <-*ch[49]:
+		return 49, nil
+	case *v, *ok = <-*ch[50]:
+		return 50, nil
+	case *v, *ok = <-*ch[51]:
+		return 51, nil
+	case *v, *ok = <-*ch[52]:
+		return 52, nil
+	case *v, *ok = <-*ch[53]:
+		return 53, nil
+	case *v, *ok = <-*ch[54]:
+		return 54, nil
+	case *v, *ok = <-*ch[55]:
+		return 55, nil
+	case *v, *ok = <-*ch[56]:
+		return 56, nil
+	case *v, *ok = <-*ch[57]:
+		return 57, nil
+	case *v, *ok = <-*ch[58]:
+		return 58, nil
+	case *v, *ok = <-*ch[59]:
+		return 59, nil
+	case *v, *ok = <-*ch[60]:
+		return 60, nil
+	case *v, *ok = <-*ch[61]:
+		return 61, nil
+	case *v, *ok = <-*ch[62]:
+		return 62, nil
+	case *v, *ok = <-*ch[63]:
+		return 63, nil
+	case *v, *ok = <-*ch[64]:
+		return 64, nil
+	case *v, *ok = <-*ch[65]:
+		return 65, nil
+	case *v, *ok = <-*ch[66]:
+		return 66, nil
+	case *v, *ok = <-*ch[67]:
+		return 67, nil
+	case *v, *ok = <-*ch[68]:
+		return 68, nil
+	case *v, *ok = <-*ch[69]:
+		return 69, nil
+	case *v, *ok = <-*ch[70]:
+		return 70, nil
+	case *v, *ok = <-*ch[71]:
+		return 71, nil
+	case *v, *ok = <-*ch[72]:
+		return 72, nil
 	}
 }
 
-func select52(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
-	case v, ok = <-ch[39]:
-		return 39, true
-	case v, ok = <-ch[40]:
-		return 40, true
-	case v, ok = <-ch[41]:
-		return 41, true
-	case v, ok = <-ch[42]:
-		return 42, true
-	case v, ok = <-ch[43]:
-		return 43, true
-	case v, ok = <-ch[44]:
-		return 44, true
-	case v, ok = <-ch[45]:
-		return 45, true
-	case v, ok = <-ch[46]:
-		return 46, true
-	case v, ok = <-ch[47]:
-		return 47, true
-	case v, ok = <-ch[48]:
-		return 48, true
-	case v, ok = <-ch[49]:
-		return 49, true
-	case v, ok = <-ch[50]:
-		return 50, true
-	case v, ok = <-ch[51]:
-		return 51, true
+func select74(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
 	}
-}
 
-func select53(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
-	case v, ok = <-ch[39]:
-		return 39, true
-	case v, ok = <-ch[40]:
-		return 40, true
-	case v, ok = <-ch[41]:
-		return 41, true
-	case v, ok = <-ch[42]:
-		return 42, true
-	case v, ok = <-ch[43]:
-		return 43, true
-	case v, ok = <-ch[44]:
-		return 44, true
-	case v, ok = <-ch[45]:
-		return 45, true
-	case v, ok = <-ch[46]:
-		return 46, true
-	case v, ok = <-ch[47]:
-		return 47, true
-	case v, ok = <-ch[48]:
-		return 48, true
-	case v, ok = <-ch[49]:
-		return 49, true
-	case v, ok = <-ch[50]:
-		return 50, true
-	case v, ok = <-ch[51]:
-		return 51, true
-	case v, ok = <-ch[52]:
-		return 52, true
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	case *v, *ok = <-*ch[39]:
+		return 39, nil
+	case *v, *ok = <-*ch[40]:
+		return 40, nil
+	case *v, *ok = <-*ch[41]:
+		return 41, nil
+	case *v, *ok = <-*ch[42]:
+		return 42, nil
+	case *v, *ok = <-*ch[43]:
+		return 43, nil
+	case *v, *ok = <-*ch[44]:
+		return 44, nil
+	case *v, *ok = <-*ch[45]:
+		return 45, nil
+	case *v, *ok = <-*ch[46]:
+		return 46, nil
+	case *v, *ok = <-*ch[47]:
+		return 47, nil
+	case *v, *ok = <-*ch[48]:
+		return 48, nil
+	case *v, *ok = <-*ch[49]:
+		return 49, nil
+	case *v, *ok = <-*ch[50]:
+		return 50, nil
+	case *v, *ok = <-*ch[51]:
+		return 51, nil
+	case *v, *ok = <-*ch[52]:
+		return 52, nil
+	case *v, *ok = <-*ch[53]:
+		return 53, nil
+	case *v, *ok = <-*ch[54]:
+		return 54, nil
+	case *v, *ok = <-*ch[55]:
+		return 55, nil
+	case *v, *ok = <-*ch[56]:
+		return 56, nil
+	case *v, *ok = <-*ch[57]:
+		return 57, nil
+	case *v, *ok = <-*ch[58]:
+		return 58, nil
+	case *v, *ok = <-*ch[59]:
+		return 59, nil
+	case *v, *ok = <-*ch[60]:
+		return 60, nil
+	case *v, *ok = <-*ch[61]:
+		return 61, nil
+	case *v, *ok = <-*ch[62]:
+		return 62, nil
+	case *v, *ok = <-*ch[63]:
+		return 63, nil
+	case *v, *ok = <-*ch[64]:
+		return 64, nil
+	case *v, *ok = <-*ch[65]:
+		return 65, nil
+	case *v, *ok = <-*ch[66]:
+		return 66, nil
+	case *v, *ok = <-*ch[67]:
+		return 67, nil
+	case *v, *ok = <-*ch[68]:
+		return 68, nil
+	case *v, *ok = <-*ch[69]:
+		return 69, nil
+	case *v, *ok = <-*ch[70]:
+		return 70, nil
+	case *v, *ok = <-*ch[71]:
+		return 71, nil
+	case *v, *ok = <-*ch[72]:
+		return 72, nil
+	case *v, *ok = <-*ch[73]:
+		return 73, nil
 	}
 }
 
-func select54(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
-	case v, ok = <-ch[39]:
-		return 39, true
-	case v, ok = <-ch[40]:
-		return 40, true
-	case v, ok = <-ch[41]:
-		return 41, true
-	case v, ok = <-ch[42]:
-		return 42, true
-	case v, ok = <-ch[43]:
-		return 43, true
-	case v, ok = <-ch[44]:
-		return 44, true
-	case v, ok = <-ch[45]:
-		return 45, true
-	case v, ok = <-ch[46]:
-		return 46, true
-	case v, ok = <-ch[47]:
-		return 47, true
-	case v, ok = <-ch[48]:
-		return 48, true
-	case v, ok = <-ch[49]:
-		return 49, true
-	case v, ok = <-ch[50]:
-		return 50, true
-	case v, ok = <-ch[51]:
-		return 51, true
-	case v, ok = <-ch[52]:
-		return 52, true
-	case v, ok = <-ch[53]:
-		return 53, true
+func select75(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
 	}
-}
 
-func select55(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
-	case v, ok = <-ch[39]:
-		return 39, true
-	case v, ok = <-ch[40]:
-		return 40, true
-	case v, ok = <-ch[41]:
-		return 41, true
-	case v, ok = <-ch[42]:
-		return 42, true
-	case v, ok = <-ch[43]:
-		return 43, true
-	case v, ok = <-ch[44]:
-		return 44, true
-	case v, ok = <-ch[45]:
-		return 45, true
-	case v, ok = <-ch[46]:
-		return 46, true
-	case v, ok = <-ch[47]:
-		return 47, true
-	case v, ok = <-ch[48]:
-		return 48, true
-	case v, ok = <-ch[49]:
-		return 49, true
-	case v, ok = <-ch[50]:
-		return 50, true
-	case v, ok = <-ch[51]:
-		return 51, true
-	case v, ok = <-ch[52]:
-		return 52, true
-	case v, ok = <-ch[53]:
-		return 53, true
-	case v, ok = <-ch[54]:
-		return 54, true
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	case *v, *ok = <-*ch[39]:
+		return 39, nil
+	case *v, *ok = <-*ch[40]:
+		return 40, nil
+	case *v, *ok = <-*ch[41]:
+		return 41, nil
+	case *v, *ok = <-*ch[42]:
+		return 42, nil
+	case *v, *ok = <-*ch[43]:
+		return 43, nil
+	case *v, *ok = <-*ch[44]:
+		return 44, nil
+	case *v, *ok = <-*ch[45]:
+		return 45, nil
+	case *v, *ok = <-*ch[46]:
+		return 46, nil
+	case *v, *ok = <-*ch[47]:
+		return 47, nil
+	case *v, *ok = <-*ch[48]:
+		return 48, nil
+	case *v, *ok = <-*ch[49]:
+		return 49, nil
+	case *v, *ok = <-*ch[50]:
+		return 50, nil
+	case *v, *ok = <-*ch[51]:
+		return 51, nil
+	case *v, *ok = <-*ch[52]:
+		return 52, nil
+	case *v, *ok = <-*ch[53]:
+		return 53, nil
+	case *v, *ok = <-*ch[54]:
+		return 54, nil
+	case *v, *ok = <-*ch[55]:
+		return 55, nil
+	case *v, *ok = <-*ch[56]:
+		return 56, nil
+	case *v, *ok = <-*ch[57]:
+		return 57, nil
+	case *v, *ok = <-*ch[58]:
+		return 58, nil
+	case *v, *ok = <-*ch[59]:
+		return 59, nil
+	case *v, *ok = <-*ch[60]:
+		return 60, nil
+	case *v, *ok = <-*ch[61]:
+		return 61, nil
+	case *v, *ok = <-*ch[62]:
+		return 62, nil
+	case *v, *ok = <-*ch[63]:
+		return 63, nil
+	case *v, *ok = <-*ch[64]:
+		return 64, nil
+	case *v, *ok = <-*ch[65]:
+		return 65, nil
+	case *v, *ok = <-*ch[66]:
+		return 66, nil
+	case *v, *ok = <-*ch[67]:
+		return 67, nil
+	case *v, *ok = <-*ch[68]:
+		return 68, nil
+	case *v, *ok = <-*ch[69]:
+		return 69, nil
+	case *v, *ok = <-*ch[70]:
+		return 70, nil
+	case *v, *ok = <-*ch[71]:
+		return 71, nil
+	case *v, *ok = <-*ch[72]:
+		return 72, nil
+	case *v, *ok = <-*ch[73]:
+		return 73, nil
+	case *v, *ok = <-*ch[74]:
+		return 74, nil
 	}
 }
+
+func select76(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
+	}
 
-func select56(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
-	case v, ok = <-ch[39]:
-		return 39, true
-	case v, ok = <-ch[40]:
-		return 40, true
-	case v, ok = <-ch[41]:
-		return 41, true
-	case v, ok = <-ch[42]:
-		return 42, true
-	case v, ok = <-ch[43]:
-		return 43, true
-	case v, ok = <-ch[44]:
-		return 44, true
-	case v, ok = <-ch[45]:
-		return 45, true
-	case v, ok = <-ch[46]:
-		return 46, true
-	case v, ok = <-ch[47]:
-		return 47, true
-	case v, ok = <-ch[48]:
-		return 48, true
-	case v, ok = <-ch[49]:
-		return 49, true
-	case v, ok = <-ch[50]:
-		return 50, true
-	case v, ok = <-ch[51]:
-		return 51, true
-	case v, ok = <-ch[52]:
-		return 52, true
-	case v, ok = <-ch[53]:
-		return 53, true
-	case v, ok = <-ch[54]:
-		return 54, true
-	case v, ok = <-ch[55]:
-		return 55, true
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	case *v, *ok = <-*ch[39]:
+		return 39, nil
+	case *v, *ok = <-*ch[40]:
+		return 40, nil
+	case *v, *ok = <-*ch[41]:
+		return 41, nil
+	case *v, *ok = <-*ch[42]:
+		return 42, nil
+	case *v, *ok = <-*ch[43]:
+		return 43, nil
+	case *v, *ok = <-*ch[44]:
+		return 44, nil
+	case *v, *ok = <-*ch[45]:
+		return 45, nil
+	case *v, *ok = <-*ch[46]:
+		return 46, nil
+	case *v, *ok = <-*ch[47]:
+		return 47, nil
+	case *v, *ok = <-*ch[48]:
+		return 48, nil
+	case *v, *ok = <-*ch[49]:
+		return 49, nil
+	case *v, *ok = <-*ch[50]:
+		return 50, nil
+	case *v, *ok = <-*ch[51]:
+		return 51, nil
+	case *v, *ok = <-*ch[52]:
+		return 52, nil
+	case *v, *ok = <-*ch[53]:
+		return 53, nil
+	case *v, *ok = <-*ch[54]:
+		return 54, nil
+	case *v, *ok = <-*ch[55]:
+		return 55, nil
+	case *v, *ok = <-*ch[56]:
+		return 56, nil
+	case *v, *ok = <-*ch[57]:
+		return 57, nil
+	case *v, *ok = <-*ch[58]:
+		return 58, nil
+	case *v, *ok = <-*ch[59]:
+		return 59, nil
+	case *v, *ok = <-*ch[60]:
+		return 60, nil
+	case *v, *ok = <-*ch[61]:
+		return 61, nil
+	case *v, *ok = <-*ch[62]:
+		return 62, nil
+	case *v, *ok = <-*ch[63]:
+		return 63, nil
+	case *v, *ok = <-*ch[64]:
+		return 64, nil
+	case *v, *ok = <-*ch[65]:
+		return 65, nil
+	case *v, *ok = <-*ch[66]:
+		return 66, nil
+	case *v, *ok = <-*ch[67]:
+		return 67, nil
+	case *v, *ok = <-*ch[68]:
+		return 68, nil
+	case *v, *ok = <-*ch[69]:
+		return 69, nil
+	case *v, *ok = <-*ch[70]:
+		return 70, nil
+	case *v, *ok = <-*ch[71]:
+		return 71, nil
+	case *v, *ok = <-*ch[72]:
+		return 72, nil
+	case *v, *ok = <-*ch[73]:
+		return 73, nil
+	case *v, *ok = <-*ch[74]:
+		return 74, nil
+	case *v, *ok = <-*ch[75]:
+		return 75, nil
 	}
 }
 
-func select57(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
-	case v, ok = <-ch[39]:
-		return 39, true
-	case v, ok = <-ch[40]:
-		return 40, true
-	case v, ok = <-ch[41]:
-		return 41, true
-	case v, ok = <-ch[42]:
-		return 42, true
-	case v, ok = <-ch[43]:
-		return 43, true
-	case v, ok = <-ch[44]:
-		return 44, true
-	case v, ok = <-ch[45]:
-		return 45, true
-	case v, ok = <-ch[46]:
-		return 46, true
-	case v, ok = <-ch[47]:
-		return 47, true
-	case v, ok = <-ch[48]:
-		return 48, true
-	case v, ok = <-ch[49]:
-		return 49, true
-	case v, ok = <-ch[50]:
-		return 50, true
-	case v, ok = <-ch[51]:
-		return 51, true
-	case v, ok = <-ch[52]:
-		return 52, true
-	case v, ok = <-ch[53]:
-		return 53, true
-	case v, ok = <-ch[54]:
-		return 54, true
-	case v, ok = <-ch[55]:
-		return 55, true
-	case v, ok = <-ch[56]:
-		return 56, true
+func select77(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
 	}
-}
 
-func select58(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
-	case v, ok = <-ch[39]:
-		return 39, true
-	case v, ok = <-ch[40]:
-		return 40, true
-	case v, ok = <-ch[41]:
-		return 41, true
-	case v, ok = <-ch[42]:
-		return 42, true
-	case v, ok = <-ch[43]:
-		return 43, true
-	case v, ok = <-ch[44]:
-		return 44, true
-	case v, ok = <-ch[45]:
-		return 45, true
-	case v, ok = <-ch[46]:
-		return 46, true
-	case v, ok = <-ch[47]:
-		return 47, true
-	case v, ok = <-ch[48]:
-		return 48, true
-	case v, ok = <-ch[49]:
-		return 49, true
-	case v, ok = <-ch[50]:
-		return 50, true
-	case v, ok = <-ch[51]:
-		return 51, true
-	case v, ok = <-ch[52]:
-		return 52, true
-	case v, ok = <-ch[53]:
-		return 53, true
-	case v, ok = <-ch[54]:
-		return 54, true
-	case v, ok = <-ch[55]:
-		return 55, true
-	case v, ok = <-ch[56]:
-		return 56, true
-	case v, ok = <-ch[57]:
-		return 57, true
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	case *v, *ok = <-*ch[39]:
+		return 39, nil
+	case *v, *ok = <-*ch[40]:
+		return 40, nil
+	case *v, *ok = <-*ch[41]:
+		return 41, nil
+	case *v, *ok = <-*ch[42]:
+		return 42, nil
+	case *v, *ok = <-*ch[43]:
+		return 43, nil
+	case *v, *ok = <-*ch[44]:
+		return 44, nil
+	case *v, *ok = <-*ch[45]:
+		return 45, nil
+	case *v, *ok = <-*ch[46]:
+		return 46, nil
+	case *v, *ok = <-*ch[47]:
+		return 47, nil
+	case *v, *ok = <-*ch[48]:
+		return 48, nil
+	case *v, *ok = <-*ch[49]:
+		return 49, nil
+	case *v, *ok = <-*ch[50]:
+		return 50, nil
+	case *v, *ok = <-*ch[51]:
+		return 51, nil
+	case *v, *ok = <-*ch[52]:
+		return 52, nil
+	case *v, *ok = <-*ch[53]:
+		return 53, nil
+	case *v, *ok = <-*ch[54]:
+		return 54, nil
+	case *v, *ok = <-*ch[55]:
+		return 55, nil
+	case *v, *ok = <-*ch[56]:
+		return 56, nil
+	case *v, *ok = <-*ch[57]:
+		return 57, nil
+	case *v, *ok = <-*ch[58]:
+		return 58, nil
+	case *v, *ok = <-*ch[59]:
+		return 59, nil
+	case *v, *ok = <-*ch[60]:
+		return 60, nil
+	case *v, *ok = <-*ch[61]:
+		return 61, nil
+	case *v, *ok = <-*ch[62]:
+		return 62, nil
+	case *v, *ok = <-*ch[63]:
+		return 63, nil
+	case *v, *ok = <-*ch[64]:
+		return 64, nil
+	case *v, *ok = <-*ch[65]:
+		return 65, nil
+	case *v, *ok = <-*ch[66]:
+		return 66, nil
+	case *v, *ok = <-*ch[67]:
+		return 67, nil
+	case *v, *ok = <-*ch[68]:
+		return 68, nil
+	case *v, *ok = <-*ch[69]:
+		return 69, nil
+	case *v, *ok = <-*ch[70]:
+		return 70, nil
+	case *v, *ok = <-*ch[71]:
+		return 71, nil
+	case *v, *ok = <-*ch[72]:
+		return 72, nil
+	case *v, *ok = <-*ch[73]:
+		return 73, nil
+	case *v, *ok = <-*ch[74]:
+		return 74, nil
+	case *v, *ok = <-*ch[75]:
+		return 75, nil
+	case *v, *ok = <-*ch[76]:
+		return 76, nil
 	}
 }
 
-func select59(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
-	case v, ok = <-ch[39]:
-		return 39, true
-	case v, ok = <-ch[40]:
-		return 40, true
-	case v, ok = <-ch[41]:
-		return 41, true
-	case v, ok = <-ch[42]:
-		return 42, true
-	case v, ok = <-ch[43]:
-		return 43, true
-	case v, ok = <-ch[44]:
-		return 44, true
-	case v, ok = <-ch[45]:
-		return 45, true
-	case v, ok = <-ch[46]:
-		return 46, true
-	case v, ok = <-ch[47]:
-		return 47, true
-	case v, ok = <-ch[48]:
-		return 48, true
-	case v, ok = <-ch[49]:
-		return 49, true
-	case v, ok = <-ch[50]:
-		return 50, true
-	case v, ok = <-ch[51]:
-		return 51, true
-	case v, ok = <-ch[52]:
-		return 52, true
-	case v, ok = <-ch[53]:
-		return 53, true
-	case v, ok = <-ch[54]:
-		return 54, true
-	case v, ok = <-ch[55]:
-		return 55, true
-	case v, ok = <-ch[56]:
-		return 56, true
-	case v, ok = <-ch[57]:
-		return 57, true
-	case v, ok = <-ch[58]:
-		return 58, true
+func select78(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
 	}
-}
 
-func select60(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
-	case v, ok = <-ch[39]:
-		return 39, true
-	case v, ok = <-ch[40]:
-		return 40, true
-	case v, ok = <-ch[41]:
-		return 41, true
-	case v, ok = <-ch[42]:
-		return 42, true
-	case v, ok = <-ch[43]:
-		return 43, true
-	case v, ok = <-ch[44]:
-		return 44, true
-	case v, ok = <-ch[45]:
-		return 45, true
-	case v, ok = <-ch[46]:
-		return 46, true
-	case v, ok = <-ch[47]:
-		return 47, true
-	case v, ok = <-ch[48]:
-		return 48, true
-	case v, ok = <-ch[49]:
-		return 49, true
-	case v, ok = <-ch[50]:
-		return 50, true
-	case v, ok = <-ch[51]:
-		return 51, true
-	case v, ok = <-ch[52]:
-		return 52, true
-	case v, ok = <-ch[53]:
-		return 53, true
-	case v, ok = <-ch[54]:
-		return 54, true
-	case v, ok = <-ch[55]:
-		return 55, true
-	case v, ok = <-ch[56]:
-		return 56, true
-	case v, ok = <-ch[57]:
-		return 57, true
-	case v, ok = <-ch[58]:
-		return 58, true
-	case v, ok = <-ch[59]:
-		return 59, true
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	case *v, *ok = <-*ch[39]:
+		return 39, nil
+	case *v, *ok = <-*ch[40]:
+		return 40, nil
+	case *v, *ok = <-*ch[41]:
+		return 41, nil
+	case *v, *ok = <-*ch[42]:
+		return 42, nil
+	case *v, *ok = <-*ch[43]:
+		return 43, nil
+	case *v, *ok = <-*ch[44]:
+		return 44, nil
+	case *v, *ok = <-*ch[45]:
+		return 45, nil
+	case *v, *ok = <-*ch[46]:
+		return 46, nil
+	case *v, *ok = <-*ch[47]:
+		return 47, nil
+	case *v, *ok = <-*ch[48]:
+		return 48, nil
+	case *v, *ok = <-*ch[49]:
+		return 49, nil
+	case *v, *ok = <-*ch[50]:
+		return 50, nil
+	case *v, *ok = <-*ch[51]:
+		return 51, nil
+	case *v, *ok = <-*ch[52]:
+		return 52, nil
+	case *v, *ok = <-*ch[53]:
+		return 53, nil
+	case *v, *ok = <-*ch[54]:
+		return 54, nil
+	case *v, *ok = <-*ch[55]:
+		return 55, nil
+	case *v, *ok = <-*ch[56]:
+		return 56, nil
+	case *v, *ok = <-*ch[57]:
+		return 57, nil
+	case *v, *ok = <-*ch[58]:
+		return 58, nil
+	case *v, *ok = <-*ch[59]:
+		return 59, nil
+	case *v, *ok = <-*ch[60]:
+		return 60, nil
+	case *v, *ok = <-*ch[61]:
+		return 61, nil
+	case *v, *ok = <-*ch[62]:
+		return 62, nil
+	case *v, *ok = <-*ch[63]:
+		return 63, nil
+	case *v, *ok = <-*ch[64]:
+		return 64, nil
+	case *v, *ok = <-*ch[65]:
+		return 65, nil
+	case *v, *ok = <-*ch[66]:
+		return 66, nil
+	case *v, *ok = <-*ch[67]:
+		return 67, nil
+	case *v, *ok = <-*ch[68]:
+		return 68, nil
+	case *v, *ok = <-*ch[69]:
+		return 69, nil
+	case *v, *ok = <-*ch[70]:
+		return 70, nil
+	case *v, *ok = <-*ch[71]:
+		return 71, nil
+	case *v, *ok = <-*ch[72]:
+		return 72, nil
+	case *v, *ok = <-*ch[73]:
+		return 73, nil
+	case *v, *ok = <-*ch[74]:
+		return 74, nil
+	case *v, *ok = <-*ch[75]:
+		return 75, nil
+	case *v, *ok = <-*ch[76]:
+		return 76, nil
+	case *v, *ok = <-*ch[77]:
+		return 77, nil
 	}
 }
 
-func select61(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
-	case v, ok = <-ch[39]:
-		return 39, true
-	case v, ok = <-ch[40]:
-		return 40, true
-	case v, ok = <-ch[41]:
-		return 41, true
-	case v, ok = <-ch[42]:
-		return 42, true
-	case v, ok = <-ch[43]:
-		return 43, true
-	case v, ok = <-ch[44]:
-		return 44, true
-	case v, ok = <-ch[45]:
-		return 45, true
-	case v, ok = <-ch[46]:
-		return 46, true
-	case v, ok = <-ch[47]:
-		return 47, true
-	case v, ok = <-ch[48]:
-		return 48, true
-	case v, ok = <-ch[49]:
-		return 49, true
-	case v, ok = <-ch[50]:
-		return 50, true
-	case v, ok = <-ch[51]:
-		return 51, true
-	case v, ok = <-ch[52]:
-		return 52, true
-	case v, ok = <-ch[53]:
-		return 53, true
-	case v, ok = <-ch[54]:
-		return 54, true
-	case v, ok = <-ch[55]:
-		return 55, true
-	case v, ok = <-ch[56]:
-		return 56, true
-	case v, ok = <-ch[57]:
-		return 57, true
-	case v, ok = <-ch[58]:
-		return 58, true
-	case v, ok = <-ch[59]:
-		return 59, true
-	case v, ok = <-ch[60]:
-		return 60, true
+func select79(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
 	}
-}
 
-func select62(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
-	case v, ok = <-ch[39]:
-		return 39, true
-	case v, ok = <-ch[40]:
-		return 40, true
-	case v, ok = <-ch[41]:
-		return 41, true
-	case v, ok = <-ch[42]:
-		return 42, true
-	case v, ok = <-ch[43]:
-		return 43, true
-	case v, ok = <-ch[44]:
-		return 44, true
-	case v, ok = <-ch[45]:
-		return 45, true
-	case v, ok = <-ch[46]:
-		return 46, true
-	case v, ok = <-ch[47]:
-		return 47, true
-	case v, ok = <-ch[48]:
-		return 48, true
-	case v, ok = <-ch[49]:
-		return 49, true
-	case v, ok = <-ch[50]:
-		return 50, true
-	case v, ok = <-ch[51]:
-		return 51, true
-	case v, ok = <-ch[52]:
-		return 52, true
-	case v, ok = <-ch[53]:
-		return 53, true
-	case v, ok = <-ch[54]:
-		return 54, true
-	case v, ok = <-ch[55]:
-		return 55, true
-	case v, ok = <-ch[56]:
-		return 56, true
-	case v, ok = <-ch[57]:
-		return 57, true
-	case v, ok = <-ch[58]:
-		return 58, true
-	case v, ok = <-ch[59]:
-		return 59, true
-	case v, ok = <-ch[60]:
-		return 60, true
-	case v, ok = <-ch[61]:
-		return 61, true
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	case *v, *ok = <-*ch[39]:
+		return 39, nil
+	case *v, *ok = <-*ch[40]:
+		return 40, nil
+	case *v, *ok = <-*ch[41]:
+		return 41, nil
+	case *v, *ok = <-*ch[42]:
+		return 42, nil
+	case *v, *ok = <-*ch[43]:
+		return 43, nil
+	case *v, *ok = <-*ch[44]:
+		return 44, nil
+	case *v, *ok = <-*ch[45]:
+		return 45, nil
+	case *v, *ok = <-*ch[46]:
+		return 46, nil
+	case *v, *ok = <-*ch[47]:
+		return 47, nil
+	case *v, *ok = <-*ch[48]:
+		return 48, nil
+	case *v, *ok = <-*ch[49]:
+		return 49, nil
+	case *v, *ok = <-*ch[50]:
+		return 50, nil
+	case *v, *ok = <-*ch[51]:
+		return 51, nil
+	case *v, *ok = <-*ch[52]:
+		return 52, nil
+	case *v, *ok = <-*ch[53]:
+		return 53, nil
+	case *v, *ok = <-*ch[54]:
+		return 54, nil
+	case *v, *ok = <-*ch[55]:
+		return 55, nil
+	case *v, *ok = <-*ch[56]:
+		return 56, nil
+	case *v, *ok = <-*ch[57]:
+		return 57, nil
+	case *v, *ok = <-*ch[58]:
+		return 58, nil
+	case *v, *ok = <-*ch[59]:
+		return 59, nil
+	case *v, *ok = <-*ch[60]:
+		return 60, nil
+	case *v, *ok = <-*ch[61]:
+		return 61, nil
+	case *v, *ok = <-*ch[62]:
+		return 62, nil
+	case *v, *ok = <-*ch[63]:
+		return 63, nil
+	case *v, *ok = <-*ch[64]:
+		return 64, nil
+	case *v, *ok = <-*ch[65]:
+		return 65, nil
+	case *v, *ok = <-*ch[66]:
+		return 66, nil
+	case *v, *ok = <-*ch[67]:
+		return 67, nil
+	case *v, *ok = <-*ch[68]:
+		return 68, nil
+	case *v, *ok = <-*ch[69]:
+		return 69, nil
+	case *v, *ok = <-*ch[70]:
+		return 70, nil
+	case *v, *ok = <-*ch[71]:
+		return 71, nil
+	case *v, *ok = <-*ch[72]:
+		return 72, nil
+	case *v, *ok = <-*ch[73]:
+		return 73, nil
+	case *v, *ok = <-*ch[74]:
+		return 74, nil
+	case *v, *ok = <-*ch[75]:
+		return 75, nil
+	case *v, *ok = <-*ch[76]:
+		return 76, nil
+	case *v, *ok = <-*ch[77]:
+		return 77, nil
+	case *v, *ok = <-*ch[78]:
+		return 78, nil
 	}
 }
 
-func select63(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
-	case v, ok = <-ch[39]:
-		return 39, true
-	case v, ok = <-ch[40]:
-		return 40, true
-	case v, ok = <-ch[41]:
-		return 41, true
-	case v, ok = <-ch[42]:
-		return 42, true
-	case v, ok = <-ch[43]:
-		return 43, true
-	case v, ok = <-ch[44]:
-		return 44, true
-	case v, ok = <-ch[45]:
-		return 45, true
-	case v, ok = <-ch[46]:
-		return 46, true
-	case v, ok = <-ch[47]:
-		return 47, true
-	case v, ok = <-ch[48]:
-		return 48, true
-	case v, ok = <-ch[49]:
-		return 49, true
-	case v, ok = <-ch[50]:
-		return 50, true
-	case v, ok = <-ch[51]:
-		return 51, true
-	case v, ok = <-ch[52]:
-		return 52, true
-	case v, ok = <-ch[53]:
-		return 53, true
-	case v, ok = <-ch[54]:
-		return 54, true
-	case v, ok = <-ch[55]:
-		return 55, true
-	case v, ok = <-ch[56]:
-		return 56, true
-	case v, ok = <-ch[57]:
-		return 57, true
-	case v, ok = <-ch[58]:
-		return 58, true
-	case v, ok = <-ch[59]:
-		return 59, true
-	case v, ok = <-ch[60]:
-		return 60, true
-	case v, ok = <-ch[61]:
-		return 61, true
-	case v, ok = <-ch[62]:
-		return 62, true
+func select80(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
 	}
-}
 
-func select64(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
-	case v, ok = <-ch[39]:
-		return 39, true
-	case v, ok = <-ch[40]:
-		return 40, true
-	case v, ok = <-ch[41]:
-		return 41, true
-	case v, ok = <-ch[42]:
-		return 42, true
-	case v, ok = <-ch[43]:
-		return 43, true
-	case v, ok = <-ch[44]:
-		return 44, true
-	case v, ok = <-ch[45]:
-		return 45, true
-	case v, ok = <-ch[46]:
-		return 46, true
-	case v, ok = <-ch[47]:
-		return 47, true
-	case v, ok = <-ch[48]:
-		return 48, true
-	case v, ok = <-ch[49]:
-		return 49, true
-	case v, ok = <-ch[50]:
-		return 50, true
-	case v, ok = <-ch[51]:
-		return 51, true
-	case v, ok = <-ch[52]:
-		return 52, true
-	case v, ok = <-ch[53]:
-		return 53, true
-	case v, ok = <-ch[54]:
-		return 54, true
-	case v, ok = <-ch[55]:
-		return 55, true
-	case v, ok = <-ch[56]:
-		return 56, true
-	case v, ok = <-ch[57]:
-		return 57, true
-	case v, ok = <-ch[58]:
-		return 58, true
-	case v, ok = <-ch[59]:
-		return 59, true
-	case v, ok = <-ch[60]:
-		return 60, true
-	case v, ok = <-ch[61]:
-		return 61, true
-	case v, ok = <-ch[62]:
-		return 62, true
-	case v, ok = <-ch[63]:
-		return 63, true
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	case *v, *ok = <-*ch[39]:
+		return 39, nil
+	case *v, *ok = <-*ch[40]:
+		return 40, nil
+	case *v, *ok = <-*ch[41]:
+		return 41, nil
+	case *v, *ok = <-*ch[42]:
+		return 42, nil
+	case *v, *ok = <-*ch[43]:
+		return 43, nil
+	case *v, *ok = <-*ch[44]:
+		return 44, nil
+	case *v, *ok = <-*ch[45]:
+		return 45, nil
+	case *v, *ok = <-*ch[46]:
+		return 46, nil
+	case *v, *ok = <-*ch[47]:
+		return 47, nil
+	case *v, *ok = <-*ch[48]:
+		return 48, nil
+	case *v, *ok = <-*ch[49]:
+		return 49, nil
+	case *v, *ok = <-*ch[50]:
+		return 50, nil
+	case *v, *ok = <-*ch[51]:
+		return 51, nil
+	case *v, *ok = <-*ch[52]:
+		return 52, nil
+	case *v, *ok = <-*ch[53]:
+		return 53, nil
+	case *v, *ok = <-*ch[54]:
+		return 54, nil
+	case *v, *ok = <-*ch[55]:
+		return 55, nil
+	case *v, *ok = <-*ch[56]:
+		return 56, nil
+	case *v, *ok = <-*ch[57]:
+		return 57, nil
+	case *v, *ok = <-*ch[58]:
+		return 58, nil
+	case *v, *ok = <-*ch[59]:
+		return 59, nil
+	case *v, *ok = <-*ch[60]:
+		return 60, nil
+	case *v, *ok = <-*ch[61]:
+		return 61, nil
+	case *v, *ok = <-*ch[62]:
+		return 62, nil
+	case *v, *ok = <-*ch[63]:
+		return 63, nil
+	case *v, *ok = <-*ch[64]:
+		return 64, nil
+	case *v, *ok = <-*ch[65]:
+		return 65, nil
+	case *v, *ok = <-*ch[66]:
+		return 66, nil
+	case *v, *ok = <-*ch[67]:
+		return 67, nil
+	case *v, *ok = <-*ch[68]:
+		return 68, nil
+	case *v, *ok = <-*ch[69]:
+		return 69, nil
+	case *v, *ok = <-*ch[70]:
+		return 70, nil
+	case *v, *ok = <-*ch[71]:
+		return 71, nil
+	case *v, *ok = <-*ch[72]:
+		return 72, nil
+	case *v, *ok = <-*ch[73]:
+		return 73, nil
+	case *v, *ok = <-*ch[74]:
+		return 74, nil
+	case *v, *ok = <-*ch[75]:
+		return 75, nil
+	case *v, *ok = <-*ch[76]:
+		return 76, nil
+	case *v, *ok = <-*ch[77]:
+		return 77, nil
+	case *v, *ok = <-*ch[78]:
+		return 78, nil
+	case *v, *ok = <-*ch[79]:
+		return 79, nil
 	}
 }
 
-func select65(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
-	case v, ok = <-ch[39]:
-		return 39, true
-	case v, ok = <-ch[40]:
-		return 40, true
-	case v, ok = <-ch[41]:
-		return 41, true
-	case v, ok = <-ch[42]:
-		return 42, true
-	case v, ok = <-ch[43]:
-		return 43, true
-	case v, ok = <-ch[44]:
-		return 44, true
-	case v, ok = <-ch[45]:
-		return 45, true
-	case v, ok = <-ch[46]:
-		return 46, true
-	case v, ok = <-ch[47]:
-		return 47, true
-	case v, ok = <-ch[48]:
-		return 48, true
-	case v, ok = <-ch[49]:
-		return 49, true
-	case v, ok = <-ch[50]:
-		return 50, true
-	case v, ok = <-ch[51]:
-		return 51, true
-	case v, ok = <-ch[52]:
-		return 52, true
-	case v, ok = <-ch[53]:
-		return 53, true
-	case v, ok = <-ch[54]:
-		return 54, true
-	case v, ok = <-ch[55]:
-		return 55, true
-	case v, ok = <-ch[56]:
-		return 56, true
-	case v, ok = <-ch[57]:
-		return 57, true
-	case v, ok = <-ch[58]:
-		return 58, true
-	case v, ok = <-ch[59]:
-		return 59, true
-	case v, ok = <-ch[60]:
-		return 60, true
-	case v, ok = <-ch[61]:
-		return 61, true
-	case v, ok = <-ch[62]:
-		return 62, true
-	case v, ok = <-ch[63]:
-		return 63, true
-	case v, ok = <-ch[64]:
-		return 64, true
+func select81(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
 	}
-}
 
-func select66(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
-	case v, ok = <-ch[39]:
-		return 39, true
-	case v, ok = <-ch[40]:
-		return 40, true
-	case v, ok = <-ch[41]:
-		return 41, true
-	case v, ok = <-ch[42]:
-		return 42, true
-	case v, ok = <-ch[43]:
-		return 43, true
-	case v, ok = <-ch[44]:
-		return 44, true
-	case v, ok = <-ch[45]:
-		return 45, true
-	case v, ok = <-ch[46]:
-		return 46, true
-	case v, ok = <-ch[47]:
-		return 47, true
-	case v, ok = <-ch[48]:
-		return 48, true
-	case v, ok = <-ch[49]:
-		return 49, true
-	case v, ok = <-ch[50]:
-		return 50, true
-	case v, ok = <-ch[51]:
-		return 51, true
-	case v, ok = <-ch[52]:
-		return 52, true
-	case v, ok = <-ch[53]:
-		return 53, true
-	case v, ok = <-ch[54]:
-		return 54, true
-	case v, ok = <-ch[55]:
-		return 55, true
-	case v, ok = <-ch[56]:
-		return 56, true
-	case v, ok = <-ch[57]:
-		return 57, true
-	case v, ok = <-ch[58]:
-		return 58, true
-	case v, ok = <-ch[59]:
-		return 59, true
-	case v, ok = <-ch[60]:
-		return 60, true
-	case v, ok = <-ch[61]:
-		return 61, true
-	case v, ok = <-ch[62]:
-		return 62, true
-	case v, ok = <-ch[63]:
-		return 63, true
-	case v, ok = <-ch[64]:
-		return 64, true
-	case v, ok = <-ch[65]:
-		return 65, true
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	case *v, *ok = <-*ch[39]:
+		return 39, nil
+	case *v, *ok = <-*ch[40]:
+		return 40, nil
+	case *v, *ok = <-*ch[41]:
+		return 41, nil
+	case *v, *ok = <-*ch[42]:
+		return 42, nil
+	case *v, *ok = <-*ch[43]:
+		return 43, nil
+	case *v, *ok = <-*ch[44]:
+		return 44, nil
+	case *v, *ok = <-*ch[45]:
+		return 45, nil
+	case *v, *ok = <-*ch[46]:
+		return 46, nil
+	case *v, *ok = <-*ch[47]:
+		return 47, nil
+	case *v, *ok = <-*ch[48]:
+		return 48, nil
+	case *v, *ok = <-*ch[49]:
+		return 49, nil
+	case *v, *ok = <-*ch[50]:
+		return 50, nil
+	case *v, *ok = <-*ch[51]:
+		return 51, nil
+	case *v, *ok = <-*ch[52]:
+		return 52, nil
+	case *v, *ok = <-*ch[53]:
+		return 53, nil
+	case *v, *ok = <-*ch[54]:
+		return 54, nil
+	case *v, *ok = <-*ch[55]:
+		return 55, nil
+	case *v, *ok = <-*ch[56]:
+		return 56, nil
+	case *v, *ok = <-*ch[57]:
+		return 57, nil
+	case *v, *ok = <-*ch[58]:
+		return 58, nil
+	case *v, *ok = <-*ch[59]:
+		return 59, nil
+	case *v, *ok = <-*ch[60]:
+		return 60, nil
+	case *v, *ok = <-*ch[61]:
+		return 61, nil
+	case *v, *ok = <-*ch[62]:
+		return 62, nil
+	case *v, *ok = <-*ch[63]:
+		return 63, nil
+	case *v, *ok = <-*ch[64]:
+		return 64, nil
+	case *v, *ok = <-*ch[65]:
+		return 65, nil
+	case *v, *ok = <-*ch[66]:
+		return 66, nil
+	case *v, *ok = <-*ch[67]:
+		return 67, nil
+	case *v, *ok = <-*ch[68]:
+		return 68, nil
+	case *v, *ok = <-*ch[69]:
+		return 69, nil
+	case *v, *ok = <-*ch[70]:
+		return 70, nil
+	case *v, *ok = <-*ch[71]:
+		return 71, nil
+	case *v, *ok = <-*ch[72]:
+		return 72, nil
+	case *v, *ok = <-*ch[73]:
+		return 73, nil
+	case *v, *ok = <-*ch[74]:
+		return 74, nil
+	case *v, *ok = <-*ch[75]:
+		return 75, nil
+	case *v, *ok = <-*ch[76]:
+		return 76, nil
+	case *v, *ok = <-*ch[77]:
+		return 77, nil
+	case *v, *ok = <-*ch[78]:
+		return 78, nil
+	case *v, *ok = <-*ch[79]:
+		return 79, nil
+	case *v, *ok = <-*ch[80]:
+		return 80, nil
 	}
 }
 
-func select67(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
-	case v, ok = <-ch[39]:
-		return 39, true
-	case v, ok = <-ch[40]:
-		return 40, true
-	case v, ok = <-ch[41]:
-		return 41, true
-	case v, ok = <-ch[42]:
-		return 42, true
-	case v, ok = <-ch[43]:
-		return 43, true
-	case v, ok = <-ch[44]:
-		return 44, true
-	case v, ok = <-ch[45]:
-		return 45, true
-	case v, ok = <-ch[46]:
-		return 46, true
-	case v, ok = <-ch[47]:
-		return 47, true
-	case v, ok = <-ch[48]:
-		return 48, true
-	case v, ok = <-ch[49]:
-		return 49, true
-	case v, ok = <-ch[50]:
-		return 50, true
-	case v, ok = <-ch[51]:
-		return 51, true
-	case v, ok = <-ch[52]:
-		return 52, true
-	case v, ok = <-ch[53]:
-		return 53, true
-	case v, ok = <-ch[54]:
-		return 54, true
-	case v, ok = <-ch[55]:
-		return 55, true
-	case v, ok = <-ch[56]:
-		return 56, true
-	case v, ok = <-ch[57]:
-		return 57, true
-	case v, ok = <-ch[58]:
-		return 58, true
-	case v, ok = <-ch[59]:
-		return 59, true
-	case v, ok = <-ch[60]:
-		return 60, true
-	case v, ok = <-ch[61]:
-		return 61, true
-	case v, ok = <-ch[62]:
-		return 62, true
-	case v, ok = <-ch[63]:
-		return 63, true
-	case v, ok = <-ch[64]:
-		return 64, true
-	case v, ok = <-ch[65]:
-		return 65, true
-	case v, ok = <-ch[66]:
-		return 66, true
+func select82(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
 	}
-}
 
-func select68(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
-	case v, ok = <-ch[39]:
-		return 39, true
-	case v, ok = <-ch[40]:
-		return 40, true
-	case v, ok = <-ch[41]:
-		return 41, true
-	case v, ok = <-ch[42]:
-		return 42, true
-	case v, ok = <-ch[43]:
-		return 43, true
-	case v, ok = <-ch[44]:
-		return 44, true
-	case v, ok = <-ch[45]:
-		return 45, true
-	case v, ok = <-ch[46]:
-		return 46, true
-	case v, ok = <-ch[47]:
-		return 47, true
-	case v, ok = <-ch[48]:
-		return 48, true
-	case v, ok = <-ch[49]:
-		return 49, true
-	case v, ok = <-ch[50]:
-		return 50, true
-	case v, ok = <-ch[51]:
-		return 51, true
-	case v, ok = <-ch[52]:
-		return 52, true
-	case v, ok = <-ch[53]:
-		return 53, true
-	case v, ok = <-ch[54]:
-		return 54, true
-	case v, ok = <-ch[55]:
-		return 55, true
-	case v, ok = <-ch[56]:
-		return 56, true
-	case v, ok = <-ch[57]:
-		return 57, true
-	case v, ok = <-ch[58]:
-		return 58, true
-	case v, ok = <-ch[59]:
-		return 59, true
-	case v, ok = <-ch[60]:
-		return 60, true
-	case v, ok = <-ch[61]:
-		return 61, true
-	case v, ok = <-ch[62]:
-		return 62, true
-	case v, ok = <-ch[63]:
-		return 63, true
-	case v, ok = <-ch[64]:
-		return 64, true
-	case v, ok = <-ch[65]:
-		return 65, true
-	case v, ok = <-ch[66]:
-		return 66, true
-	case v, ok = <-ch[67]:
-		return 67, true
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	case *v, *ok = <-*ch[39]:
+		return 39, nil
+	case *v, *ok = <-*ch[40]:
+		return 40, nil
+	case *v, *ok = <-*ch[41]:
+		return 41, nil
+	case *v, *ok = <-*ch[42]:
+		return 42, nil
+	case *v, *ok = <-*ch[43]:
+		return 43, nil
+	case *v, *ok = <-*ch[44]:
+		return 44, nil
+	case *v, *ok = <-*ch[45]:
+		return 45, nil
+	case *v, *ok = <-*ch[46]:
+		return 46, nil
+	case *v, *ok = <-*ch[47]:
+		return 47, nil
+	case *v, *ok = <-*ch[48]:
+		return 48, nil
+	case *v, *ok = <-*ch[49]:
+		return 49, nil
+	case *v, *ok = <-*ch[50]:
+		return 50, nil
+	case *v, *ok = <-*ch[51]:
+		return 51, nil
+	case *v, *ok = <-*ch[52]:
+		return 52, nil
+	case *v, *ok = <-*ch[53]:
+		return 53, nil
+	case *v, *ok = <-*ch[54]:
+		return 54, nil
+	case *v, *ok = <-*ch[55]:
+		return 55, nil
+	case *v, *ok = <-*ch[56]:
+		return 56, nil
+	case *v, *ok = <-*ch[57]:
+		return 57, nil
+	case *v, *ok = <-*ch[58]:
+		return 58, nil
+	case *v, *ok = <-*ch[59]:
+		return 59, nil
+	case *v, *ok = <-*ch[60]:
+		return 60, nil
+	case *v, *ok = <-*ch[61]:
+		return 61, nil
+	case *v, *ok = <-*ch[62]:
+		return 62, nil
+	case *v, *ok = <-*ch[63]:
+		return 63, nil
+	case *v, *ok = <-*ch[64]:
+		return 64, nil
+	case *v, *ok = <-*ch[65]:
+		return 65, nil
+	case *v, *ok = <-*ch[66]:
+		return 66, nil
+	case *v, *ok = <-*ch[67]:
+		return 67, nil
+	case *v, *ok = <-*ch[68]:
+		return 68, nil
+	case *v, *ok = <-*ch[69]:
+		return 69, nil
+	case *v, *ok = <-*ch[70]:
+		return 70, nil
+	case *v, *ok = <-*ch[71]:
+		return 71, nil
+	case *v, *ok = <-*ch[72]:
+		return 72, nil
+	case *v, *ok = <-*ch[73]:
+		return 73, nil
+	case *v, *ok = <-*ch[74]:
+		return 74, nil
+	case *v, *ok = <-*ch[75]:
+		return 75, nil
+	case *v, *ok = <-*ch[76]:
+		return 76, nil
+	case *v, *ok = <-*ch[77]:
+		return 77, nil
+	case *v, *ok = <-*ch[78]:
+		return 78, nil
+	case *v, *ok = <-*ch[79]:
+		return 79, nil
+	case *v, *ok = <-*ch[80]:
+		return 80, nil
+	case *v, *ok = <-*ch[81]:
+		return 81, nil
 	}
 }
 
-func select69(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
-	case v, ok = <-ch[39]:
-		return 39, true
-	case v, ok = <-ch[40]:
-		return 40, true
-	case v, ok = <-ch[41]:
-		return 41, true
-	case v, ok = <-ch[42]:
-		return 42, true
-	case v, ok = <-ch[43]:
-		return 43, true
-	case v, ok = <-ch[44]:
-		return 44, true
-	case v, ok = <-ch[45]:
-		return 45, true
-	case v, ok = <-ch[46]:
-		return 46, true
-	case v, ok = <-ch[47]:
-		return 47, true
-	case v, ok = <-ch[48]:
-		return 48, true
-	case v, ok = <-ch[49]:
-		return 49, true
-	case v, ok = <-ch[50]:
-		return 50, true
-	case v, ok = <-ch[51]:
-		return 51, true
-	case v, ok = <-ch[52]:
-		return 52, true
-	case v, ok = <-ch[53]:
-		return 53, true
-	case v, ok = <-ch[54]:
-		return 54, true
-	case v, ok = <-ch[55]:
-		return 55, true
-	case v, ok = <-ch[56]:
-		return 56, true
-	case v, ok = <-ch[57]:
-		return 57, true
-	case v, ok = <-ch[58]:
-		return 58, true
-	case v, ok = <-ch[59]:
-		return 59, true
-	case v, ok = <-ch[60]:
-		return 60, true
-	case v, ok = <-ch[61]:
-		return 61, true
-	case v, ok = <-ch[62]:
-		return 62, true
-	case v, ok = <-ch[63]:
-		return 63, true
-	case v, ok = <-ch[64]:
-		return 64, true
-	case v, ok = <-ch[65]:
-		return 65, true
-	case v, ok = <-ch[66]:
-		return 66, true
-	case v, ok = <-ch[67]:
-		return 67, true
-	case v, ok = <-ch[68]:
-		return 68, true
+func select83(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
 	}
-}
 
-func select70(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
-	case v, ok = <-ch[39]:
-		return 39, true
-	case v, ok = <-ch[40]:
-		return 40, true
-	case v, ok = <-ch[41]:
-		return 41, true
-	case v, ok = <-ch[42]:
-		return 42, true
-	case v, ok = <-ch[43]:
-		return 43, true
-	case v, ok = <-ch[44]:
-		return 44, true
-	case v, ok = <-ch[45]:
-		return 45, true
-	case v, ok = <-ch[46]:
-		return 46, true
-	case v, ok = <-ch[47]:
-		return 47, true
-	case v, ok = <-ch[48]:
-		return 48, true
-	case v, ok = <-ch[49]:
-		return 49, true
-	case v, ok = <-ch[50]:
-		return 50, true
-	case v, ok = <-ch[51]:
-		return 51, true
-	case v, ok = <-ch[52]:
-		return 52, true
-	case v, ok = <-ch[53]:
-		return 53, true
-	case v, ok = <-ch[54]:
-		return 54, true
-	case v, ok = <-ch[55]:
-		return 55, true
-	case v, ok = <-ch[56]:
-		return 56, true
-	case v, ok = <-ch[57]:
-		return 57, true
-	case v, ok = <-ch[58]:
-		return 58, true
-	case v, ok = <-ch[59]:
-		return 59, true
-	case v, ok = <-ch[60]:
-		return 60, true
-	case v, ok = <-ch[61]:
-		return 61, true
-	case v, ok = <-ch[62]:
-		return 62, true
-	case v, ok = <-ch[63]:
-		return 63, true
-	case v, ok = <-ch[64]:
-		return 64, true
-	case v, ok = <-ch[65]:
-		return 65, true
-	case v, ok = <-ch[66]:
-		return 66, true
-	case v, ok = <-ch[67]:
-		return 67, true
-	case v, ok = <-ch[68]:
-		return 68, true
-	case v, ok = <-ch[69]:
-		return 69, true
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	case *v, *ok = <-*ch[39]:
+		return 39, nil
+	case *v, *ok = <-*ch[40]:
+		return 40, nil
+	case *v, *ok = <-*ch[41]:
+		return 41, nil
+	case *v, *ok = <-*ch[42]:
+		return 42, nil
+	case *v, *ok = <-*ch[43]:
+		return 43, nil
+	case *v, *ok = <-*ch[44]:
+		return 44, nil
+	case *v, *ok = <-*ch[45]:
+		return 45, nil
+	case *v, *ok = <-*ch[46]:
+		return 46, nil
+	case *v, *ok = <-*ch[47]:
+		return 47, nil
+	case *v, *ok = <-*ch[48]:
+		return 48, nil
+	case *v, *ok = <-*ch[49]:
+		return 49, nil
+	case *v, *ok = <-*ch[50]:
+		return 50, nil
+	case *v, *ok = <-*ch[51]:
+		return 51, nil
+	case *v, *ok = <-*ch[52]:
+		return 52, nil
+	case *v, *ok = <-*ch[53]:
+		return 53, nil
+	case *v, *ok = <-*ch[54]:
+		return 54, nil
+	case *v, *ok = <-*ch[55]:
+		return 55, nil
+	case *v, *ok = <-*ch[56]:
+		return 56, nil
+	case *v, *ok = <-*ch[57]:
+		return 57, nil
+	case *v, *ok = <-*ch[58]:
+		return 58, nil
+	case *v, *ok = <-*ch[59]:
+		return 59, nil
+	case *v, *ok = <-*ch[60]:
+		return 60, nil
+	case *v, *ok = <-*ch[61]:
+		return 61, nil
+	case *v, *ok = <-*ch[62]:
+		return 62, nil
+	case *v, *ok = <-*ch[63]:
+		return 63, nil
+	case *v, *ok = <-*ch[64]:
+		return 64, nil
+	case *v, *ok = <-*ch[65]:
+		return 65, nil
+	case *v, *ok = <-*ch[66]:
+		return 66, nil
+	case *v, *ok = <-*ch[67]:
+		return 67, nil
+	case *v, *ok = <-*ch[68]:
+		return 68, nil
+	case *v, *ok = <-*ch[69]:
+		return 69, nil
+	case *v, *ok = <-*ch[70]:
+		return 70, nil
+	case *v, *ok = <-*ch[71]:
+		return 71, nil
+	case *v, *ok = <-*ch[72]:
+		return 72, nil
+	case *v, *ok = <-*ch[73]:
+		return 73, nil
+	case *v, *ok = <-*ch[74]:
+		return 74, nil
+	case *v, *ok = <-*ch[75]:
+		return 75, nil
+	case *v, *ok = <-*ch[76]:
+		return 76, nil
+	case *v, *ok = <-*ch[77]:
+		return 77, nil
+	case *v, *ok = <-*ch[78]:
+		return 78, nil
+	case *v, *ok = <-*ch[79]:
+		return 79, nil
+	case *v, *ok = <-*ch[80]:
+		return 80, nil
+	case *v, *ok = <-*ch[81]:
+		return 81, nil
+	case *v, *ok = <-*ch[82]:
+		return 82, nil
 	}
 }
 
-func select71(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
-	case v, ok = <-ch[39]:
-		return 39, true
-	case v, ok = <-ch[40]:
-		return 40, true
-	case v, ok = <-ch[41]:
-		return 41, true
-	case v, ok = <-ch[42]:
-		return 42, true
-	case v, ok = <-ch[43]:
-		return 43, true
-	case v, ok = <-ch[44]:
-		return 44, true
-	case v, ok = <-ch[45]:
-		return 45, true
-	case v, ok = <-ch[46]:
-		return 46, true
-	case v, ok = <-ch[47]:
-		return 47, true
-	case v, ok = <-ch[48]:
-		return 48, true
-	case v, ok = <-ch[49]:
-		return 49, true
-	case v, ok = <-ch[50]:
-		return 50, true
-	case v, ok = <-ch[51]:
-		return 51, true
-	case v, ok = <-ch[52]:
-		return 52, true
-	case v, ok = <-ch[53]:
-		return 53, true
-	case v, ok = <-ch[54]:
-		return 54, true
-	case v, ok = <-ch[55]:
-		return 55, true
-	case v, ok = <-ch[56]:
-		return 56, true
-	case v, ok = <-ch[57]:
-		return 57, true
-	case v, ok = <-ch[58]:
-		return 58, true
-	case v, ok = <-ch[59]:
-		return 59, true
-	case v, ok = <-ch[60]:
-		return 60, true
-	case v, ok = <-ch[61]:
-		return 61, true
-	case v, ok = <-ch[62]:
-		return 62, true
-	case v, ok = <-ch[63]:
-		return 63, true
-	case v, ok = <-ch[64]:
-		return 64, true
-	case v, ok = <-ch[65]:
-		return 65, true
-	case v, ok = <-ch[66]:
-		return 66, true
-	case v, ok = <-ch[67]:
-		return 67, true
-	case v, ok = <-ch[68]:
-		return 68, true
-	case v, ok = <-ch[69]:
-		return 69, true
-	case v, ok = <-ch[70]:
-		return 70, true
+func select84(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
 	}
-}
 
-func select72(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
-	case v, ok = <-ch[39]:
-		return 39, true
-	case v, ok = <-ch[40]:
-		return 40, true
-	case v, ok = <-ch[41]:
-		return 41, true
-	case v, ok = <-ch[42]:
-		return 42, true
-	case v, ok = <-ch[43]:
-		return 43, true
-	case v, ok = <-ch[44]:
-		return 44, true
-	case v, ok = <-ch[45]:
-		return 45, true
-	case v, ok = <-ch[46]:
-		return 46, true
-	case v, ok = <-ch[47]:
-		return 47, true
-	case v, ok = <-ch[48]:
-		return 48, true
-	case v, ok = <-ch[49]:
-		return 49, true
-	case v, ok = <-ch[50]:
-		return 50, true
-	case v, ok = <-ch[51]:
-		return 51, true
-	case v, ok = <-ch[52]:
-		return 52, true
-	case v, ok = <-ch[53]:
-		return 53, true
-	case v, ok = <-ch[54]:
-		return 54, true
-	case v, ok = <-ch[55]:
-		return 55, true
-	case v, ok = <-ch[56]:
-		return 56, true
-	case v, ok = <-ch[57]:
-		return 57, true
-	case v, ok = <-ch[58]:
-		return 58, true
-	case v, ok = <-ch[59]:
-		return 59, true
-	case v, ok = <-ch[60]:
-		return 60, true
-	case v, ok = <-ch[61]:
-		return 61, true
-	case v, ok = <-ch[62]:
-		return 62, true
-	case v, ok = <-ch[63]:
-		return 63, true
-	case v, ok = <-ch[64]:
-		return 64, true
-	case v, ok = <-ch[65]:
-		return 65, true
-	case v, ok = <-ch[66]:
-		return 66, true
-	case v, ok = <-ch[67]:
-		return 67, true
-	case v, ok = <-ch[68]:
-		return 68, true
-	case v, ok = <-ch[69]:
-		return 69, true
-	case v, ok = <-ch[70]:
-		return 70, true
-	case v, ok = <-ch[71]:
-		return 71, true
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	case *v, *ok = <-*ch[39]:
+		return 39, nil
+	case *v, *ok = <-*ch[40]:
+		return 40, nil
+	case *v, *ok = <-*ch[41]:
+		return 41, nil
+	case *v, *ok = <-*ch[42]:
+		return 42, nil
+	case *v, *ok = <-*ch[43]:
+		return 43, nil
+	case *v, *ok = <-*ch[44]:
+		return 44, nil
+	case *v, *ok = <-*ch[45]:
+		return 45, nil
+	case *v, *ok = <-*ch[46]:
+		return 46, nil
+	case *v, *ok = <-*ch[47]:
+		return 47, nil
+	case *v, *ok = <-*ch[48]:
+		return 48, nil
+	case *v, *ok = <-*ch[49]:
+		return 49, nil
+	case *v, *ok = <-*ch[50]:
+		return 50, nil
+	case *v, *ok = <-*ch[51]:
+		return 51, nil
+	case *v, *ok = <-*ch[52]:
+		return 52, nil
+	case *v, *ok = <-*ch[53]:
+		return 53, nil
+	case *v, *ok = <-*ch[54]:
+		return 54, nil
+	case *v, *ok = <-*ch[55]:
+		return 55, nil
+	case *v, *ok = <-*ch[56]:
+		return 56, nil
+	case *v, *ok = <-*ch[57]:
+		return 57, nil
+	case *v, *ok = <-*ch[58]:
+		return 58, nil
+	case *v, *ok = <-*ch[59]:
+		return 59, nil
+	case *v, *ok = <-*ch[60]:
+		return 60, nil
+	case *v, *ok = <-*ch[61]:
+		return 61, nil
+	case *v, *ok = <-*ch[62]:
+		return 62, nil
+	case *v, *ok = <-*ch[63]:
+		return 63, nil
+	case *v, *ok = <-*ch[64]:
+		return 64, nil
+	case *v, *ok = <-*ch[65]:
+		return 65, nil
+	case *v, *ok = <-*ch[66]:
+		return 66, nil
+	case *v, *ok = <-*ch[67]:
+		return 67, nil
+	case *v, *ok = <-*ch[68]:
+		return 68, nil
+	case *v, *ok = <-*ch[69]:
+		return 69, nil
+	case *v, *ok = <-*ch[70]:
+		return 70, nil
+	case *v, *ok = <-*ch[71]:
+		return 71, nil
+	case *v, *ok = <-*ch[72]:
+		return 72, nil
+	case *v, *ok = <-*ch[73]:
+		return 73, nil
+	case *v, *ok = <-*ch[74]:
+		return 74, nil
+	case *v, *ok = <-*ch[75]:
+		return 75, nil
+	case *v, *ok = <-*ch[76]:
+		return 76, nil
+	case *v, *ok = <-*ch[77]:
+		return 77, nil
+	case *v, *ok = <-*ch[78]:
+		return 78, nil
+	case *v, *ok = <-*ch[79]:
+		return 79, nil
+	case *v, *ok = <-*ch[80]:
+		return 80, nil
+	case *v, *ok = <-*ch[81]:
+		return 81, nil
+	case *v, *ok = <-*ch[82]:
+		return 82, nil
+	case *v, *ok = <-*ch[83]:
+		return 83, nil
 	}
 }
 
-func select73(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
-	case v, ok = <-ch[39]:
-		return 39, true
-	case v, ok = <-ch[40]:
-		return 40, true
-	case v, ok = <-ch[41]:
-		return 41, true
-	case v, ok = <-ch[42]:
-		return 42, true
-	case v, ok = <-ch[43]:
-		return 43, true
-	case v, ok = <-ch[44]:
-		return 44, true
-	case v, ok = <-ch[45]:
-		return 45, true
-	case v, ok = <-ch[46]:
-		return 46, true
-	case v, ok = <-ch[47]:
-		return 47, true
-	case v, ok = <-ch[48]:
-		return 48, true
-	case v, ok = <-ch[49]:
-		return 49, true
-	case v, ok = <-ch[50]:
-		return 50, true
-	case v, ok = <-ch[51]:
-		return 51, true
-	case v, ok = <-ch[52]:
-		return 52, true
-	case v, ok = <-ch[53]:
-		return 53, true
-	case v, ok = <-ch[54]:
-		return 54, true
-	case v, ok = <-ch[55]:
-		return 55, true
-	case v, ok = <-ch[56]:
-		return 56, true
-	case v, ok = <-ch[57]:
-		return 57, true
-	case v, ok = <-ch[58]:
-		return 58, true
-	case v, ok = <-ch[59]:
-		return 59, true
-	case v, ok = <-ch[60]:
-		return 60, true
-	case v, ok = <-ch[61]:
-		return 61, true
-	case v, ok = <-ch[62]:
-		return 62, true
-	case v, ok = <-ch[63]:
-		return 63, true
-	case v, ok = <-ch[64]:
-		return 64, true
-	case v, ok = <-ch[65]:
-		return 65, true
-	case v, ok = <-ch[66]:
-		return 66, true
-	case v, ok = <-ch[67]:
-		return 67, true
-	case v, ok = <-ch[68]:
-		return 68, true
-	case v, ok = <-ch[69]:
-		return 69, true
-	case v, ok = <-ch[70]:
-		return 70, true
-	case v, ok = <-ch[71]:
-		return 71, true
-	case v, ok = <-ch[72]:
-		return 72, true
+func select85(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
 	}
-}
 
-func select74(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
-	case v, ok = <-ch[39]:
-		return 39, true
-	case v, ok = <-ch[40]:
-		return 40, true
-	case v, ok = <-ch[41]:
-		return 41, true
-	case v, ok = <-ch[42]:
-		return 42, true
-	case v, ok = <-ch[43]:
-		return 43, true
-	case v, ok = <-ch[44]:
-		return 44, true
-	case v, ok = <-ch[45]:
-		return 45, true
-	case v, ok = <-ch[46]:
-		return 46, true
-	case v, ok = <-ch[47]:
-		return 47, true
-	case v, ok = <-ch[48]:
-		return 48, true
-	case v, ok = <-ch[49]:
-		return 49, true
-	case v, ok = <-ch[50]:
-		return 50, true
-	case v, ok = <-ch[51]:
-		return 51, true
-	case v, ok = <-ch[52]:
-		return 52, true
-	case v, ok = <-ch[53]:
-		return 53, true
-	case v, ok = <-ch[54]:
-		return 54, true
-	case v, ok = <-ch[55]:
-		return 55, true
-	case v, ok = <-ch[56]:
-		return 56, true
-	case v, ok = <-ch[57]:
-		return 57, true
-	case v, ok = <-ch[58]:
-		return 58, true
-	case v, ok = <-ch[59]:
-		return 59, true
-	case v, ok = <-ch[60]:
-		return 60, true
-	case v, ok = <-ch[61]:
-		return 61, true
-	case v, ok = <-ch[62]:
-		return 62, true
-	case v, ok = <-ch[63]:
-		return 63, true
-	case v, ok = <-ch[64]:
-		return 64, true
-	case v, ok = <-ch[65]:
-		return 65, true
-	case v, ok = <-ch[66]:
-		return 66, true
-	case v, ok = <-ch[67]:
-		return 67, true
-	case v, ok = <-ch[68]:
-		return 68, true
-	case v, ok = <-ch[69]:
-		return 69, true
-	case v, ok = <-ch[70]:
-		return 70, true
-	case v, ok = <-ch[71]:
-		return 71, true
-	case v, ok = <-ch[72]:
-		return 72, true
-	case v, ok = <-ch[73]:
-		return 73, true
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	case *v, *ok = <-*ch[39]:
+		return 39, nil
+	case *v, *ok = <-*ch[40]:
+		return 40, nil
+	case *v, *ok = <-*ch[41]:
+		return 41, nil
+	case *v, *ok = <-*ch[42]:
+		return 42, nil
+	case *v, *ok = <-*ch[43]:
+		return 43, nil
+	case *v, *ok = <-*ch[44]:
+		return 44, nil
+	case *v, *ok = <-*ch[45]:
+		return 45, nil
+	case *v, *ok = <-*ch[46]:
+		return 46, nil
+	case *v, *ok = <-*ch[47]:
+		return 47, nil
+	case *v, *ok = <-*ch[48]:
+		return 48, nil
+	case *v, *ok = <-*ch[49]:
+		return 49, nil
+	case *v, *ok = <-*ch[50]:
+		return 50, nil
+	case *v, *ok = <-*ch[51]:
+		return 51, nil
+	case *v, *ok = <-*ch[52]:
+		return 52, nil
+	case *v, *ok = <-*ch[53]:
+		return 53, nil
+	case *v, *ok = <-*ch[54]:
+		return 54, nil
+	case *v, *ok = <-*ch[55]:
+		return 55, nil
+	case *v, *ok = <-*ch[56]:
+		return 56, nil
+	case *v, *ok = <-*ch[57]:
+		return 57, nil
+	case *v, *ok = <-*ch[58]:
+		return 58, nil
+	case *v, *ok = <-*ch[59]:
+		return 59, nil
+	case *v, *ok = <-*ch[60]:
+		return 60, nil
+	case *v, *ok = <-*ch[61]:
+		return 61, nil
+	case *v, *ok = <-*ch[62]:
+		return 62, nil
+	case *v, *ok = <-*ch[63]:
+		return 63, nil
+	case *v, *ok = <-*ch[64]:
+		return 64, nil
+	case *v, *ok = <-*ch[65]:
+		return 65, nil
+	case *v, *ok = <-*ch[66]:
+		return 66, nil
+	case *v, *ok = <-*ch[67]:
+		return 67, nil
+	case *v, *ok = <-*ch[68]:
+		return 68, nil
+	case *v, *ok = <-*ch[69]:
+		return 69, nil
+	case *v, *ok = <-*ch[70]:
+		return 70, nil
+	case *v, *ok = <-*ch[71]:
+		return 71, nil
+	case *v, *ok = <-*ch[72]:
+		return 72, nil
+	case *v, *ok = <-*ch[73]:
+		return 73, nil
+	case *v, *ok = <-*ch[74]:
+		return 74, nil
+	case *v, *ok = <-*ch[75]:
+		return 75, nil
+	case *v, *ok = <-*ch[76]:
+		return 76, nil
+	case *v, *ok = <-*ch[77]:
+		return 77, nil
+	case *v, *ok = <-*ch[78]:
+		return 78, nil
+	case *v, *ok = <-*ch[79]:
+		return 79, nil
+	case *v, *ok = <-*ch[80]:
+		return 80, nil
+	case *v, *ok = <-*ch[81]:
+		return 81, nil
+	case *v, *ok = <-*ch[82]:
+		return 82, nil
+	case *v, *ok = <-*ch[83]:
+		return 83, nil
+	case *v, *ok = <-*ch[84]:
+		return 84, nil
 	}
 }
 
-func select75(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
-	case v, ok = <-ch[39]:
-		return 39, true
-	case v, ok = <-ch[40]:
-		return 40, true
-	case v, ok = <-ch[41]:
-		return 41, true
-	case v, ok = <-ch[42]:
-		return 42, true
-	case v, ok = <-ch[43]:
-		return 43, true
-	case v, ok = <-ch[44]:
-		return 44, true
-	case v, ok = <-ch[45]:
-		return 45, true
-	case v, ok = <-ch[46]:
-		return 46, true
-	case v, ok = <-ch[47]:
-		return 47, true
-	case v, ok = <-ch[48]:
-		return 48, true
-	case v, ok = <-ch[49]:
-		return 49, true
-	case v, ok = <-ch[50]:
-		return 50, true
-	case v, ok = <-ch[51]:
-		return 51, true
-	case v, ok = <-ch[52]:
-		return 52, true
-	case v, ok = <-ch[53]:
-		return 53, true
-	case v, ok = <-ch[54]:
-		return 54, true
-	case v, ok = <-ch[55]:
-		return 55, true
-	case v, ok = <-ch[56]:
-		return 56, true
-	case v, ok = <-ch[57]:
-		return 57, true
-	case v, ok = <-ch[58]:
-		return 58, true
-	case v, ok = <-ch[59]:
-		return 59, true
-	case v, ok = <-ch[60]:
-		return 60, true
-	case v, ok = <-ch[61]:
-		return 61, true
-	case v, ok = <-ch[62]:
-		return 62, true
-	case v, ok = <-ch[63]:
-		return 63, true
-	case v, ok = <-ch[64]:
-		return 64, true
-	case v, ok = <-ch[65]:
-		return 65, true
-	case v, ok = <-ch[66]:
-		return 66, true
-	case v, ok = <-ch[67]:
-		return 67, true
-	case v, ok = <-ch[68]:
-		return 68, true
-	case v, ok = <-ch[69]:
-		return 69, true
-	case v, ok = <-ch[70]:
-		return 70, true
-	case v, ok = <-ch[71]:
-		return 71, true
-	case v, ok = <-ch[72]:
-		return 72, true
-	case v, ok = <-ch[73]:
-		return 73, true
-	case v, ok = <-ch[74]:
-		return 74, true
+func select86(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
 	}
-}
 
-func select76(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
-	case v, ok = <-ch[39]:
-		return 39, true
-	case v, ok = <-ch[40]:
-		return 40, true
-	case v, ok = <-ch[41]:
-		return 41, true
-	case v, ok = <-ch[42]:
-		return 42, true
-	case v, ok = <-ch[43]:
-		return 43, true
-	case v, ok = <-ch[44]:
-		return 44, true
-	case v, ok = <-ch[45]:
-		return 45, true
-	case v, ok = <-ch[46]:
-		return 46, true
-	case v, ok = <-ch[47]:
-		return 47, true
-	case v, ok = <-ch[48]:
-		return 48, true
-	case v, ok = <-ch[49]:
-		return 49, true
-	case v, ok = <-ch[50]:
-		return 50, true
-	case v, ok = <-ch[51]:
-		return 51, true
-	case v, ok = <-ch[52]:
-		return 52, true
-	case v, ok = <-ch[53]:
-		return 53, true
-	case v, ok = <-ch[54]:
-		return 54, true
-	case v, ok = <-ch[55]:
-		return 55, true
-	case v, ok = <-ch[56]:
-		return 56, true
-	case v, ok = <-ch[57]:
-		return 57, true
-	case v, ok = <-ch[58]:
-		return 58, true
-	case v, ok = <-ch[59]:
-		return 59, true
-	case v, ok = <-ch[60]:
-		return 60, true
-	case v, ok = <-ch[61]:
-		return 61, true
-	case v, ok = <-ch[62]:
-		return 62, true
-	case v, ok = <-ch[63]:
-		return 63, true
-	case v, ok = <-ch[64]:
-		return 64, true
-	case v, ok = <-ch[65]:
-		return 65, true
-	case v, ok = <-ch[66]:
-		return 66, true
-	case v, ok = <-ch[67]:
-		return 67, true
-	case v, ok = <-ch[68]:
-		return 68, true
-	case v, ok = <-ch[69]:
-		return 69, true
-	case v, ok = <-ch[70]:
-		return 70, true
-	case v, ok = <-ch[71]:
-		return 71, true
-	case v, ok = <-ch[72]:
-		return 72, true
-	case v, ok = <-ch[73]:
-		return 73, true
-	case v, ok = <-ch[74]:
-		return 74, true
-	case v, ok = <-ch[75]:
-		return 75, true
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	case *v, *ok = <-*ch[39]:
+		return 39, nil
+	case *v, *ok = <-*ch[40]:
+		return 40, nil
+	case *v, *ok = <-*ch[41]:
+		return 41, nil
+	case *v, *ok = <-*ch[42]:
+		return 42, nil
+	case *v, *ok = <-*ch[43]:
+		return 43, nil
+	case *v, *ok = <-*ch[44]:
+		return 44, nil
+	case *v, *ok = <-*ch[45]:
+		return 45, nil
+	case *v, *ok = <-*ch[46]:
+		return 46, nil
+	case *v, *ok = <-*ch[47]:
+		return 47, nil
+	case *v, *ok = <-*ch[48]:
+		return 48, nil
+	case *v, *ok = <-*ch[49]:
+		return 49, nil
+	case *v, *ok = <-*ch[50]:
+		return 50, nil
+	case *v, *ok = <-*ch[51]:
+		return 51, nil
+	case *v, *ok = <-*ch[52]:
+		return 52, nil
+	case *v, *ok = <-*ch[53]:
+		return 53, nil
+	case *v, *ok = <-*ch[54]:
+		return 54, nil
+	case *v, *ok = <-*ch[55]:
+		return 55, nil
+	case *v, *ok = <-*ch[56]:
+		return 56, nil
+	case *v, *ok = <-*ch[57]:
+		return 57, nil
+	case *v, *ok = <-*ch[58]:
+		return 58, nil
+	case *v, *ok = <-*ch[59]:
+		return 59, nil
+	case *v, *ok = <-*ch[60]:
+		return 60, nil
+	case *v, *ok = <-*ch[61]:
+		return 61, nil
+	case *v, *ok = <-*ch[62]:
+		return 62, nil
+	case *v, *ok = <-*ch[63]:
+		return 63, nil
+	case *v, *ok = <-*ch[64]:
+		return 64, nil
+	case *v, *ok = <-*ch[65]:
+		return 65, nil
+	case *v, *ok = <-*ch[66]:
+		return 66, nil
+	case *v, *ok = <-*ch[67]:
+		return 67, nil
+	case *v, *ok = <-*ch[68]:
+		return 68, nil
+	case *v, *ok = <-*ch[69]:
+		return 69, nil
+	case *v, *ok = <-*ch[70]:
+		return 70, nil
+	case *v, *ok = <-*ch[71]:
+		return 71, nil
+	case *v, *ok = <-*ch[72]:
+		return 72, nil
+	case *v, *ok = <-*ch[73]:
+		return 73, nil
+	case *v, *ok = <-*ch[74]:
+		return 74, nil
+	case *v, *ok = <-*ch[75]:
+		return 75, nil
+	case *v, *ok = <-*ch[76]:
+		return 76, nil
+	case *v, *ok = <-*ch[77]:
+		return 77, nil
+	case *v, *ok = <-*ch[78]:
+		return 78, nil
+	case *v, *ok = <-*ch[79]:
+		return 79, nil
+	case *v, *ok = <-*ch[80]:
+		return 80, nil
+	case *v, *ok = <-*ch[81]:
+		return 81, nil
+	case *v, *ok = <-*ch[82]:
+		return 82, nil
+	case *v, *ok = <-*ch[83]:
+		return 83, nil
+	case *v, *ok = <-*ch[84]:
+		return 84, nil
+	case *v, *ok = <-*ch[85]:
+		return 85, nil
 	}
 }
 
-func select77(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
-	case v, ok = <-ch[39]:
-		return 39, true
-	case v, ok = <-ch[40]:
-		return 40, true
-	case v, ok = <-ch[41]:
-		return 41, true
-	case v, ok = <-ch[42]:
-		return 42, true
-	case v, ok = <-ch[43]:
-		return 43, true
-	case v, ok = <-ch[44]:
-		return 44, true
-	case v, ok = <-ch[45]:
-		return 45, true
-	case v, ok = <-ch[46]:
-		return 46, true
-	case v, ok = <-ch[47]:
-		return 47, true
-	case v, ok = <-ch[48]:
-		return 48, true
-	case v, ok = <-ch[49]:
-		return 49, true
-	case v, ok = <-ch[50]:
-		return 50, true
-	case v, ok = <-ch[51]:
-		return 51, true
-	case v, ok = <-ch[52]:
-		return 52, true
-	case v, ok = <-ch[53]:
-		return 53, true
-	case v, ok = <-ch[54]:
-		return 54, true
-	case v, ok = <-ch[55]:
-		return 55, true
-	case v, ok = <-ch[56]:
-		return 56, true
-	case v, ok = <-ch[57]:
-		return 57, true
-	case v, ok = <-ch[58]:
-		return 58, true
-	case v, ok = <-ch[59]:
-		return 59, true
-	case v, ok = <-ch[60]:
-		return 60, true
-	case v, ok = <-ch[61]:
-		return 61, true
-	case v, ok = <-ch[62]:
-		return 62, true
-	case v, ok = <-ch[63]:
-		return 63, true
-	case v, ok = <-ch[64]:
-		return 64, true
-	case v, ok = <-ch[65]:
-		return 65, true
-	case v, ok = <-ch[66]:
-		return 66, true
-	case v, ok = <-ch[67]:
-		return 67, true
-	case v, ok = <-ch[68]:
-		return 68, true
-	case v, ok = <-ch[69]:
-		return 69, true
-	case v, ok = <-ch[70]:
-		return 70, true
-	case v, ok = <-ch[71]:
-		return 71, true
-	case v, ok = <-ch[72]:
-		return 72, true
-	case v, ok = <-ch[73]:
-		return 73, true
-	case v, ok = <-ch[74]:
-		return 74, true
-	case v, ok = <-ch[75]:
-		return 75, true
-	case v, ok = <-ch[76]:
-		return 76, true
+func select87(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
 	}
-}
 
-func select78(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
-	case v, ok = <-ch[39]:
-		return 39, true
-	case v, ok = <-ch[40]:
-		return 40, true
-	case v, ok = <-ch[41]:
-		return 41, true
-	case v, ok = <-ch[42]:
-		return 42, true
-	case v, ok = <-ch[43]:
-		return 43, true
-	case v, ok = <-ch[44]:
-		return 44, true
-	case v, ok = <-ch[45]:
-		return 45, true
-	case v, ok = <-ch[46]:
-		return 46, true
-	case v, ok = <-ch[47]:
-		return 47, true
-	case v, ok = <-ch[48]:
-		return 48, true
-	case v, ok = <-ch[49]:
-		return 49, true
-	case v, ok = <-ch[50]:
-		return 50, true
-	case v, ok = <-ch[51]:
-		return 51, true
-	case v, ok = <-ch[52]:
-		return 52, true
-	case v, ok = <-ch[53]:
-		return 53, true
-	case v, ok = <-ch[54]:
-		return 54, true
-	case v, ok = <-ch[55]:
-		return 55, true
-	case v, ok = <-ch[56]:
-		return 56, true
-	case v, ok = <-ch[57]:
-		return 57, true
-	case v, ok = <-ch[58]:
-		return 58, true
-	case v, ok = <-ch[59]:
-		return 59, true
-	case v, ok = <-ch[60]:
-		return 60, true
-	case v, ok = <-ch[61]:
-		return 61, true
-	case v, ok = <-ch[62]:
-		return 62, true
-	case v, ok = <-ch[63]:
-		return 63, true
-	case v, ok = <-ch[64]:
-		return 64, true
-	case v, ok = <-ch[65]:
-		return 65, true
-	case v, ok = <-ch[66]:
-		return 66, true
-	case v, ok = <-ch[67]:
-		return 67, true
-	case v, ok = <-ch[68]:
-		return 68, true
-	case v, ok = <-ch[69]:
-		return 69, true
-	case v, ok = <-ch[70]:
-		return 70, true
-	case v, ok = <-ch[71]:
-		return 71, true
-	case v, ok = <-ch[72]:
-		return 72, true
-	case v, ok = <-ch[73]:
-		return 73, true
-	case v, ok = <-ch[74]:
-		return 74, true
-	case v, ok = <-ch[75]:
-		return 75, true
-	case v, ok = <-ch[76]:
-		return 76, true
-	case v, ok = <-ch[77]:
-		return 77, true
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	case *v, *ok = <-*ch[39]:
+		return 39, nil
+	case *v, *ok = <-*ch[40]:
+		return 40, nil
+	case *v, *ok = <-*ch[41]:
+		return 41, nil
+	case *v, *ok = <-*ch[42]:
+		return 42, nil
+	case *v, *ok = <-*ch[43]:
+		return 43, nil
+	case *v, *ok = <-*ch[44]:
+		return 44, nil
+	case *v, *ok = <-*ch[45]:
+		return 45, nil
+	case *v, *ok = <-*ch[46]:
+		return 46, nil
+	case *v, *ok = <-*ch[47]:
+		return 47, nil
+	case *v, *ok = <-*ch[48]:
+		return 48, nil
+	case *v, *ok = <-*ch[49]:
+		return 49, nil
+	case *v, *ok = <-*ch[50]:
+		return 50, nil
+	case *v, *ok = <-*ch[51]:
+		return 51, nil
+	case *v, *ok = <-*ch[52]:
+		return 52, nil
+	case *v, *ok = <-*ch[53]:
+		return 53, nil
+	case *v, *ok = <-*ch[54]:
+		return 54, nil
+	case *v, *ok = <-*ch[55]:
+		return 55, nil
+	case *v, *ok = <-*ch[56]:
+		return 56, nil
+	case *v, *ok = <-*ch[57]:
+		return 57, nil
+	case *v, *ok = <-*ch[58]:
+		return 58, nil
+	case *v, *ok = <-*ch[59]:
+		return 59, nil
+	case *v, *ok = <-*ch[60]:
+		return 60, nil
+	case *v, *ok = <-*ch[61]:
+		return 61, nil
+	case *v, *ok = <-*ch[62]:
+		return 62, nil
+	case *v, *ok = <-*ch[63]:
+		return 63, nil
+	case *v, *ok = <-*ch[64]:
+		return 64, nil
+	case *v, *ok = <-*ch[65]:
+		return 65, nil
+	case *v, *ok = <-*ch[66]:
+		return 66, nil
+	case *v, *ok = <-*ch[67]:
+		return 67, nil
+	case *v, *ok = <-*ch[68]:
+		return 68, nil
+	case *v, *ok = <-*ch[69]:
+		return 69, nil
+	case *v, *ok = <-*ch[70]:
+		return 70, nil
+	case *v, *ok = <-*ch[71]:
+		return 71, nil
+	case *v, *ok = <-*ch[72]:
+		return 72, nil
+	case *v, *ok = <-*ch[73]:
+		return 73, nil
+	case *v, *ok = <-*ch[74]:
+		return 74, nil
+	case *v, *ok = <-*ch[75]:
+		return 75, nil
+	case *v, *ok = <-*ch[76]:
+		return 76, nil
+	case *v, *ok = <-*ch[77]:
+		return 77, nil
+	case *v, *ok = <-*ch[78]:
+		return 78, nil
+	case *v, *ok = <-*ch[79]:
+		return 79, nil
+	case *v, *ok = <-*ch[80]:
+		return 80, nil
+	case *v, *ok = <-*ch[81]:
+		return 81, nil
+	case *v, *ok = <-*ch[82]:
+		return 82, nil
+	case *v, *ok = <-*ch[83]:
+		return 83, nil
+	case *v, *ok = <-*ch[84]:
+		return 84, nil
+	case *v, *ok = <-*ch[85]:
+		return 85, nil
+	case *v, *ok = <-*ch[86]:
+		return 86, nil
 	}
 }
 
-func select79(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
-	case v, ok = <-ch[39]:
-		return 39, true
-	case v, ok = <-ch[40]:
-		return 40, true
-	case v, ok = <-ch[41]:
-		return 41, true
-	case v, ok = <-ch[42]:
-		return 42, true
-	case v, ok = <-ch[43]:
-		return 43, true
-	case v, ok = <-ch[44]:
-		return 44, true
-	case v, ok = <-ch[45]:
-		return 45, true
-	case v, ok = <-ch[46]:
-		return 46, true
-	case v, ok = <-ch[47]:
-		return 47, true
-	case v, ok = <-ch[48]:
-		return 48, true
-	case v, ok = <-ch[49]:
-		return 49, true
-	case v, ok = <-ch[50]:
-		return 50, true
-	case v, ok = <-ch[51]:
-		return 51, true
-	case v, ok = <-ch[52]:
-		return 52, true
-	case v, ok = <-ch[53]:
-		return 53, true
-	case v, ok = <-ch[54]:
-		return 54, true
-	case v, ok = <-ch[55]:
-		return 55, true
-	case v, ok = <-ch[56]:
-		return 56, true
-	case v, ok = <-ch[57]:
-		return 57, true
-	case v, ok = <-ch[58]:
-		return 58, true
-	case v, ok = <-ch[59]:
-		return 59, true
-	case v, ok = <-ch[60]:
-		return 60, true
-	case v, ok = <-ch[61]:
-		return 61, true
-	case v, ok = <-ch[62]:
-		return 62, true
-	case v, ok = <-ch[63]:
-		return 63, true
-	case v, ok = <-ch[64]:
-		return 64, true
-	case v, ok = <-ch[65]:
-		return 65, true
-	case v, ok = <-ch[66]:
-		return 66, true
-	case v, ok = <-ch[67]:
-		return 67, true
-	case v, ok = <-ch[68]:
-		return 68, true
-	case v, ok = <-ch[69]:
-		return 69, true
-	case v, ok = <-ch[70]:
-		return 70, true
-	case v, ok = <-ch[71]:
-		return 71, true
-	case v, ok = <-ch[72]:
-		return 72, true
-	case v, ok = <-ch[73]:
-		return 73, true
-	case v, ok = <-ch[74]:
-		return 74, true
-	case v, ok = <-ch[75]:
-		return 75, true
-	case v, ok = <-ch[76]:
-		return 76, true
-	case v, ok = <-ch[77]:
-		return 77, true
-	case v, ok = <-ch[78]:
-		return 78, true
+func select88(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
 	}
-}
 
-func select80(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
-	case v, ok = <-ch[39]:
-		return 39, true
-	case v, ok = <-ch[40]:
-		return 40, true
-	case v, ok = <-ch[41]:
-		return 41, true
-	case v, ok = <-ch[42]:
-		return 42, true
-	case v, ok = <-ch[43]:
-		return 43, true
-	case v, ok = <-ch[44]:
-		return 44, true
-	case v, ok = <-ch[45]:
-		return 45, true
-	case v, ok = <-ch[46]:
-		return 46, true
-	case v, ok = <-ch[47]:
-		return 47, true
-	case v, ok = <-ch[48]:
-		return 48, true
-	case v, ok = <-ch[49]:
-		return 49, true
-	case v, ok = <-ch[50]:
-		return 50, true
-	case v, ok = <-ch[51]:
-		return 51, true
-	case v, ok = <-ch[52]:
-		return 52, true
-	case v, ok = <-ch[53]:
-		return 53, true
-	case v, ok = <-ch[54]:
-		return 54, true
-	case v, ok = <-ch[55]:
-		return 55, true
-	case v, ok = <-ch[56]:
-		return 56, true
-	case v, ok = <-ch[57]:
-		return 57, true
-	case v, ok = <-ch[58]:
-		return 58, true
-	case v, ok = <-ch[59]:
-		return 59, true
-	case v, ok = <-ch[60]:
-		return 60, true
-	case v, ok = <-ch[61]:
-		return 61, true
-	case v, ok = <-ch[62]:
-		return 62, true
-	case v, ok = <-ch[63]:
-		return 63, true
-	case v, ok = <-ch[64]:
-		return 64, true
-	case v, ok = <-ch[65]:
-		return 65, true
-	case v, ok = <-ch[66]:
-		return 66, true
-	case v, ok = <-ch[67]:
-		return 67, true
-	case v, ok = <-ch[68]:
-		return 68, true
-	case v, ok = <-ch[69]:
-		return 69, true
-	case v, ok = <-ch[70]:
-		return 70, true
-	case v, ok = <-ch[71]:
-		return 71, true
-	case v, ok = <-ch[72]:
-		return 72, true
-	case v, ok = <-ch[73]:
-		return 73, true
-	case v, ok = <-ch[74]:
-		return 74, true
-	case v, ok = <-ch[75]:
-		return 75, true
-	case v, ok = <-ch[76]:
-		return 76, true
-	case v, ok = <-ch[77]:
-		return 77, true
-	case v, ok = <-ch[78]:
-		return 78, true
-	case v, ok = <-ch[79]:
-		return 79, true
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	case *v, *ok = <-*ch[39]:
+		return 39, nil
+	case *v, *ok = <-*ch[40]:
+		return 40, nil
+	case *v, *ok = <-*ch[41]:
+		return 41, nil
+	case *v, *ok = <-*ch[42]:
+		return 42, nil
+	case *v, *ok = <-*ch[43]:
+		return 43, nil
+	case *v, *ok = <-*ch[44]:
+		return 44, nil
+	case *v, *ok = <-*ch[45]:
+		return 45, nil
+	case *v, *ok = <-*ch[46]:
+		return 46, nil
+	case *v, *ok = <-*ch[47]:
+		return 47, nil
+	case *v, *ok = <-*ch[48]:
+		return 48, nil
+	case *v, *ok = <-*ch[49]:
+		return 49, nil
+	case *v, *ok = <-*ch[50]:
+		return 50, nil
+	case *v, *ok = <-*ch[51]:
+		return 51, nil
+	case *v, *ok = <-*ch[52]:
+		return 52, nil
+	case *v, *ok = <-*ch[53]:
+		return 53, nil
+	case *v, *ok = <-*ch[54]:
+		return 54, nil
+	case *v, *ok = <-*ch[55]:
+		return 55, nil
+	case *v, *ok = <-*ch[56]:
+		return 56, nil
+	case *v, *ok = <-*ch[57]:
+		return 57, nil
+	case *v, *ok = <-*ch[58]:
+		return 58, nil
+	case *v, *ok = <-*ch[59]:
+		return 59, nil
+	case *v, *ok = <-*ch[60]:
+		return 60, nil
+	case *v, *ok = <-*ch[61]:
+		return 61, nil
+	case *v, *ok = <-*ch[62]:
+		return 62, nil
+	case *v, *ok = <-*ch[63]:
+		return 63, nil
+	case *v, *ok = <-*ch[64]:
+		return 64, nil
+	case *v, *ok = <-*ch[65]:
+		return 65, nil
+	case *v, *ok = <-*ch[66]:
+		return 66, nil
+	case *v, *ok = <-*ch[67]:
+		return 67, nil
+	case *v, *ok = <-*ch[68]:
+		return 68, nil
+	case *v, *ok = <-*ch[69]:
+		return 69, nil
+	case *v, *ok = <-*ch[70]:
+		return 70, nil
+	case *v, *ok = <-*ch[71]:
+		return 71, nil
+	case *v, *ok = <-*ch[72]:
+		return 72, nil
+	case *v, *ok = <-*ch[73]:
+		return 73, nil
+	case *v, *ok = <-*ch[74]:
+		return 74, nil
+	case *v, *ok = <-*ch[75]:
+		return 75, nil
+	case *v, *ok = <-*ch[76]:
+		return 76, nil
+	case *v, *ok = <-*ch[77]:
+		return 77, nil
+	case *v, *ok = <-*ch[78]:
+		return 78, nil
+	case *v, *ok = <-*ch[79]:
+		return 79, nil
+	case *v, *ok = <-*ch[80]:
+		return 80, nil
+	case *v, *ok = <-*ch[81]:
+		return 81, nil
+	case *v, *ok = <-*ch[82]:
+		return 82, nil
+	case *v, *ok = <-*ch[83]:
+		return 83, nil
+	case *v, *ok = <-*ch[84]:
+		return 84, nil
+	case *v, *ok = <-*ch[85]:
+		return 85, nil
+	case *v, *ok = <-*ch[86]:
+		return 86, nil
+	case *v, *ok = <-*ch[87]:
+		return 87, nil
 	}
 }
 
-func select81(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
-	case v, ok = <-ch[39]:
-		return 39, true
-	case v, ok = <-ch[40]:
-		return 40, true
-	case v, ok = <-ch[41]:
-		return 41, true
-	case v, ok = <-ch[42]:
-		return 42, true
-	case v, ok = <-ch[43]:
-		return 43, true
-	case v, ok = <-ch[44]:
-		return 44, true
-	case v, ok = <-ch[45]:
-		return 45, true
-	case v, ok = <-ch[46]:
-		return 46, true
-	case v, ok = <-ch[47]:
-		return 47, true
-	case v, ok = <-ch[48]:
-		return 48, true
-	case v, ok = <-ch[49]:
-		return 49, true
-	case v, ok = <-ch[50]:
-		return 50, true
-	case v, ok = <-ch[51]:
-		return 51, true
-	case v, ok = <-ch[52]:
-		return 52, true
-	case v, ok = <-ch[53]:
-		return 53, true
-	case v, ok = <-ch[54]:
-		return 54, true
-	case v, ok = <-ch[55]:
-		return 55, true
-	case v, ok = <-ch[56]:
-		return 56, true
-	case v, ok = <-ch[57]:
-		return 57, true
-	case v, ok = <-ch[58]:
-		return 58, true
-	case v, ok = <-ch[59]:
-		return 59, true
-	case v, ok = <-ch[60]:
-		return 60, true
-	case v, ok = <-ch[61]:
-		return 61, true
-	case v, ok = <-ch[62]:
-		return 62, true
-	case v, ok = <-ch[63]:
-		return 63, true
-	case v, ok = <-ch[64]:
-		return 64, true
-	case v, ok = <-ch[65]:
-		return 65, true
-	case v, ok = <-ch[66]:
-		return 66, true
-	case v, ok = <-ch[67]:
-		return 67, true
-	case v, ok = <-ch[68]:
-		return 68, true
-	case v, ok = <-ch[69]:
-		return 69, true
-	case v, ok = <-ch[70]:
-		return 70, true
-	case v, ok = <-ch[71]:
-		return 71, true
-	case v, ok = <-ch[72]:
-		return 72, true
-	case v, ok = <-ch[73]:
-		return 73, true
-	case v, ok = <-ch[74]:
-		return 74, true
-	case v, ok = <-ch[75]:
-		return 75, true
-	case v, ok = <-ch[76]:
-		return 76, true
-	case v, ok = <-ch[77]:
-		return 77, true
-	case v, ok = <-ch[78]:
-		return 78, true
-	case v, ok = <-ch[79]:
-		return 79, true
-	case v, ok = <-ch[80]:
-		return 80, true
+func select89(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
 	}
-}
 
-func select82(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
-	case v, ok = <-ch[39]:
-		return 39, true
-	case v, ok = <-ch[40]:
-		return 40, true
-	case v, ok = <-ch[41]:
-		return 41, true
-	case v, ok = <-ch[42]:
-		return 42, true
-	case v, ok = <-ch[43]:
-		return 43, true
-	case v, ok = <-ch[44]:
-		return 44, true
-	case v, ok = <-ch[45]:
-		return 45, true
-	case v, ok = <-ch[46]:
-		return 46, true
-	case v, ok = <-ch[47]:
-		return 47, true
-	case v, ok = <-ch[48]:
-		return 48, true
-	case v, ok = <-ch[49]:
-		return 49, true
-	case v, ok = <-ch[50]:
-		return 50, true
-	case v, ok = <-ch[51]:
-		return 51, true
-	case v, ok = <-ch[52]:
-		return 52, true
-	case v, ok = <-ch[53]:
-		return 53, true
-	case v, ok = <-ch[54]:
-		return 54, true
-	case v, ok = <-ch[55]:
-		return 55, true
-	case v, ok = <-ch[56]:
-		return 56, true
-	case v, ok = <-ch[57]:
-		return 57, true
-	case v, ok = <-ch[58]:
-		return 58, true
-	case v, ok = <-ch[59]:
-		return 59, true
-	case v, ok = <-ch[60]:
-		return 60, true
-	case v, ok = <-ch[61]:
-		return 61, true
-	case v, ok = <-ch[62]:
-		return 62, true
-	case v, ok = <-ch[63]:
-		return 63, true
-	case v, ok = <-ch[64]:
-		return 64, true
-	case v, ok = <-ch[65]:
-		return 65, true
-	case v, ok = <-ch[66]:
-		return 66, true
-	case v, ok = <-ch[67]:
-		return 67, true
-	case v, ok = <-ch[68]:
-		return 68, true
-	case v, ok = <-ch[69]:
-		return 69, true
-	case v, ok = <-ch[70]:
-		return 70, true
-	case v, ok = <-ch[71]:
-		return 71, true
-	case v, ok = <-ch[72]:
-		return 72, true
-	case v, ok = <-ch[73]:
-		return 73, true
-	case v, ok = <-ch[74]:
-		return 74, true
-	case v, ok = <-ch[75]:
-		return 75, true
-	case v, ok = <-ch[76]:
-		return 76, true
-	case v, ok = <-ch[77]:
-		return 77, true
-	case v, ok = <-ch[78]:
-		return 78, true
-	case v, ok = <-ch[79]:
-		return 79, true
-	case v, ok = <-ch[80]:
-		return 80, true
-	case v, ok = <-ch[81]:
-		return 81, true
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	case *v, *ok = <-*ch[39]:
+		return 39, nil
+	case *v, *ok = <-*ch[40]:
+		return 40, nil
+	case *v, *ok = <-*ch[41]:
+		return 41, nil
+	case *v, *ok = <-*ch[42]:
+		return 42, nil
+	case *v, *ok = <-*ch[43]:
+		return 43, nil
+	case *v, *ok = <-*ch[44]:
+		return 44, nil
+	case *v, *ok = <-*ch[45]:
+		return 45, nil
+	case *v, *ok = <-*ch[46]:
+		return 46, nil
+	case *v, *ok = <-*ch[47]:
+		return 47, nil
+	case *v, *ok = <-*ch[48]:
+		return 48, nil
+	case *v, *ok = <-*ch[49]:
+		return 49, nil
+	case *v, *ok = <-*ch[50]:
+		return 50, nil
+	case *v, *ok = <-*ch[51]:
+		return 51, nil
+	case *v, *ok = <-*ch[52]:
+		return 52, nil
+	case *v, *ok = <-*ch[53]:
+		return 53, nil
+	case *v, *ok = <-*ch[54]:
+		return 54, nil
+	case *v, *ok = <-*ch[55]:
+		return 55, nil
+	case *v, *ok = <-*ch[56]:
+		return 56, nil
+	case *v, *ok = <-*ch[57]:
+		return 57, nil
+	case *v, *ok = <-*ch[58]:
+		return 58, nil
+	case *v, *ok = <-*ch[59]:
+		return 59, nil
+	case *v, *ok = <-*ch[60]:
+		return 60, nil
+	case *v, *ok = <-*ch[61]:
+		return 61, nil
+	case *v, *ok = <-*ch[62]:
+		return 62, nil
+	case *v, *ok = <-*ch[63]:
+		return 63, nil
+	case *v, *ok = <-*ch[64]:
+		return 64, nil
+	case *v, *ok = <-*ch[65]:
+		return 65, nil
+	case *v, *ok = <-*ch[66]:
+		return 66, nil
+	case *v, *ok = <-*ch[67]:
+		return 67, nil
+	case *v, *ok = <-*ch[68]:
+		return 68, nil
+	case *v, *ok = <-*ch[69]:
+		return 69, nil
+	case *v, *ok = <-*ch[70]:
+		return 70, nil
+	case *v, *ok = <-*ch[71]:
+		return 71, nil
+	case *v, *ok = <-*ch[72]:
+		return 72, nil
+	case *v, *ok = <-*ch[73]:
+		return 73, nil
+	case *v, *ok = <-*ch[74]:
+		return 74, nil
+	case *v, *ok = <-*ch[75]:
+		return 75, nil
+	case *v, *ok = <-*ch[76]:
+		return 76, nil
+	case *v, *ok = <-*ch[77]:
+		return 77, nil
+	case *v, *ok = <-*ch[78]:
+		return 78, nil
+	case *v, *ok = <-*ch[79]:
+		return 79, nil
+	case *v, *ok = <-*ch[80]:
+		return 80, nil
+	case *v, *ok = <-*ch[81]:
+		return 81, nil
+	case *v, *ok = <-*ch[82]:
+		return 82, nil
+	case *v, *ok = <-*ch[83]:
+		return 83, nil
+	case *v, *ok = <-*ch[84]:
+		return 84, nil
+	case *v, *ok = <-*ch[85]:
+		return 85, nil
+	case *v, *ok = <-*ch[86]:
+		return 86, nil
+	case *v, *ok = <-*ch[87]:
+		return 87, nil
+	case *v, *ok = <-*ch[88]:
+		return 88, nil
 	}
 }
 
-func select83(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
-	case v, ok = <-ch[39]:
-		return 39, true
-	case v, ok = <-ch[40]:
-		return 40, true
-	case v, ok = <-ch[41]:
-		return 41, true
-	case v, ok = <-ch[42]:
-		return 42, true
-	case v, ok = <-ch[43]:
-		return 43, true
-	case v, ok = <-ch[44]:
-		return 44, true
-	case v, ok = <-ch[45]:
-		return 45, true
-	case v, ok = <-ch[46]:
-		return 46, true
-	case v, ok = <-ch[47]:
-		return 47, true
-	case v, ok = <-ch[48]:
-		return 48, true
-	case v, ok = <-ch[49]:
-		return 49, true
-	case v, ok = <-ch[50]:
-		return 50, true
-	case v, ok = <-ch[51]:
-		return 51, true
-	case v, ok = <-ch[52]:
-		return 52, true
-	case v, ok = <-ch[53]:
-		return 53, true
-	case v, ok = <-ch[54]:
-		return 54, true
-	case v, ok = <-ch[55]:
-		return 55, true
-	case v, ok = <-ch[56]:
-		return 56, true
-	case v, ok = <-ch[57]:
-		return 57, true
-	case v, ok = <-ch[58]:
-		return 58, true
-	case v, ok = <-ch[59]:
-		return 59, true
-	case v, ok = <-ch[60]:
-		return 60, true
-	case v, ok = <-ch[61]:
-		return 61, true
-	case v, ok = <-ch[62]:
-		return 62, true
-	case v, ok = <-ch[63]:
-		return 63, true
-	case v, ok = <-ch[64]:
-		return 64, true
-	case v, ok = <-ch[65]:
-		return 65, true
-	case v, ok = <-ch[66]:
-		return 66, true
-	case v, ok = <-ch[67]:
-		return 67, true
-	case v, ok = <-ch[68]:
-		return 68, true
-	case v, ok = <-ch[69]:
-		return 69, true
-	case v, ok = <-ch[70]:
-		return 70, true
-	case v, ok = <-ch[71]:
-		return 71, true
-	case v, ok = <-ch[72]:
-		return 72, true
-	case v, ok = <-ch[73]:
-		return 73, true
-	case v, ok = <-ch[74]:
-		return 74, true
-	case v, ok = <-ch[75]:
-		return 75, true
-	case v, ok = <-ch[76]:
-		return 76, true
-	case v, ok = <-ch[77]:
-		return 77, true
-	case v, ok = <-ch[78]:
-		return 78, true
-	case v, ok = <-ch[79]:
-		return 79, true
-	case v, ok = <-ch[80]:
-		return 80, true
-	case v, ok = <-ch[81]:
-		return 81, true
-	case v, ok = <-ch[82]:
-		return 82, true
+func select90(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
 	}
-}
 
-func select84(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
-	case v, ok = <-ch[39]:
-		return 39, true
-	case v, ok = <-ch[40]:
-		return 40, true
-	case v, ok = <-ch[41]:
-		return 41, true
-	case v, ok = <-ch[42]:
-		return 42, true
-	case v, ok = <-ch[43]:
-		return 43, true
-	case v, ok = <-ch[44]:
-		return 44, true
-	case v, ok = <-ch[45]:
-		return 45, true
-	case v, ok = <-ch[46]:
-		return 46, true
-	case v, ok = <-ch[47]:
-		return 47, true
-	case v, ok = <-ch[48]:
-		return 48, true
-	case v, ok = <-ch[49]:
-		return 49, true
-	case v, ok = <-ch[50]:
-		return 50, true
-	case v, ok = <-ch[51]:
-		return 51, true
-	case v, ok = <-ch[52]:
-		return 52, true
-	case v, ok = <-ch[53]:
-		return 53, true
-	case v, ok = <-ch[54]:
-		return 54, true
-	case v, ok = <-ch[55]:
-		return 55, true
-	case v, ok = <-ch[56]:
-		return 56, true
-	case v, ok = <-ch[57]:
-		return 57, true
-	case v, ok = <-ch[58]:
-		return 58, true
-	case v, ok = <-ch[59]:
-		return 59, true
-	case v, ok = <-ch[60]:
-		return 60, true
-	case v, ok = <-ch[61]:
-		return 61, true
-	case v, ok = <-ch[62]:
-		return 62, true
-	case v, ok = <-ch[63]:
-		return 63, true
-	case v, ok = <-ch[64]:
-		return 64, true
-	case v, ok = <-ch[65]:
-		return 65, true
-	case v, ok = <-ch[66]:
-		return 66, true
-	case v, ok = <-ch[67]:
-		return 67, true
-	case v, ok = <-ch[68]:
-		return 68, true
-	case v, ok = <-ch[69]:
-		return 69, true
-	case v, ok = <-ch[70]:
-		return 70, true
-	case v, ok = <-ch[71]:
-		return 71, true
-	case v, ok = <-ch[72]:
-		return 72, true
-	case v, ok = <-ch[73]:
-		return 73, true
-	case v, ok = <-ch[74]:
-		return 74, true
-	case v, ok = <-ch[75]:
-		return 75, true
-	case v, ok = <-ch[76]:
-		return 76, true
-	case v, ok = <-ch[77]:
-		return 77, true
-	case v, ok = <-ch[78]:
-		return 78, true
-	case v, ok = <-ch[79]:
-		return 79, true
-	case v, ok = <-ch[80]:
-		return 80, true
-	case v, ok = <-ch[81]:
-		return 81, true
-	case v, ok = <-ch[82]:
-		return 82, true
-	case v, ok = <-ch[83]:
-		return 83, true
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	case *v, *ok = <-*ch[39]:
+		return 39, nil
+	case *v, *ok = <-*ch[40]:
+		return 40, nil
+	case *v, *ok = <-*ch[41]:
+		return 41, nil
+	case *v, *ok = <-*ch[42]:
+		return 42, nil
+	case *v, *ok = <-*ch[43]:
+		return 43, nil
+	case *v, *ok = <-*ch[44]:
+		return 44, nil
+	case *v, *ok = <-*ch[45]:
+		return 45, nil
+	case *v, *ok = <-*ch[46]:
+		return 46, nil
+	case *v, *ok = <-*ch[47]:
+		return 47, nil
+	case *v, *ok = <-*ch[48]:
+		return 48, nil
+	case *v, *ok = <-*ch[49]:
+		return 49, nil
+	case *v, *ok = <-*ch[50]:
+		return 50, nil
+	case *v, *ok = <-*ch[51]:
+		return 51, nil
+	case *v, *ok = <-*ch[52]:
+		return 52, nil
+	case *v, *ok = <-*ch[53]:
+		return 53, nil
+	case *v, *ok = <-*ch[54]:
+		return 54, nil
+	case *v, *ok = <-*ch[55]:
+		return 55, nil
+	case *v, *ok = <-*ch[56]:
+		return 56, nil
+	case *v, *ok = <-*ch[57]:
+		return 57, nil
+	case *v, *ok = <-*ch[58]:
+		return 58, nil
+	case *v, *ok = <-*ch[59]:
+		return 59, nil
+	case *v, *ok = <-*ch[60]:
+		return 60, nil
+	case *v, *ok = <-*ch[61]:
+		return 61, nil
+	case *v, *ok = <-*ch[62]:
+		return 62, nil
+	case *v, *ok = <-*ch[63]:
+		return 63, nil
+	case *v, *ok = <-*ch[64]:
+		return 64, nil
+	case *v, *ok = <-*ch[65]:
+		return 65, nil
+	case *v, *ok = <-*ch[66]:
+		return 66, nil
+	case *v, *ok = <-*ch[67]:
+		return 67, nil
+	case *v, *ok = <-*ch[68]:
+		return 68, nil
+	case *v, *ok = <-*ch[69]:
+		return 69, nil
+	case *v, *ok = <-*ch[70]:
+		return 70, nil
+	case *v, *ok = <-*ch[71]:
+		return 71, nil
+	case *v, *ok = <-*ch[72]:
+		return 72, nil
+	case *v, *ok = <-*ch[73]:
+		return 73, nil
+	case *v, *ok = <-*ch[74]:
+		return 74, nil
+	case *v, *ok = <-*ch[75]:
+		return 75, nil
+	case *v, *ok = <-*ch[76]:
+		return 76, nil
+	case *v, *ok = <-*ch[77]:
+		return 77, nil
+	case *v, *ok = <-*ch[78]:
+		return 78, nil
+	case *v, *ok = <-*ch[79]:
+		return 79, nil
+	case *v, *ok = <-*ch[80]:
+		return 80, nil
+	case *v, *ok = <-*ch[81]:
+		return 81, nil
+	case *v, *ok = <-*ch[82]:
+		return 82, nil
+	case *v, *ok = <-*ch[83]:
+		return 83, nil
+	case *v, *ok = <-*ch[84]:
+		return 84, nil
+	case *v, *ok = <-*ch[85]:
+		return 85, nil
+	case *v, *ok = <-*ch[86]:
+		return 86, nil
+	case *v, *ok = <-*ch[87]:
+		return 87, nil
+	case *v, *ok = <-*ch[88]:
+		return 88, nil
+	case *v, *ok = <-*ch[89]:
+		return 89, nil
 	}
 }
 
-func select85(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
-	case v, ok = <-ch[39]:
-		return 39, true
-	case v, ok = <-ch[40]:
-		return 40, true
-	case v, ok = <-ch[41]:
-		return 41, true
-	case v, ok = <-ch[42]:
-		return 42, true
-	case v, ok = <-ch[43]:
-		return 43, true
-	case v, ok = <-ch[44]:
-		return 44, true
-	case v, ok = <-ch[45]:
-		return 45, true
-	case v, ok = <-ch[46]:
-		return 46, true
-	case v, ok = <-ch[47]:
-		return 47, true
-	case v, ok = <-ch[48]:
-		return 48, true
-	case v, ok = <-ch[49]:
-		return 49, true
-	case v, ok = <-ch[50]:
-		return 50, true
-	case v, ok = <-ch[51]:
-		return 51, true
-	case v, ok = <-ch[52]:
-		return 52, true
-	case v, ok = <-ch[53]:
-		return 53, true
-	case v, ok = <-ch[54]:
-		return 54, true
-	case v, ok = <-ch[55]:
-		return 55, true
-	case v, ok = <-ch[56]:
-		return 56, true
-	case v, ok = <-ch[57]:
-		return 57, true
-	case v, ok = <-ch[58]:
-		return 58, true
-	case v, ok = <-ch[59]:
-		return 59, true
-	case v, ok = <-ch[60]:
-		return 60, true
-	case v, ok = <-ch[61]:
-		return 61, true
-	case v, ok = <-ch[62]:
-		return 62, true
-	case v, ok = <-ch[63]:
-		return 63, true
-	case v, ok = <-ch[64]:
-		return 64, true
-	case v, ok = <-ch[65]:
-		return 65, true
-	case v, ok = <-ch[66]:
-		return 66, true
-	case v, ok = <-ch[67]:
-		return 67, true
-	case v, ok = <-ch[68]:
-		return 68, true
-	case v, ok = <-ch[69]:
-		return 69, true
-	case v, ok = <-ch[70]:
-		return 70, true
-	case v, ok = <-ch[71]:
-		return 71, true
-	case v, ok = <-ch[72]:
-		return 72, true
-	case v, ok = <-ch[73]:
-		return 73, true
-	case v, ok = <-ch[74]:
-		return 74, true
-	case v, ok = <-ch[75]:
-		return 75, true
-	case v, ok = <-ch[76]:
-		return 76, true
-	case v, ok = <-ch[77]:
-		return 77, true
-	case v, ok = <-ch[78]:
-		return 78, true
-	case v, ok = <-ch[79]:
-		return 79, true
-	case v, ok = <-ch[80]:
-		return 80, true
-	case v, ok = <-ch[81]:
-		return 81, true
-	case v, ok = <-ch[82]:
-		return 82, true
-	case v, ok = <-ch[83]:
-		return 83, true
-	case v, ok = <-ch[84]:
-		return 84, true
+func select91(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
 	}
-}
 
-func select86(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
-	case v, ok = <-ch[39]:
-		return 39, true
-	case v, ok = <-ch[40]:
-		return 40, true
-	case v, ok = <-ch[41]:
-		return 41, true
-	case v, ok = <-ch[42]:
-		return 42, true
-	case v, ok = <-ch[43]:
-		return 43, true
-	case v, ok = <-ch[44]:
-		return 44, true
-	case v, ok = <-ch[45]:
-		return 45, true
-	case v, ok = <-ch[46]:
-		return 46, true
-	case v, ok = <-ch[47]:
-		return 47, true
-	case v, ok = <-ch[48]:
-		return 48, true
-	case v, ok = <-ch[49]:
-		return 49, true
-	case v, ok = <-ch[50]:
-		return 50, true
-	case v, ok = <-ch[51]:
-		return 51, true
-	case v, ok = <-ch[52]:
-		return 52, true
-	case v, ok = <-ch[53]:
-		return 53, true
-	case v, ok = <-ch[54]:
-		return 54, true
-	case v, ok = <-ch[55]:
-		return 55, true
-	case v, ok = <-ch[56]:
-		return 56, true
-	case v, ok = <-ch[57]:
-		return 57, true
-	case v, ok = <-ch[58]:
-		return 58, true
-	case v, ok = <-ch[59]:
-		return 59, true
-	case v, ok = <-ch[60]:
-		return 60, true
-	case v, ok = <-ch[61]:
-		return 61, true
-	case v, ok = <-ch[62]:
-		return 62, true
-	case v, ok = <-ch[63]:
-		return 63, true
-	case v, ok = <-ch[64]:
-		return 64, true
-	case v, ok = <-ch[65]:
-		return 65, true
-	case v, ok = <-ch[66]:
-		return 66, true
-	case v, ok = <-ch[67]:
-		return 67, true
-	case v, ok = <-ch[68]:
-		return 68, true
-	case v, ok = <-ch[69]:
-		return 69, true
-	case v, ok = <-ch[70]:
-		return 70, true
-	case v, ok = <-ch[71]:
-		return 71, true
-	case v, ok = <-ch[72]:
-		return 72, true
-	case v, ok = <-ch[73]:
-		return 73, true
-	case v, ok = <-ch[74]:
-		return 74, true
-	case v, ok = <-ch[75]:
-		return 75, true
-	case v, ok = <-ch[76]:
-		return 76, true
-	case v, ok = <-ch[77]:
-		return 77, true
-	case v, ok = <-ch[78]:
-		return 78, true
-	case v, ok = <-ch[79]:
-		return 79, true
-	case v, ok = <-ch[80]:
-		return 80, true
-	case v, ok = <-ch[81]:
-		return 81, true
-	case v, ok = <-ch[82]:
-		return 82, true
-	case v, ok = <-ch[83]:
-		return 83, true
-	case v, ok = <-ch[84]:
-		return 84, true
-	case v, ok = <-ch[85]:
-		return 85, true
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	case *v, *ok = <-*ch[39]:
+		return 39, nil
+	case *v, *ok = <-*ch[40]:
+		return 40, nil
+	case *v, *ok = <-*ch[41]:
+		return 41, nil
+	case *v, *ok = <-*ch[42]:
+		return 42, nil
+	case *v, *ok = <-*ch[43]:
+		return 43, nil
+	case *v, *ok = <-*ch[44]:
+		return 44, nil
+	case *v, *ok = <-*ch[45]:
+		return 45, nil
+	case *v, *ok = <-*ch[46]:
+		return 46, nil
+	case *v, *ok = <-*ch[47]:
+		return 47, nil
+	case *v, *ok = <-*ch[48]:
+		return 48, nil
+	case *v, *ok = <-*ch[49]:
+		return 49, nil
+	case *v, *ok = <-*ch[50]:
+		return 50, nil
+	case *v, *ok = <-*ch[51]:
+		return 51, nil
+	case *v, *ok = <-*ch[52]:
+		return 52, nil
+	case *v, *ok = <-*ch[53]:
+		return 53, nil
+	case *v, *ok = <-*ch[54]:
+		return 54, nil
+	case *v, *ok = <-*ch[55]:
+		return 55, nil
+	case *v, *ok = <-*ch[56]:
+		return 56, nil
+	case *v, *ok = <-*ch[57]:
+		return 57, nil
+	case *v, *ok = <-*ch[58]:
+		return 58, nil
+	case *v, *ok = <-*ch[59]:
+		return 59, nil
+	case *v, *ok = <-*ch[60]:
+		return 60, nil
+	case *v, *ok = <-*ch[61]:
+		return 61, nil
+	case *v, *ok = <-*ch[62]:
+		return 62, nil
+	case *v, *ok = <-*ch[63]:
+		return 63, nil
+	case *v, *ok = <-*ch[64]:
+		return 64, nil
+	case *v, *ok = <-*ch[65]:
+		return 65, nil
+	case *v, *ok = <-*ch[66]:
+		return 66, nil
+	case *v, *ok = <-*ch[67]:
+		return 67, nil
+	case *v, *ok = <-*ch[68]:
+		return 68, nil
+	case *v, *ok = <-*ch[69]:
+		return 69, nil
+	case *v, *ok = <-*ch[70]:
+		return 70, nil
+	case *v, *ok = <-*ch[71]:
+		return 71, nil
+	case *v, *ok = <-*ch[72]:
+		return 72, nil
+	case *v, *ok = <-*ch[73]:
+		return 73, nil
+	case *v, *ok = <-*ch[74]:
+		return 74, nil
+	case *v, *ok = <-*ch[75]:
+		return 75, nil
+	case *v, *ok = <-*ch[76]:
+		return 76, nil
+	case *v, *ok = <-*ch[77]:
+		return 77, nil
+	case *v, *ok = <-*ch[78]:
+		return 78, nil
+	case *v, *ok = <-*ch[79]:
+		return 79, nil
+	case *v, *ok = <-*ch[80]:
+		return 80, nil
+	case *v, *ok = <-*ch[81]:
+		return 81, nil
+	case *v, *ok = <-*ch[82]:
+		return 82, nil
+	case *v, *ok = <-*ch[83]:
+		return 83, nil
+	case *v, *ok = <-*ch[84]:
+		return 84, nil
+	case *v, *ok = <-*ch[85]:
+		return 85, nil
+	case *v, *ok = <-*ch[86]:
+		return 86, nil
+	case *v, *ok = <-*ch[87]:
+		return 87, nil
+	case *v, *ok = <-*ch[88]:
+		return 88, nil
+	case *v, *ok = <-*ch[89]:
+		return 89, nil
+	case *v, *ok = <-*ch[90]:
+		return 90, nil
 	}
 }
 
-func select87(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
-	case v, ok = <-ch[39]:
-		return 39, true
-	case v, ok = <-ch[40]:
-		return 40, true
-	case v, ok = <-ch[41]:
-		return 41, true
-	case v, ok = <-ch[42]:
-		return 42, true
-	case v, ok = <-ch[43]:
-		return 43, true
-	case v, ok = <-ch[44]:
-		return 44, true
-	case v, ok = <-ch[45]:
-		return 45, true
-	case v, ok = <-ch[46]:
-		return 46, true
-	case v, ok = <-ch[47]:
-		return 47, true
-	case v, ok = <-ch[48]:
-		return 48, true
-	case v, ok = <-ch[49]:
-		return 49, true
-	case v, ok = <-ch[50]:
-		return 50, true
-	case v, ok = <-ch[51]:
-		return 51, true
-	case v, ok = <-ch[52]:
-		return 52, true
-	case v, ok = <-ch[53]:
-		return 53, true
-	case v, ok = <-ch[54]:
-		return 54, true
-	case v, ok = <-ch[55]:
-		return 55, true
-	case v, ok = <-ch[56]:
-		return 56, true
-	case v, ok = <-ch[57]:
-		return 57, true
-	case v, ok = <-ch[58]:
-		return 58, true
-	case v, ok = <-ch[59]:
-		return 59, true
-	case v, ok = <-ch[60]:
-		return 60, true
-	case v, ok = <-ch[61]:
-		return 61, true
-	case v, ok = <-ch[62]:
-		return 62, true
-	case v, ok = <-ch[63]:
-		return 63, true
-	case v, ok = <-ch[64]:
-		return 64, true
-	case v, ok = <-ch[65]:
-		return 65, true
-	case v, ok = <-ch[66]:
-		return 66, true
-	case v, ok = <-ch[67]:
-		return 67, true
-	case v, ok = <-ch[68]:
-		return 68, true
-	case v, ok = <-ch[69]:
-		return 69, true
-	case v, ok = <-ch[70]:
-		return 70, true
-	case v, ok = <-ch[71]:
-		return 71, true
-	case v, ok = <-ch[72]:
-		return 72, true
-	case v, ok = <-ch[73]:
-		return 73, true
-	case v, ok = <-ch[74]:
-		return 74, true
-	case v, ok = <-ch[75]:
-		return 75, true
-	case v, ok = <-ch[76]:
-		return 76, true
-	case v, ok = <-ch[77]:
-		return 77, true
-	case v, ok = <-ch[78]:
-		return 78, true
-	case v, ok = <-ch[79]:
-		return 79, true
-	case v, ok = <-ch[80]:
-		return 80, true
-	case v, ok = <-ch[81]:
-		return 81, true
-	case v, ok = <-ch[82]:
-		return 82, true
-	case v, ok = <-ch[83]:
-		return 83, true
-	case v, ok = <-ch[84]:
-		return 84, true
-	case v, ok = <-ch[85]:
-		return 85, true
-	case v, ok = <-ch[86]:
-		return 86, true
+func select92(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
 	}
-}
 
-func select88(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
-	case v, ok = <-ch[39]:
-		return 39, true
-	case v, ok = <-ch[40]:
-		return 40, true
-	case v, ok = <-ch[41]:
-		return 41, true
-	case v, ok = <-ch[42]:
-		return 42, true
-	case v, ok = <-ch[43]:
-		return 43, true
-	case v, ok = <-ch[44]:
-		return 44, true
-	case v, ok = <-ch[45]:
-		return 45, true
-	case v, ok = <-ch[46]:
-		return 46, true
-	case v, ok = <-ch[47]:
-		return 47, true
-	case v, ok = <-ch[48]:
-		return 48, true
-	case v, ok = <-ch[49]:
-		return 49, true
-	case v, ok = <-ch[50]:
-		return 50, true
-	case v, ok = <-ch[51]:
-		return 51, true
-	case v, ok = <-ch[52]:
-		return 52, true
-	case v, ok = <-ch[53]:
-		return 53, true
-	case v, ok = <-ch[54]:
-		return 54, true
-	case v, ok = <-ch[55]:
-		return 55, true
-	case v, ok = <-ch[56]:
-		return 56, true
-	case v, ok = <-ch[57]:
-		return 57, true
-	case v, ok = <-ch[58]:
-		return 58, true
-	case v, ok = <-ch[59]:
-		return 59, true
-	case v, ok = <-ch[60]:
-		return 60, true
-	case v, ok = <-ch[61]:
-		return 61, true
-	case v, ok = <-ch[62]:
-		return 62, true
-	case v, ok = <-ch[63]:
-		return 63, true
-	case v, ok = <-ch[64]:
-		return 64, true
-	case v, ok = <-ch[65]:
-		return 65, true
-	case v, ok = <-ch[66]:
-		return 66, true
-	case v, ok = <-ch[67]:
-		return 67, true
-	case v, ok = <-ch[68]:
-		return 68, true
-	case v, ok = <-ch[69]:
-		return 69, true
-	case v, ok = <-ch[70]:
-		return 70, true
-	case v, ok = <-ch[71]:
-		return 71, true
-	case v, ok = <-ch[72]:
-		return 72, true
-	case v, ok = <-ch[73]:
-		return 73, true
-	case v, ok = <-ch[74]:
-		return 74, true
-	case v, ok = <-ch[75]:
-		return 75, true
-	case v, ok = <-ch[76]:
-		return 76, true
-	case v, ok = <-ch[77]:
-		return 77, true
-	case v, ok = <-ch[78]:
-		return 78, true
-	case v, ok = <-ch[79]:
-		return 79, true
-	case v, ok = <-ch[80]:
-		return 80, true
-	case v, ok = <-ch[81]:
-		return 81, true
-	case v, ok = <-ch[82]:
-		return 82, true
-	case v, ok = <-ch[83]:
-		return 83, true
-	case v, ok = <-ch[84]:
-		return 84, true
-	case v, ok = <-ch[85]:
-		return 85, true
-	case v, ok = <-ch[86]:
-		return 86, true
-	case v, ok = <-ch[87]:
-		return 87, true
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	case *v, *ok = <-*ch[39]:
+		return 39, nil
+	case *v, *ok = <-*ch[40]:
+		return 40, nil
+	case *v, *ok = <-*ch[41]:
+		return 41, nil
+	case *v, *ok = <-*ch[42]:
+		return 42, nil
+	case *v, *ok = <-*ch[43]:
+		return 43, nil
+	case *v, *ok = <-*ch[44]:
+		return 44, nil
+	case *v, *ok = <-*ch[45]:
+		return 45, nil
+	case *v, *ok = <-*ch[46]:
+		return 46, nil
+	case *v, *ok = <-*ch[47]:
+		return 47, nil
+	case *v, *ok = <-*ch[48]:
+		return 48, nil
+	case *v, *ok = <-*ch[49]:
+		return 49, nil
+	case *v, *ok = <-*ch[50]:
+		return 50, nil
+	case *v, *ok = <-*ch[51]:
+		return 51, nil
+	case *v, *ok = <-*ch[52]:
+		return 52, nil
+	case *v, *ok = <-*ch[53]:
+		return 53, nil
+	case *v, *ok = <-*ch[54]:
+		return 54, nil
+	case *v, *ok = <-*ch[55]:
+		return 55, nil
+	case *v, *ok = <-*ch[56]:
+		return 56, nil
+	case *v, *ok = <-*ch[57]:
+		return 57, nil
+	case *v, *ok = <-*ch[58]:
+		return 58, nil
+	case *v, *ok = <-*ch[59]:
+		return 59, nil
+	case *v, *ok = <-*ch[60]:
+		return 60, nil
+	case *v, *ok = <-*ch[61]:
+		return 61, nil
+	case *v, *ok = <-*ch[62]:
+		return 62, nil
+	case *v, *ok = <-*ch[63]:
+		return 63, nil
+	case *v, *ok = <-*ch[64]:
+		return 64, nil
+	case *v, *ok = <-*ch[65]:
+		return 65, nil
+	case *v, *ok = <-*ch[66]:
+		return 66, nil
+	case *v, *ok = <-*ch[67]:
+		return 67, nil
+	case *v, *ok = <-*ch[68]:
+		return 68, nil
+	case *v, *ok = <-*ch[69]:
+		return 69, nil
+	case *v, *ok = <-*ch[70]:
+		return 70, nil
+	case *v, *ok = <-*ch[71]:
+		return 71, nil
+	case *v, *ok = <-*ch[72]:
+		return 72, nil
+	case *v, *ok = <-*ch[73]:
+		return 73, nil
+	case *v, *ok = <-*ch[74]:
+		return 74, nil
+	case *v, *ok = <-*ch[75]:
+		return 75, nil
+	case *v, *ok = <-*ch[76]:
+		return 76, nil
+	case *v, *ok = <-*ch[77]:
+		return 77, nil
+	case *v, *ok = <-*ch[78]:
+		return 78, nil
+	case *v, *ok = <-*ch[79]:
+		return 79, nil
+	case *v, *ok = <-*ch[80]:
+		return 80, nil
+	case *v, *ok = <-*ch[81]:
+		return 81, nil
+	case *v, *ok = <-*ch[82]:
+		return 82, nil
+	case *v, *ok = <-*ch[83]:
+		return 83, nil
+	case *v, *ok = <-*ch[84]:
+		return 84, nil
+	case *v, *ok = <-*ch[85]:
+		return 85, nil
+	case *v, *ok = <-*ch[86]:
+		return 86, nil
+	case *v, *ok = <-*ch[87]:
+		return 87, nil
+	case *v, *ok = <-*ch[88]:
+		return 88, nil
+	case *v, *ok = <-*ch[89]:
+		return 89, nil
+	case *v, *ok = <-*ch[90]:
+		return 90, nil
+	case *v, *ok = <-*ch[91]:
+		return 91, nil
 	}
 }
 
-func select89(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
-	case v, ok = <-ch[39]:
-		return 39, true
-	case v, ok = <-ch[40]:
-		return 40, true
-	case v, ok = <-ch[41]:
-		return 41, true
-	case v, ok = <-ch[42]:
-		return 42, true
-	case v, ok = <-ch[43]:
-		return 43, true
-	case v, ok = <-ch[44]:
-		return 44, true
-	case v, ok = <-ch[45]:
-		return 45, true
-	case v, ok = <-ch[46]:
-		return 46, true
-	case v, ok = <-ch[47]:
-		return 47, true
-	case v, ok = <-ch[48]:
-		return 48, true
-	case v, ok = <-ch[49]:
-		return 49, true
-	case v, ok = <-ch[50]:
-		return 50, true
-	case v, ok = <-ch[51]:
-		return 51, true
-	case v, ok = <-ch[52]:
-		return 52, true
-	case v, ok = <-ch[53]:
-		return 53, true
-	case v, ok = <-ch[54]:
-		return 54, true
-	case v, ok = <-ch[55]:
-		return 55, true
-	case v, ok = <-ch[56]:
-		return 56, true
-	case v, ok = <-ch[57]:
-		return 57, true
-	case v, ok = <-ch[58]:
-		return 58, true
-	case v, ok = <-ch[59]:
-		return 59, true
-	case v, ok = <-ch[60]:
-		return 60, true
-	case v, ok = <-ch[61]:
-		return 61, true
-	case v, ok = <-ch[62]:
-		return 62, true
-	case v, ok = <-ch[63]:
-		return 63, true
-	case v, ok = <-ch[64]:
-		return 64, true
-	case v, ok = <-ch[65]:
-		return 65, true
-	case v, ok = <-ch[66]:
-		return 66, true
-	case v, ok = <-ch[67]:
-		return 67, true
-	case v, ok = <-ch[68]:
-		return 68, true
-	case v, ok = <-ch[69]:
-		return 69, true
-	case v, ok = <-ch[70]:
-		return 70, true
-	case v, ok = <-ch[71]:
-		return 71, true
-	case v, ok = <-ch[72]:
-		return 72, true
-	case v, ok = <-ch[73]:
-		return 73, true
-	case v, ok = <-ch[74]:
-		return 74, true
-	case v, ok = <-ch[75]:
-		return 75, true
-	case v, ok = <-ch[76]:
-		return 76, true
-	case v, ok = <-ch[77]:
-		return 77, true
-	case v, ok = <-ch[78]:
-		return 78, true
-	case v, ok = <-ch[79]:
-		return 79, true
-	case v, ok = <-ch[80]:
-		return 80, true
-	case v, ok = <-ch[81]:
-		return 81, true
-	case v, ok = <-ch[82]:
-		return 82, true
-	case v, ok = <-ch[83]:
-		return 83, true
-	case v, ok = <-ch[84]:
-		return 84, true
-	case v, ok = <-ch[85]:
-		return 85, true
-	case v, ok = <-ch[86]:
-		return 86, true
-	case v, ok = <-ch[87]:
-		return 87, true
-	case v, ok = <-ch[88]:
-		return 88, true
+func select93(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
 	}
-}
 
-func select90(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
-	case v, ok = <-ch[39]:
-		return 39, true
-	case v, ok = <-ch[40]:
-		return 40, true
-	case v, ok = <-ch[41]:
-		return 41, true
-	case v, ok = <-ch[42]:
-		return 42, true
-	case v, ok = <-ch[43]:
-		return 43, true
-	case v, ok = <-ch[44]:
-		return 44, true
-	case v, ok = <-ch[45]:
-		return 45, true
-	case v, ok = <-ch[46]:
-		return 46, true
-	case v, ok = <-ch[47]:
-		return 47, true
-	case v, ok = <-ch[48]:
-		return 48, true
-	case v, ok = <-ch[49]:
-		return 49, true
-	case v, ok = <-ch[50]:
-		return 50, true
-	case v, ok = <-ch[51]:
-		return 51, true
-	case v, ok = <-ch[52]:
-		return 52, true
-	case v, ok = <-ch[53]:
-		return 53, true
-	case v, ok = <-ch[54]:
-		return 54, true
-	case v, ok = <-ch[55]:
-		return 55, true
-	case v, ok = <-ch[56]:
-		return 56, true
-	case v, ok = <-ch[57]:
-		return 57, true
-	case v, ok = <-ch[58]:
-		return 58, true
-	case v, ok = <-ch[59]:
-		return 59, true
-	case v, ok = <-ch[60]:
-		return 60, true
-	case v, ok = <-ch[61]:
-		return 61, true
-	case v, ok = <-ch[62]:
-		return 62, true
-	case v, ok = <-ch[63]:
-		return 63, true
-	case v, ok = <-ch[64]:
-		return 64, true
-	case v, ok = <-ch[65]:
-		return 65, true
-	case v, ok = <-ch[66]:
-		return 66, true
-	case v, ok = <-ch[67]:
-		return 67, true
-	case v, ok = <-ch[68]:
-		return 68, true
-	case v, ok = <-ch[69]:
-		return 69, true
-	case v, ok = <-ch[70]:
-		return 70, true
-	case v, ok = <-ch[71]:
-		return 71, true
-	case v, ok = <-ch[72]:
-		return 72, true
-	case v, ok = <-ch[73]:
-		return 73, true
-	case v, ok = <-ch[74]:
-		return 74, true
-	case v, ok = <-ch[75]:
-		return 75, true
-	case v, ok = <-ch[76]:
-		return 76, true
-	case v, ok = <-ch[77]:
-		return 77, true
-	case v, ok = <-ch[78]:
-		return 78, true
-	case v, ok = <-ch[79]:
-		return 79, true
-	case v, ok = <-ch[80]:
-		return 80, true
-	case v, ok = <-ch[81]:
-		return 81, true
-	case v, ok = <-ch[82]:
-		return 82, true
-	case v, ok = <-ch[83]:
-		return 83, true
-	case v, ok = <-ch[84]:
-		return 84, true
-	case v, ok = <-ch[85]:
-		return 85, true
-	case v, ok = <-ch[86]:
-		return 86, true
-	case v, ok = <-ch[87]:
-		return 87, true
-	case v, ok = <-ch[88]:
-		return 88, true
-	case v, ok = <-ch[89]:
-		return 89, true
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	case *v, *ok = <-*ch[39]:
+		return 39, nil
+	case *v, *ok = <-*ch[40]:
+		return 40, nil
+	case *v, *ok = <-*ch[41]:
+		return 41, nil
+	case *v, *ok = <-*ch[42]:
+		return 42, nil
+	case *v, *ok = <-*ch[43]:
+		return 43, nil
+	case *v, *ok = <-*ch[44]:
+		return 44, nil
+	case *v, *ok = <-*ch[45]:
+		return 45, nil
+	case *v, *ok = <-*ch[46]:
+		return 46, nil
+	case *v, *ok = <-*ch[47]:
+		return 47, nil
+	case *v, *ok = <-*ch[48]:
+		return 48, nil
+	case *v, *ok = <-*ch[49]:
+		return 49, nil
+	case *v, *ok = <-*ch[50]:
+		return 50, nil
+	case *v, *ok = <-*ch[51]:
+		return 51, nil
+	case *v, *ok = <-*ch[52]:
+		return 52, nil
+	case *v, *ok = <-*ch[53]:
+		return 53, nil
+	case *v, *ok = <-*ch[54]:
+		return 54, nil
+	case *v, *ok = <-*ch[55]:
+		return 55, nil
+	case *v, *ok = <-*ch[56]:
+		return 56, nil
+	case *v, *ok = <-*ch[57]:
+		return 57, nil
+	case *v, *ok = <-*ch[58]:
+		return 58, nil
+	case *v, *ok = <-*ch[59]:
+		return 59, nil
+	case *v, *ok = <-*ch[60]:
+		return 60, nil
+	case *v, *ok = <-*ch[61]:
+		return 61, nil
+	case *v, *ok = <-*ch[62]:
+		return 62, nil
+	case *v, *ok = <-*ch[63]:
+		return 63, nil
+	case *v, *ok = <-*ch[64]:
+		return 64, nil
+	case *v, *ok = <-*ch[65]:
+		return 65, nil
+	case *v, *ok = <-*ch[66]:
+		return 66, nil
+	case *v, *ok = <-*ch[67]:
+		return 67, nil
+	case *v, *ok = <-*ch[68]:
+		return 68, nil
+	case *v, *ok = <-*ch[69]:
+		return 69, nil
+	case *v, *ok = <-*ch[70]:
+		return 70, nil
+	case *v, *ok = <-*ch[71]:
+		return 71, nil
+	case *v, *ok = <-*ch[72]:
+		return 72, nil
+	case *v, *ok = <-*ch[73]:
+		return 73, nil
+	case *v, *ok = <-*ch[74]:
+		return 74, nil
+	case *v, *ok = <-*ch[75]:
+		return 75, nil
+	case *v, *ok = <-*ch[76]:
+		return 76, nil
+	case *v, *ok = <-*ch[77]:
+		return 77, nil
+	case *v, *ok = <-*ch[78]:
+		return 78, nil
+	case *v, *ok = <-*ch[79]:
+		return 79, nil
+	case *v, *ok = <-*ch[80]:
+		return 80, nil
+	case *v, *ok = <-*ch[81]:
+		return 81, nil
+	case *v, *ok = <-*ch[82]:
+		return 82, nil
+	case *v, *ok = <-*ch[83]:
+		return 83, nil
+	case *v, *ok = <-*ch[84]:
+		return 84, nil
+	case *v, *ok = <-*ch[85]:
+		return 85, nil
+	case *v, *ok = <-*ch[86]:
+		return 86, nil
+	case *v, *ok = <-*ch[87]:
+		return 87, nil
+	case *v, *ok = <-*ch[88]:
+		return 88, nil
+	case *v, *ok = <-*ch[89]:
+		return 89, nil
+	case *v, *ok = <-*ch[90]:
+		return 90, nil
+	case *v, *ok = <-*ch[91]:
+		return 91, nil
+	case *v, *ok = <-*ch[92]:
+		return 92, nil
 	}
 }
 
-func select91(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
-	case v, ok = <-ch[39]:
-		return 39, true
-	case v, ok = <-ch[40]:
-		return 40, true
-	case v, ok = <-ch[41]:
-		return 41, true
-	case v, ok = <-ch[42]:
-		return 42, true
-	case v, ok = <-ch[43]:
-		return 43, true
-	case v, ok = <-ch[44]:
-		return 44, true
-	case v, ok = <-ch[45]:
-		return 45, true
-	case v, ok = <-ch[46]:
-		return 46, true
-	case v, ok = <-ch[47]:
-		return 47, true
-	case v, ok = <-ch[48]:
-		return 48, true
-	case v, ok = <-ch[49]:
-		return 49, true
-	case v, ok = <-ch[50]:
-		return 50, true
-	case v, ok = <-ch[51]:
-		return 51, true
-	case v, ok = <-ch[52]:
-		return 52, true
-	case v, ok = <-ch[53]:
-		return 53, true
-	case v, ok = <-ch[54]:
-		return 54, true
-	case v, ok = <-ch[55]:
-		return 55, true
-	case v, ok = <-ch[56]:
-		return 56, true
-	case v, ok = <-ch[57]:
-		return 57, true
-	case v, ok = <-ch[58]:
-		return 58, true
-	case v, ok = <-ch[59]:
-		return 59, true
-	case v, ok = <-ch[60]:
-		return 60, true
-	case v, ok = <-ch[61]:
-		return 61, true
-	case v, ok = <-ch[62]:
-		return 62, true
-	case v, ok = <-ch[63]:
-		return 63, true
-	case v, ok = <-ch[64]:
-		return 64, true
-	case v, ok = <-ch[65]:
-		return 65, true
-	case v, ok = <-ch[66]:
-		return 66, true
-	case v, ok = <-ch[67]:
-		return 67, true
-	case v, ok = <-ch[68]:
-		return 68, true
-	case v, ok = <-ch[69]:
-		return 69, true
-	case v, ok = <-ch[70]:
-		return 70, true
-	case v, ok = <-ch[71]:
-		return 71, true
-	case v, ok = <-ch[72]:
-		return 72, true
-	case v, ok = <-ch[73]:
-		return 73, true
-	case v, ok = <-ch[74]:
-		return 74, true
-	case v, ok = <-ch[75]:
-		return 75, true
-	case v, ok = <-ch[76]:
-		return 76, true
-	case v, ok = <-ch[77]:
-		return 77, true
-	case v, ok = <-ch[78]:
-		return 78, true
-	case v, ok = <-ch[79]:
-		return 79, true
-	case v, ok = <-ch[80]:
-		return 80, true
-	case v, ok = <-ch[81]:
-		return 81, true
-	case v, ok = <-ch[82]:
-		return 82, true
-	case v, ok = <-ch[83]:
-		return 83, true
-	case v, ok = <-ch[84]:
-		return 84, true
-	case v, ok = <-ch[85]:
-		return 85, true
-	case v, ok = <-ch[86]:
-		return 86, true
-	case v, ok = <-ch[87]:
-		return 87, true
-	case v, ok = <-ch[88]:
-		return 88, true
-	case v, ok = <-ch[89]:
-		return 89, true
-	case v, ok = <-ch[90]:
-		return 90, true
+func select94(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
 	}
-}
 
-func select92(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
-	case v, ok = <-ch[39]:
-		return 39, true
-	case v, ok = <-ch[40]:
-		return 40, true
-	case v, ok = <-ch[41]:
-		return 41, true
-	case v, ok = <-ch[42]:
-		return 42, true
-	case v, ok = <-ch[43]:
-		return 43, true
-	case v, ok = <-ch[44]:
-		return 44, true
-	case v, ok = <-ch[45]:
-		return 45, true
-	case v, ok = <-ch[46]:
-		return 46, true
-	case v, ok = <-ch[47]:
-		return 47, true
-	case v, ok = <-ch[48]:
-		return 48, true
-	case v, ok = <-ch[49]:
-		return 49, true
-	case v, ok = <-ch[50]:
-		return 50, true
-	case v, ok = <-ch[51]:
-		return 51, true
-	case v, ok = <-ch[52]:
-		return 52, true
-	case v, ok = <-ch[53]:
-		return 53, true
-	case v, ok = <-ch[54]:
-		return 54, true
-	case v, ok = <-ch[55]:
-		return 55, true
-	case v, ok = <-ch[56]:
-		return 56, true
-	case v, ok = <-ch[57]:
-		return 57, true
-	case v, ok = <-ch[58]:
-		return 58, true
-	case v, ok = <-ch[59]:
-		return 59, true
-	case v, ok = <-ch[60]:
-		return 60, true
-	case v, ok = <-ch[61]:
-		return 61, true
-	case v, ok = <-ch[62]:
-		return 62, true
-	case v, ok = <-ch[63]:
-		return 63, true
-	case v, ok = <-ch[64]:
-		return 64, true
-	case v, ok = <-ch[65]:
-		return 65, true
-	case v, ok = <-ch[66]:
-		return 66, true
-	case v, ok = <-ch[67]:
-		return 67, true
-	case v, ok = <-ch[68]:
-		return 68, true
-	case v, ok = <-ch[69]:
-		return 69, true
-	case v, ok = <-ch[70]:
-		return 70, true
-	case v, ok = <-ch[71]:
-		return 71, true
-	case v, ok = <-ch[72]:
-		return 72, true
-	case v, ok = <-ch[73]:
-		return 73, true
-	case v, ok = <-ch[74]:
-		return 74, true
-	case v, ok = <-ch[75]:
-		return 75, true
-	case v, ok = <-ch[76]:
-		return 76, true
-	case v, ok = <-ch[77]:
-		return 77, true
-	case v, ok = <-ch[78]:
-		return 78, true
-	case v, ok = <-ch[79]:
-		return 79, true
-	case v, ok = <-ch[80]:
-		return 80, true
-	case v, ok = <-ch[81]:
-		return 81, true
-	case v, ok = <-ch[82]:
-		return 82, true
-	case v, ok = <-ch[83]:
-		return 83, true
-	case v, ok = <-ch[84]:
-		return 84, true
-	case v, ok = <-ch[85]:
-		return 85, true
-	case v, ok = <-ch[86]:
-		return 86, true
-	case v, ok = <-ch[87]:
-		return 87, true
-	case v, ok = <-ch[88]:
-		return 88, true
-	case v, ok = <-ch[89]:
-		return 89, true
-	case v, ok = <-ch[90]:
-		return 90, true
-	case v, ok = <-ch[91]:
-		return 91, true
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	case *v, *ok = <-*ch[39]:
+		return 39, nil
+	case *v, *ok = <-*ch[40]:
+		return 40, nil
+	case *v, *ok = <-*ch[41]:
+		return 41, nil
+	case *v, *ok = <-*ch[42]:
+		return 42, nil
+	case *v, *ok = <-*ch[43]:
+		return 43, nil
+	case *v, *ok = <-*ch[44]:
+		return 44, nil
+	case *v, *ok = <-*ch[45]:
+		return 45, nil
+	case *v, *ok = <-*ch[46]:
+		return 46, nil
+	case *v, *ok = <-*ch[47]:
+		return 47, nil
+	case *v, *ok = <-*ch[48]:
+		return 48, nil
+	case *v, *ok = <-*ch[49]:
+		return 49, nil
+	case *v, *ok = <-*ch[50]:
+		return 50, nil
+	case *v, *ok = <-*ch[51]:
+		return 51, nil
+	case *v, *ok = <-*ch[52]:
+		return 52, nil
+	case *v, *ok = <-*ch[53]:
+		return 53, nil
+	case *v, *ok = <-*ch[54]:
+		return 54, nil
+	case *v, *ok = <-*ch[55]:
+		return 55, nil
+	case *v, *ok = <-*ch[56]:
+		return 56, nil
+	case *v, *ok = <-*ch[57]:
+		return 57, nil
+	case *v, *ok = <-*ch[58]:
+		return 58, nil
+	case *v, *ok = <-*ch[59]:
+		return 59, nil
+	case *v, *ok = <-*ch[60]:
+		return 60, nil
+	case *v, *ok = <-*ch[61]:
+		return 61, nil
+	case *v, *ok = <-*ch[62]:
+		return 62, nil
+	case *v, *ok = <-*ch[63]:
+		return 63, nil
+	case *v, *ok = <-*ch[64]:
+		return 64, nil
+	case *v, *ok = <-*ch[65]:
+		return 65, nil
+	case *v, *ok = <-*ch[66]:
+		return 66, nil
+	case *v, *ok = <-*ch[67]:
+		return 67, nil
+	case *v, *ok = <-*ch[68]:
+		return 68, nil
+	case *v, *ok = <-*ch[69]:
+		return 69, nil
+	case *v, *ok = <-*ch[70]:
+		return 70, nil
+	case *v, *ok = <-*ch[71]:
+		return 71, nil
+	case *v, *ok = <-*ch[72]:
+		return 72, nil
+	case *v, *ok = <-*ch[73]:
+		return 73, nil
+	case *v, *ok = <-*ch[74]:
+		return 74, nil
+	case *v, *ok = <-*ch[75]:
+		return 75, nil
+	case *v, *ok = <-*ch[76]:
+		return 76, nil
+	case *v, *ok = <-*ch[77]:
+		return 77, nil
+	case *v, *ok = <-*ch[78]:
+		return 78, nil
+	case *v, *ok = <-*ch[79]:
+		return 79, nil
+	case *v, *ok = <-*ch[80]:
+		return 80, nil
+	case *v, *ok = <-*ch[81]:
+		return 81, nil
+	case *v, *ok = <-*ch[82]:
+		return 82, nil
+	case *v, *ok = <-*ch[83]:
+		return 83, nil
+	case *v, *ok = <-*ch[84]:
+		return 84, nil
+	case *v, *ok = <-*ch[85]:
+		return 85, nil
+	case *v, *ok = <-*ch[86]:
+		return 86, nil
+	case *v, *ok = <-*ch[87]:
+		return 87, nil
+	case *v, *ok = <-*ch[88]:
+		return 88, nil
+	case *v, *ok = <-*ch[89]:
+		return 89, nil
+	case *v, *ok = <-*ch[90]:
+		return 90, nil
+	case *v, *ok = <-*ch[91]:
+		return 91, nil
+	case *v, *ok = <-*ch[92]:
+		return 92, nil
+	case *v, *ok = <-*ch[93]:
+		return 93, nil
 	}
 }
+
+func select95(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
+	}
 
-func select93(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
-	case v, ok = <-ch[39]:
-		return 39, true
-	case v, ok = <-ch[40]:
-		return 40, true
-	case v, ok = <-ch[41]:
-		return 41, true
-	case v, ok = <-ch[42]:
-		return 42, true
-	case v, ok = <-ch[43]:
-		return 43, true
-	case v, ok = <-ch[44]:
-		return 44, true
-	case v, ok = <-ch[45]:
-		return 45, true
-	case v, ok = <-ch[46]:
-		return 46, true
-	case v, ok = <-ch[47]:
-		return 47, true
-	case v, ok = <-ch[48]:
-		return 48, true
-	case v, ok = <-ch[49]:
-		return 49, true
-	case v, ok = <-ch[50]:
-		return 50, true
-	case v, ok = <-ch[51]:
-		return 51, true
-	case v, ok = <-ch[52]:
-		return 52, true
-	case v, ok = <-ch[53]:
-		return 53, true
-	case v, ok = <-ch[54]:
-		return 54, true
-	case v, ok = <-ch[55]:
-		return 55, true
-	case v, ok = <-ch[56]:
-		return 56, true
-	case v, ok = <-ch[57]:
-		return 57, true
-	case v, ok = <-ch[58]:
-		return 58, true
-	case v, ok = <-ch[59]:
-		return 59, true
-	case v, ok = <-ch[60]:
-		return 60, true
-	case v, ok = <-ch[61]:
-		return 61, true
-	case v, ok = <-ch[62]:
-		return 62, true
-	case v, ok = <-ch[63]:
-		return 63, true
-	case v, ok = <-ch[64]:
-		return 64, true
-	case v, ok = <-ch[65]:
-		return 65, true
-	case v, ok = <-ch[66]:
-		return 66, true
-	case v, ok = <-ch[67]:
-		return 67, true
-	case v, ok = <-ch[68]:
-		return 68, true
-	case v, ok = <-ch[69]:
-		return 69, true
-	case v, ok = <-ch[70]:
-		return 70, true
-	case v, ok = <-ch[71]:
-		return 71, true
-	case v, ok = <-ch[72]:
-		return 72, true
-	case v, ok = <-ch[73]:
-		return 73, true
-	case v, ok = <-ch[74]:
-		return 74, true
-	case v, ok = <-ch[75]:
-		return 75, true
-	case v, ok = <-ch[76]:
-		return 76, true
-	case v, ok = <-ch[77]:
-		return 77, true
-	case v, ok = <-ch[78]:
-		return 78, true
-	case v, ok = <-ch[79]:
-		return 79, true
-	case v, ok = <-ch[80]:
-		return 80, true
-	case v, ok = <-ch[81]:
-		return 81, true
-	case v, ok = <-ch[82]:
-		return 82, true
-	case v, ok = <-ch[83]:
-		return 83, true
-	case v, ok = <-ch[84]:
-		return 84, true
-	case v, ok = <-ch[85]:
-		return 85, true
-	case v, ok = <-ch[86]:
-		return 86, true
-	case v, ok = <-ch[87]:
-		return 87, true
-	case v, ok = <-ch[88]:
-		return 88, true
-	case v, ok = <-ch[89]:
-		return 89, true
-	case v, ok = <-ch[90]:
-		return 90, true
-	case v, ok = <-ch[91]:
-		return 91, true
-	case v, ok = <-ch[92]:
-		return 92, true
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	case *v, *ok = <-*ch[39]:
+		return 39, nil
+	case *v, *ok = <-*ch[40]:
+		return 40, nil
+	case *v, *ok = <-*ch[41]:
+		return 41, nil
+	case *v, *ok = <-*ch[42]:
+		return 42, nil
+	case *v, *ok = <-*ch[43]:
+		return 43, nil
+	case *v, *ok = <-*ch[44]:
+		return 44, nil
+	case *v, *ok = <-*ch[45]:
+		return 45, nil
+	case *v, *ok = <-*ch[46]:
+		return 46, nil
+	case *v, *ok = <-*ch[47]:
+		return 47, nil
+	case *v, *ok = <-*ch[48]:
+		return 48, nil
+	case *v, *ok = <-*ch[49]:
+		return 49, nil
+	case *v, *ok = <-*ch[50]:
+		return 50, nil
+	case *v, *ok = <-*ch[51]:
+		return 51, nil
+	case *v, *ok = <-*ch[52]:
+		return 52, nil
+	case *v, *ok = <-*ch[53]:
+		return 53, nil
+	case *v, *ok = <-*ch[54]:
+		return 54, nil
+	case *v, *ok = <-*ch[55]:
+		return 55, nil
+	case *v, *ok = <-*ch[56]:
+		return 56, nil
+	case *v, *ok = <-*ch[57]:
+		return 57, nil
+	case *v, *ok = <-*ch[58]:
+		return 58, nil
+	case *v, *ok = <-*ch[59]:
+		return 59, nil
+	case *v, *ok = <-*ch[60]:
+		return 60, nil
+	case *v, *ok = <-*ch[61]:
+		return 61, nil
+	case *v, *ok = <-*ch[62]:
+		return 62, nil
+	case *v, *ok = <-*ch[63]:
+		return 63, nil
+	case *v, *ok = <-*ch[64]:
+		return 64, nil
+	case *v, *ok = <-*ch[65]:
+		return 65, nil
+	case *v, *ok = <-*ch[66]:
+		return 66, nil
+	case *v, *ok = <-*ch[67]:
+		return 67, nil
+	case *v, *ok = <-*ch[68]:
+		return 68, nil
+	case *v, *ok = <-*ch[69]:
+		return 69, nil
+	case *v, *ok = <-*ch[70]:
+		return 70, nil
+	case *v, *ok = <-*ch[71]:
+		return 71, nil
+	case *v, *ok = <-*ch[72]:
+		return 72, nil
+	case *v, *ok = <-*ch[73]:
+		return 73, nil
+	case *v, *ok = <-*ch[74]:
+		return 74, nil
+	case *v, *ok = <-*ch[75]:
+		return 75, nil
+	case *v, *ok = <-*ch[76]:
+		return 76, nil
+	case *v, *ok = <-*ch[77]:
+		return 77, nil
+	case *v, *ok = <-*ch[78]:
+		return 78, nil
+	case *v, *ok = <-*ch[79]:
+		return 79, nil
+	case *v, *ok = <-*ch[80]:
+		return 80, nil
+	case *v, *ok = <-*ch[81]:
+		return 81, nil
+	case *v, *ok = <-*ch[82]:
+		return 82, nil
+	case *v, *ok = <-*ch[83]:
+		return 83, nil
+	case *v, *ok = <-*ch[84]:
+		return 84, nil
+	case *v, *ok = <-*ch[85]:
+		return 85, nil
+	case *v, *ok = <-*ch[86]:
+		return 86, nil
+	case *v, *ok = <-*ch[87]:
+		return 87, nil
+	case *v, *ok = <-*ch[88]:
+		return 88, nil
+	case *v, *ok = <-*ch[89]:
+		return 89, nil
+	case *v, *ok = <-*ch[90]:
+		return 90, nil
+	case *v, *ok = <-*ch[91]:
+		return 91, nil
+	case *v, *ok = <-*ch[92]:
+		return 92, nil
+	case *v, *ok = <-*ch[93]:
+		return 93, nil
+	case *v, *ok = <-*ch[94]:
+		return 94, nil
 	}
 }
 
-func select94(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
-	case v, ok = <-ch[39]:
-		return 39, true
-	case v, ok = <-ch[40]:
-		return 40, true
-	case v, ok = <-ch[41]:
-		return 41, true
-	case v, ok = <-ch[42]:
-		return 42, true
-	case v, ok = <-ch[43]:
-		return 43, true
-	case v, ok = <-ch[44]:
-		return 44, true
-	case v, ok = <-ch[45]:
-		return 45, true
-	case v, ok = <-ch[46]:
-		return 46, true
-	case v, ok = <-ch[47]:
-		return 47, true
-	case v, ok = <-ch[48]:
-		return 48, true
-	case v, ok = <-ch[49]:
-		return 49, true
-	case v, ok = <-ch[50]:
-		return 50, true
-	case v, ok = <-ch[51]:
-		return 51, true
-	case v, ok = <-ch[52]:
-		return 52, true
-	case v, ok = <-ch[53]:
-		return 53, true
-	case v, ok = <-ch[54]:
-		return 54, true
-	case v, ok = <-ch[55]:
-		return 55, true
-	case v, ok = <-ch[56]:
-		return 56, true
-	case v, ok = <-ch[57]:
-		return 57, true
-	case v, ok = <-ch[58]:
-		return 58, true
-	case v, ok = <-ch[59]:
-		return 59, true
-	case v, ok = <-ch[60]:
-		return 60, true
-	case v, ok = <-ch[61]:
-		return 61, true
-	case v, ok = <-ch[62]:
-		return 62, true
-	case v, ok = <-ch[63]:
-		return 63, true
-	case v, ok = <-ch[64]:
-		return 64, true
-	case v, ok = <-ch[65]:
-		return 65, true
-	case v, ok = <-ch[66]:
-		return 66, true
-	case v, ok = <-ch[67]:
-		return 67, true
-	case v, ok = <-ch[68]:
-		return 68, true
-	case v, ok = <-ch[69]:
-		return 69, true
-	case v, ok = <-ch[70]:
-		return 70, true
-	case v, ok = <-ch[71]:
-		return 71, true
-	case v, ok = <-ch[72]:
-		return 72, true
-	case v, ok = <-ch[73]:
-		return 73, true
-	case v, ok = <-ch[74]:
-		return 74, true
-	case v, ok = <-ch[75]:
-		return 75, true
-	case v, ok = <-ch[76]:
-		return 76, true
-	case v, ok = <-ch[77]:
-		return 77, true
-	case v, ok = <-ch[78]:
-		return 78, true
-	case v, ok = <-ch[79]:
-		return 79, true
-	case v, ok = <-ch[80]:
-		return 80, true
-	case v, ok = <-ch[81]:
-		return 81, true
-	case v, ok = <-ch[82]:
-		return 82, true
-	case v, ok = <-ch[83]:
-		return 83, true
-	case v, ok = <-ch[84]:
-		return 84, true
-	case v, ok = <-ch[85]:
-		return 85, true
-	case v, ok = <-ch[86]:
-		return 86, true
-	case v, ok = <-ch[87]:
-		return 87, true
-	case v, ok = <-ch[88]:
-		return 88, true
-	case v, ok = <-ch[89]:
-		return 89, true
-	case v, ok = <-ch[90]:
-		return 90, true
-	case v, ok = <-ch[91]:
-		return 91, true
-	case v, ok = <-ch[92]:
-		return 92, true
-	case v, ok = <-ch[93]:
-		return 93, true
+func select96(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
 	}
-}
 
-func select95(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
-	case v, ok = <-ch[39]:
-		return 39, true
-	case v, ok = <-ch[40]:
-		return 40, true
-	case v, ok = <-ch[41]:
-		return 41, true
-	case v, ok = <-ch[42]:
-		return 42, true
-	case v, ok = <-ch[43]:
-		return 43, true
-	case v, ok = <-ch[44]:
-		return 44, true
-	case v, ok = <-ch[45]:
-		return 45, true
-	case v, ok = <-ch[46]:
-		return 46, true
-	case v, ok = <-ch[47]:
-		return 47, true
-	case v, ok = <-ch[48]:
-		return 48, true
-	case v, ok = <-ch[49]:
-		return 49, true
-	case v, ok = <-ch[50]:
-		return 50, true
-	case v, ok = <-ch[51]:
-		return 51, true
-	case v, ok = <-ch[52]:
-		return 52, true
-	case v, ok = <-ch[53]:
-		return 53, true
-	case v, ok = <-ch[54]:
-		return 54, true
-	case v, ok = <-ch[55]:
-		return 55, true
-	case v, ok = <-ch[56]:
-		return 56, true
-	case v, ok = <-ch[57]:
-		return 57, true
-	case v, ok = <-ch[58]:
-		return 58, true
-	case v, ok = <-ch[59]:
-		return 59, true
-	case v, ok = <-ch[60]:
-		return 60, true
-	case v, ok = <-ch[61]:
-		return 61, true
-	case v, ok = <-ch[62]:
-		return 62, true
-	case v, ok = <-ch[63]:
-		return 63, true
-	case v, ok = <-ch[64]:
-		return 64, true
-	case v, ok = <-ch[65]:
-		return 65, true
-	case v, ok = <-ch[66]:
-		return 66, true
-	case v, ok = <-ch[67]:
-		return 67, true
-	case v, ok = <-ch[68]:
-		return 68, true
-	case v, ok = <-ch[69]:
-		return 69, true
-	case v, ok = <-ch[70]:
-		return 70, true
-	case v, ok = <-ch[71]:
-		return 71, true
-	case v, ok = <-ch[72]:
-		return 72, true
-	case v, ok = <-ch[73]:
-		return 73, true
-	case v, ok = <-ch[74]:
-		return 74, true
-	case v, ok = <-ch[75]:
-		return 75, true
-	case v, ok = <-ch[76]:
-		return 76, true
-	case v, ok = <-ch[77]:
-		return 77, true
-	case v, ok = <-ch[78]:
-		return 78, true
-	case v, ok = <-ch[79]:
-		return 79, true
-	case v, ok = <-ch[80]:
-		return 80, true
-	case v, ok = <-ch[81]:
-		return 81, true
-	case v, ok = <-ch[82]:
-		return 82, true
-	case v, ok = <-ch[83]:
-		return 83, true
-	case v, ok = <-ch[84]:
-		return 84, true
-	case v, ok = <-ch[85]:
-		return 85, true
-	case v, ok = <-ch[86]:
-		return 86, true
-	case v, ok = <-ch[87]:
-		return 87, true
-	case v, ok = <-ch[88]:
-		return 88, true
-	case v, ok = <-ch[89]:
-		return 89, true
-	case v, ok = <-ch[90]:
-		return 90, true
-	case v, ok = <-ch[91]:
-		return 91, true
-	case v, ok = <-ch[92]:
-		return 92, true
-	case v, ok = <-ch[93]:
-		return 93, true
-	case v, ok = <-ch[94]:
-		return 94, true
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	case *v, *ok = <-*ch[39]:
+		return 39, nil
+	case *v, *ok = <-*ch[40]:
+		return 40, nil
+	case *v, *ok = <-*ch[41]:
+		return 41, nil
+	case *v, *ok = <-*ch[42]:
+		return 42, nil
+	case *v, *ok = <-*ch[43]:
+		return 43, nil
+	case *v, *ok = <-*ch[44]:
+		return 44, nil
+	case *v, *ok = <-*ch[45]:
+		return 45, nil
+	case *v, *ok = <-*ch[46]:
+		return 46, nil
+	case *v, *ok = <-*ch[47]:
+		return 47, nil
+	case *v, *ok = <-*ch[48]:
+		return 48, nil
+	case *v, *ok = <-*ch[49]:
+		return 49, nil
+	case *v, *ok = <-*ch[50]:
+		return 50, nil
+	case *v, *ok = <-*ch[51]:
+		return 51, nil
+	case *v, *ok = <-*ch[52]:
+		return 52, nil
+	case *v, *ok = <-*ch[53]:
+		return 53, nil
+	case *v, *ok = <-*ch[54]:
+		return 54, nil
+	case *v, *ok = <-*ch[55]:
+		return 55, nil
+	case *v, *ok = <-*ch[56]:
+		return 56, nil
+	case *v, *ok = <-*ch[57]:
+		return 57, nil
+	case *v, *ok = <-*ch[58]:
+		return 58, nil
+	case *v, *ok = <-*ch[59]:
+		return 59, nil
+	case *v, *ok = <-*ch[60]:
+		return 60, nil
+	case *v, *ok = <-*ch[61]:
+		return 61, nil
+	case *v, *ok = <-*ch[62]:
+		return 62, nil
+	case *v, *ok = <-*ch[63]:
+		return 63, nil
+	case *v, *ok = <-*ch[64]:
+		return 64, nil
+	case *v, *ok = <-*ch[65]:
+		return 65, nil
+	case *v, *ok = <-*ch[66]:
+		return 66, nil
+	case *v, *ok = <-*ch[67]:
+		return 67, nil
+	case *v, *ok = <-*ch[68]:
+		return 68, nil
+	case *v, *ok = <-*ch[69]:
+		return 69, nil
+	case *v, *ok = <-*ch[70]:
+		return 70, nil
+	case *v, *ok = <-*ch[71]:
+		return 71, nil
+	case *v, *ok = <-*ch[72]:
+		return 72, nil
+	case *v, *ok = <-*ch[73]:
+		return 73, nil
+	case *v, *ok = <-*ch[74]:
+		return 74, nil
+	case *v, *ok = <-*ch[75]:
+		return 75, nil
+	case *v, *ok = <-*ch[76]:
+		return 76, nil
+	case *v, *ok = <-*ch[77]:
+		return 77, nil
+	case *v, *ok = <-*ch[78]:
+		return 78, nil
+	case *v, *ok = <-*ch[79]:
+		return 79, nil
+	case *v, *ok = <-*ch[80]:
+		return 80, nil
+	case *v, *ok = <-*ch[81]:
+		return 81, nil
+	case *v, *ok = <-*ch[82]:
+		return 82, nil
+	case *v, *ok = <-*ch[83]:
+		return 83, nil
+	case *v, *ok = <-*ch[84]:
+		return 84, nil
+	case *v, *ok = <-*ch[85]:
+		return 85, nil
+	case *v, *ok = <-*ch[86]:
+		return 86, nil
+	case *v, *ok = <-*ch[87]:
+		return 87, nil
+	case *v, *ok = <-*ch[88]:
+		return 88, nil
+	case *v, *ok = <-*ch[89]:
+		return 89, nil
+	case *v, *ok = <-*ch[90]:
+		return 90, nil
+	case *v, *ok = <-*ch[91]:
+		return 91, nil
+	case *v, *ok = <-*ch[92]:
+		return 92, nil
+	case *v, *ok = <-*ch[93]:
+		return 93, nil
+	case *v, *ok = <-*ch[94]:
+		return 94, nil
+	case *v, *ok = <-*ch[95]:
+		return 95, nil
 	}
 }
 
-func select96(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
-	case v, ok = <-ch[39]:
-		return 39, true
-	case v, ok = <-ch[40]:
-		return 40, true
-	case v, ok = <-ch[41]:
-		return 41, true
-	case v, ok = <-ch[42]:
-		return 42, true
-	case v, ok = <-ch[43]:
-		return 43, true
-	case v, ok = <-ch[44]:
-		return 44, true
-	case v, ok = <-ch[45]:
-		return 45, true
-	case v, ok = <-ch[46]:
-		return 46, true
-	case v, ok = <-ch[47]:
-		return 47, true
-	case v, ok = <-ch[48]:
-		return 48, true
-	case v, ok = <-ch[49]:
-		return 49, true
-	case v, ok = <-ch[50]:
-		return 50, true
-	case v, ok = <-ch[51]:
-		return 51, true
-	case v, ok = <-ch[52]:
-		return 52, true
-	case v, ok = <-ch[53]:
-		return 53, true
-	case v, ok = <-ch[54]:
-		return 54, true
-	case v, ok = <-ch[55]:
-		return 55, true
-	case v, ok = <-ch[56]:
-		return 56, true
-	case v, ok = <-ch[57]:
-		return 57, true
-	case v, ok = <-ch[58]:
-		return 58, true
-	case v, ok = <-ch[59]:
-		return 59, true
-	case v, ok = <-ch[60]:
-		return 60, true
-	case v, ok = <-ch[61]:
-		return 61, true
-	case v, ok = <-ch[62]:
-		return 62, true
-	case v, ok = <-ch[63]:
-		return 63, true
-	case v, ok = <-ch[64]:
-		return 64, true
-	case v, ok = <-ch[65]:
-		return 65, true
-	case v, ok = <-ch[66]:
-		return 66, true
-	case v, ok = <-ch[67]:
-		return 67, true
-	case v, ok = <-ch[68]:
-		return 68, true
-	case v, ok = <-ch[69]:
-		return 69, true
-	case v, ok = <-ch[70]:
-		return 70, true
-	case v, ok = <-ch[71]:
-		return 71, true
-	case v, ok = <-ch[72]:
-		return 72, true
-	case v, ok = <-ch[73]:
-		return 73, true
-	case v, ok = <-ch[74]:
-		return 74, true
-	case v, ok = <-ch[75]:
-		return 75, true
-	case v, ok = <-ch[76]:
-		return 76, true
-	case v, ok = <-ch[77]:
-		return 77, true
-	case v, ok = <-ch[78]:
-		return 78, true
-	case v, ok = <-ch[79]:
-		return 79, true
-	case v, ok = <-ch[80]:
-		return 80, true
-	case v, ok = <-ch[81]:
-		return 81, true
-	case v, ok = <-ch[82]:
-		return 82, true
-	case v, ok = <-ch[83]:
-		return 83, true
-	case v, ok = <-ch[84]:
-		return 84, true
-	case v, ok = <-ch[85]:
-		return 85, true
-	case v, ok = <-ch[86]:
-		return 86, true
-	case v, ok = <-ch[87]:
-		return 87, true
-	case v, ok = <-ch[88]:
-		return 88, true
-	case v, ok = <-ch[89]:
-		return 89, true
-	case v, ok = <-ch[90]:
-		return 90, true
-	case v, ok = <-ch[91]:
-		return 91, true
-	case v, ok = <-ch[92]:
-		return 92, true
-	case v, ok = <-ch[93]:
-		return 93, true
-	case v, ok = <-ch[94]:
-		return 94, true
-	case v, ok = <-ch[95]:
-		return 95, true
+func select97(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
 	}
-}
 
-func select97(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
-	case v, ok = <-ch[39]:
-		return 39, true
-	case v, ok = <-ch[40]:
-		return 40, true
-	case v, ok = <-ch[41]:
-		return 41, true
-	case v, ok = <-ch[42]:
-		return 42, true
-	case v, ok = <-ch[43]:
-		return 43, true
-	case v, ok = <-ch[44]:
-		return 44, true
-	case v, ok = <-ch[45]:
-		return 45, true
-	case v, ok = <-ch[46]:
-		return 46, true
-	case v, ok = <-ch[47]:
-		return 47, true
-	case v, ok = <-ch[48]:
-		return 48, true
-	case v, ok = <-ch[49]:
-		return 49, true
-	case v, ok = <-ch[50]:
-		return 50, true
-	case v, ok = <-ch[51]:
-		return 51, true
-	case v, ok = <-ch[52]:
-		return 52, true
-	case v, ok = <-ch[53]:
-		return 53, true
-	case v, ok = <-ch[54]:
-		return 54, true
-	case v, ok = <-ch[55]:
-		return 55, true
-	case v, ok = <-ch[56]:
-		return 56, true
-	case v, ok = <-ch[57]:
-		return 57, true
-	case v, ok = <-ch[58]:
-		return 58, true
-	case v, ok = <-ch[59]:
-		return 59, true
-	case v, ok = <-ch[60]:
-		return 60, true
-	case v, ok = <-ch[61]:
-		return 61, true
-	case v, ok = <-ch[62]:
-		return 62, true
-	case v, ok = <-ch[63]:
-		return 63, true
-	case v, ok = <-ch[64]:
-		return 64, true
-	case v, ok = <-ch[65]:
-		return 65, true
-	case v, ok = <-ch[66]:
-		return 66, true
-	case v, ok = <-ch[67]:
-		return 67, true
-	case v, ok = <-ch[68]:
-		return 68, true
-	case v, ok = <-ch[69]:
-		return 69, true
-	case v, ok = <-ch[70]:
-		return 70, true
-	case v, ok = <-ch[71]:
-		return 71, true
-	case v, ok = <-ch[72]:
-		return 72, true
-	case v, ok = <-ch[73]:
-		return 73, true
-	case v, ok = <-ch[74]:
-		return 74, true
-	case v, ok = <-ch[75]:
-		return 75, true
-	case v, ok = <-ch[76]:
-		return 76, true
-	case v, ok = <-ch[77]:
-		return 77, true
-	case v, ok = <-ch[78]:
-		return 78, true
-	case v, ok = <-ch[79]:
-		return 79, true
-	case v, ok = <-ch[80]:
-		return 80, true
-	case v, ok = <-ch[81]:
-		return 81, true
-	case v, ok = <-ch[82]:
-		return 82, true
-	case v, ok = <-ch[83]:
-		return 83, true
-	case v, ok = <-ch[84]:
-		return 84, true
-	case v, ok = <-ch[85]:
-		return 85, true
-	case v, ok = <-ch[86]:
-		return 86, true
-	case v, ok = <-ch[87]:
-		return 87, true
-	case v, ok = <-ch[88]:
-		return 88, true
-	case v, ok = <-ch[89]:
-		return 89, true
-	case v, ok = <-ch[90]:
-		return 90, true
-	case v, ok = <-ch[91]:
-		return 91, true
-	case v, ok = <-ch[92]:
-		return 92, true
-	case v, ok = <-ch[93]:
-		return 93, true
-	case v, ok = <-ch[94]:
-		return 94, true
-	case v, ok = <-ch[95]:
-		return 95, true
-	case v, ok = <-ch[96]:
-		return 96, true
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	case *v, *ok = <-*ch[39]:
+		return 39, nil
+	case *v, *ok = <-*ch[40]:
+		return 40, nil
+	case *v, *ok = <-*ch[41]:
+		return 41, nil
+	case *v, *ok = <-*ch[42]:
+		return 42, nil
+	case *v, *ok = <-*ch[43]:
+		return 43, nil
+	case *v, *ok = <-*ch[44]:
+		return 44, nil
+	case *v, *ok = <-*ch[45]:
+		return 45, nil
+	case *v, *ok = <-*ch[46]:
+		return 46, nil
+	case *v, *ok = <-*ch[47]:
+		return 47, nil
+	case *v, *ok = <-*ch[48]:
+		return 48, nil
+	case *v, *ok = <-*ch[49]:
+		return 49, nil
+	case *v, *ok = <-*ch[50]:
+		return 50, nil
+	case *v, *ok = <-*ch[51]:
+		return 51, nil
+	case *v, *ok = <-*ch[52]:
+		return 52, nil
+	case *v, *ok = <-*ch[53]:
+		return 53, nil
+	case *v, *ok = <-*ch[54]:
+		return 54, nil
+	case *v, *ok = <-*ch[55]:
+		return 55, nil
+	case *v, *ok = <-*ch[56]:
+		return 56, nil
+	case *v, *ok = <-*ch[57]:
+		return 57, nil
+	case *v, *ok = <-*ch[58]:
+		return 58, nil
+	case *v, *ok = <-*ch[59]:
+		return 59, nil
+	case *v, *ok = <-*ch[60]:
+		return 60, nil
+	case *v, *ok = <-*ch[61]:
+		return 61, nil
+	case *v, *ok = <-*ch[62]:
+		return 62, nil
+	case *v, *ok = <-*ch[63]:
+		return 63, nil
+	case *v, *ok = <-*ch[64]:
+		return 64, nil
+	case *v, *ok = <-*ch[65]:
+		return 65, nil
+	case *v, *ok = <-*ch[66]:
+		return 66, nil
+	case *v, *ok = <-*ch[67]:
+		return 67, nil
+	case *v, *ok = <-*ch[68]:
+		return 68, nil
+	case *v, *ok = <-*ch[69]:
+		return 69, nil
+	case *v, *ok = <-*ch[70]:
+		return 70, nil
+	case *v, *ok = <-*ch[71]:
+		return 71, nil
+	case *v, *ok = <-*ch[72]:
+		return 72, nil
+	case *v, *ok = <-*ch[73]:
+		return 73, nil
+	case *v, *ok = <-*ch[74]:
+		return 74, nil
+	case *v, *ok = <-*ch[75]:
+		return 75, nil
+	case *v, *ok = <-*ch[76]:
+		return 76, nil
+	case *v, *ok = <-*ch[77]:
+		return 77, nil
+	case *v, *ok = <-*ch[78]:
+		return 78, nil
+	case *v, *ok = <-*ch[79]:
+		return 79, nil
+	case *v, *ok = <-*ch[80]:
+		return 80, nil
+	case *v, *ok = <-*ch[81]:
+		return 81, nil
+	case *v, *ok = <-*ch[82]:
+		return 82, nil
+	case *v, *ok = <-*ch[83]:
+		return 83, nil
+	case *v, *ok = <-*ch[84]:
+		return 84, nil
+	case *v, *ok = <-*ch[85]:
+		return 85, nil
+	case *v, *ok = <-*ch[86]:
+		return 86, nil
+	case *v, *ok = <-*ch[87]:
+		return 87, nil
+	case *v, *ok = <-*ch[88]:
+		return 88, nil
+	case *v, *ok = <-*ch[89]:
+		return 89, nil
+	case *v, *ok = <-*ch[90]:
+		return 90, nil
+	case *v, *ok = <-*ch[91]:
+		return 91, nil
+	case *v, *ok = <-*ch[92]:
+		return 92, nil
+	case *v, *ok = <-*ch[93]:
+		return 93, nil
+	case *v, *ok = <-*ch[94]:
+		return 94, nil
+	case *v, *ok = <-*ch[95]:
+		return 95, nil
+	case *v, *ok = <-*ch[96]:
+		return 96, nil
 	}
 }
+
+func select98(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
+	}
 
-func select98(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
-	case v, ok = <-ch[39]:
-		return 39, true
-	case v, ok = <-ch[40]:
-		return 40, true
-	case v, ok = <-ch[41]:
-		return 41, true
-	case v, ok = <-ch[42]:
-		return 42, true
-	case v, ok = <-ch[43]:
-		return 43, true
-	case v, ok = <-ch[44]:
-		return 44, true
-	case v, ok = <-ch[45]:
-		return 45, true
-	case v, ok = <-ch[46]:
-		return 46, true
-	case v, ok = <-ch[47]:
-		return 47, true
-	case v, ok = <-ch[48]:
-		return 48, true
-	case v, ok = <-ch[49]:
-		return 49, true
-	case v, ok = <-ch[50]:
-		return 50, true
-	case v, ok = <-ch[51]:
-		return 51, true
-	case v, ok = <-ch[52]:
-		return 52, true
-	case v, ok = <-ch[53]:
-		return 53, true
-	case v, ok = <-ch[54]:
-		return 54, true
-	case v, ok = <-ch[55]:
-		return 55, true
-	case v, ok = <-ch[56]:
-		return 56, true
-	case v, ok = <-ch[57]:
-		return 57, true
-	case v, ok = <-ch[58]:
-		return 58, true
-	case v, ok = <-ch[59]:
-		return 59, true
-	case v, ok = <-ch[60]:
-		return 60, true
-	case v, ok = <-ch[61]:
-		return 61, true
-	case v, ok = <-ch[62]:
-		return 62, true
-	case v, ok = <-ch[63]:
-		return 63, true
-	case v, ok = <-ch[64]:
-		return 64, true
-	case v, ok = <-ch[65]:
-		return 65, true
-	case v, ok = <-ch[66]:
-		return 66, true
-	case v, ok = <-ch[67]:
-		return 67, true
-	case v, ok = <-ch[68]:
-		return 68, true
-	case v, ok = <-ch[69]:
-		return 69, true
-	case v, ok = <-ch[70]:
-		return 70, true
-	case v, ok = <-ch[71]:
-		return 71, true
-	case v, ok = <-ch[72]:
-		return 72, true
-	case v, ok = <-ch[73]:
-		return 73, true
-	case v, ok = <-ch[74]:
-		return 74, true
-	case v, ok = <-ch[75]:
-		return 75, true
-	case v, ok = <-ch[76]:
-		return 76, true
-	case v, ok = <-ch[77]:
-		return 77, true
-	case v, ok = <-ch[78]:
-		return 78, true
-	case v, ok = <-ch[79]:
-		return 79, true
-	case v, ok = <-ch[80]:
-		return 80, true
-	case v, ok = <-ch[81]:
-		return 81, true
-	case v, ok = <-ch[82]:
-		return 82, true
-	case v, ok = <-ch[83]:
-		return 83, true
-	case v, ok = <-ch[84]:
-		return 84, true
-	case v, ok = <-ch[85]:
-		return 85, true
-	case v, ok = <-ch[86]:
-		return 86, true
-	case v, ok = <-ch[87]:
-		return 87, true
-	case v, ok = <-ch[88]:
-		return 88, true
-	case v, ok = <-ch[89]:
-		return 89, true
-	case v, ok = <-ch[90]:
-		return 90, true
-	case v, ok = <-ch[91]:
-		return 91, true
-	case v, ok = <-ch[92]:
-		return 92, true
-	case v, ok = <-ch[93]:
-		return 93, true
-	case v, ok = <-ch[94]:
-		return 94, true
-	case v, ok = <-ch[95]:
-		return 95, true
-	case v, ok = <-ch[96]:
-		return 96, true
-	case v, ok = <-ch[97]:
-		return 97, true
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	case *v, *ok = <-*ch[39]:
+		return 39, nil
+	case *v, *ok = <-*ch[40]:
+		return 40, nil
+	case *v, *ok = <-*ch[41]:
+		return 41, nil
+	case *v, *ok = <-*ch[42]:
+		return 42, nil
+	case *v, *ok = <-*ch[43]:
+		return 43, nil
+	case *v, *ok = <-*ch[44]:
+		return 44, nil
+	case *v, *ok = <-*ch[45]:
+		return 45, nil
+	case *v, *ok = <-*ch[46]:
+		return 46, nil
+	case *v, *ok = <-*ch[47]:
+		return 47, nil
+	case *v, *ok = <-*ch[48]:
+		return 48, nil
+	case *v, *ok = <-*ch[49]:
+		return 49, nil
+	case *v, *ok = <-*ch[50]:
+		return 50, nil
+	case *v, *ok = <-*ch[51]:
+		return 51, nil
+	case *v, *ok = <-*ch[52]:
+		return 52, nil
+	case *v, *ok = <-*ch[53]:
+		return 53, nil
+	case *v, *ok = <-*ch[54]:
+		return 54, nil
+	case *v, *ok = <-*ch[55]:
+		return 55, nil
+	case *v, *ok = <-*ch[56]:
+		return 56, nil
+	case *v, *ok = <-*ch[57]:
+		return 57, nil
+	case *v, *ok = <-*ch[58]:
+		return 58, nil
+	case *v, *ok = <-*ch[59]:
+		return 59, nil
+	case *v, *ok = <-*ch[60]:
+		return 60, nil
+	case *v, *ok = <-*ch[61]:
+		return 61, nil
+	case *v, *ok = <-*ch[62]:
+		return 62, nil
+	case *v, *ok = <-*ch[63]:
+		return 63, nil
+	case *v, *ok = <-*ch[64]:
+		return 64, nil
+	case *v, *ok = <-*ch[65]:
+		return 65, nil
+	case *v, *ok = <-*ch[66]:
+		return 66, nil
+	case *v, *ok = <-*ch[67]:
+		return 67, nil
+	case *v, *ok = <-*ch[68]:
+		return 68, nil
+	case *v, *ok = <-*ch[69]:
+		return 69, nil
+	case *v, *ok = <-*ch[70]:
+		return 70, nil
+	case *v, *ok = <-*ch[71]:
+		return 71, nil
+	case *v, *ok = <-*ch[72]:
+		return 72, nil
+	case *v, *ok = <-*ch[73]:
+		return 73, nil
+	case *v, *ok = <-*ch[74]:
+		return 74, nil
+	case *v, *ok = <-*ch[75]:
+		return 75, nil
+	case *v, *ok = <-*ch[76]:
+		return 76, nil
+	case *v, *ok = <-*ch[77]:
+		return 77, nil
+	case *v, *ok = <-*ch[78]:
+		return 78, nil
+	case *v, *ok = <-*ch[79]:
+		return 79, nil
+	case *v, *ok = <-*ch[80]:
+		return 80, nil
+	case *v, *ok = <-*ch[81]:
+		return 81, nil
+	case *v, *ok = <-*ch[82]:
+		return 82, nil
+	case *v, *ok = <-*ch[83]:
+		return 83, nil
+	case *v, *ok = <-*ch[84]:
+		return 84, nil
+	case *v, *ok = <-*ch[85]:
+		return 85, nil
+	case *v, *ok = <-*ch[86]:
+		return 86, nil
+	case *v, *ok = <-*ch[87]:
+		return 87, nil
+	case *v, *ok = <-*ch[88]:
+		return 88, nil
+	case *v, *ok = <-*ch[89]:
+		return 89, nil
+	case *v, *ok = <-*ch[90]:
+		return 90, nil
+	case *v, *ok = <-*ch[91]:
+		return 91, nil
+	case *v, *ok = <-*ch[92]:
+		return 92, nil
+	case *v, *ok = <-*ch[93]:
+		return 93, nil
+	case *v, *ok = <-*ch[94]:
+		return 94, nil
+	case *v, *ok = <-*ch[95]:
+		return 95, nil
+	case *v, *ok = <-*ch[96]:
+		return 96, nil
+	case *v, *ok = <-*ch[97]:
+		return 97, nil
 	}
 }
+
+func select99(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
+	}
 
-func select99(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
-	case v, ok = <-ch[39]:
-		return 39, true
-	case v, ok = <-ch[40]:
-		return 40, true
-	case v, ok = <-ch[41]:
-		return 41, true
-	case v, ok = <-ch[42]:
-		return 42, true
-	case v, ok = <-ch[43]:
-		return 43, true
-	case v, ok = <-ch[44]:
-		return 44, true
-	case v, ok = <-ch[45]:
-		return 45, true
-	case v, ok = <-ch[46]:
-		return 46, true
-	case v, ok = <-ch[47]:
-		return 47, true
-	case v, ok = <-ch[48]:
-		return 48, true
-	case v, ok = <-ch[49]:
-		return 49, true
-	case v, ok = <-ch[50]:
-		return 50, true
-	case v, ok = <-ch[51]:
-		return 51, true
-	case v, ok = <-ch[52]:
-		return 52, true
-	case v, ok = <-ch[53]:
-		return 53, true
-	case v, ok = <-ch[54]:
-		return 54, true
-	case v, ok = <-ch[55]:
-		return 55, true
-	case v, ok = <-ch[56]:
-		return 56, true
-	case v, ok = <-ch[57]:
-		return 57, true
-	case v, ok = <-ch[58]:
-		return 58, true
-	case v, ok = <-ch[59]:
-		return 59, true
-	case v, ok = <-ch[60]:
-		return 60, true
-	case v, ok = <-ch[61]:
-		return 61, true
-	case v, ok = <-ch[62]:
-		return 62, true
-	case v, ok = <-ch[63]:
-		return 63, true
-	case v, ok = <-ch[64]:
-		return 64, true
-	case v, ok = <-ch[65]:
-		return 65, true
-	case v, ok = <-ch[66]:
-		return 66, true
-	case v, ok = <-ch[67]:
-		return 67, true
-	case v, ok = <-ch[68]:
-		return 68, true
-	case v, ok = <-ch[69]:
-		return 69, true
-	case v, ok = <-ch[70]:
-		return 70, true
-	case v, ok = <-ch[71]:
-		return 71, true
-	case v, ok = <-ch[72]:
-		return 72, true
-	case v, ok = <-ch[73]:
-		return 73, true
-	case v, ok = <-ch[74]:
-		return 74, true
-	case v, ok = <-ch[75]:
-		return 75, true
-	case v, ok = <-ch[76]:
-		return 76, true
-	case v, ok = <-ch[77]:
-		return 77, true
-	case v, ok = <-ch[78]:
-		return 78, true
-	case v, ok = <-ch[79]:
-		return 79, true
-	case v, ok = <-ch[80]:
-		return 80, true
-	case v, ok = <-ch[81]:
-		return 81, true
-	case v, ok = <-ch[82]:
-		return 82, true
-	case v, ok = <-ch[83]:
-		return 83, true
-	case v, ok = <-ch[84]:
-		return 84, true
-	case v, ok = <-ch[85]:
-		return 85, true
-	case v, ok = <-ch[86]:
-		return 86, true
-	case v, ok = <-ch[87]:
-		return 87, true
-	case v, ok = <-ch[88]:
-		return 88, true
-	case v, ok = <-ch[89]:
-		return 89, true
-	case v, ok = <-ch[90]:
-		return 90, true
-	case v, ok = <-ch[91]:
-		return 91, true
-	case v, ok = <-ch[92]:
-		return 92, true
-	case v, ok = <-ch[93]:
-		return 93, true
-	case v, ok = <-ch[94]:
-		return 94, true
-	case v, ok = <-ch[95]:
-		return 95, true
-	case v, ok = <-ch[96]:
-		return 96, true
-	case v, ok = <-ch[97]:
-		return 97, true
-	case v, ok = <-ch[98]:
-		return 98, true
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	case *v, *ok = <-*ch[39]:
+		return 39, nil
+	case *v, *ok = <-*ch[40]:
+		return 40, nil
+	case *v, *ok = <-*ch[41]:
+		return 41, nil
+	case *v, *ok = <-*ch[42]:
+		return 42, nil
+	case *v, *ok = <-*ch[43]:
+		return 43, nil
+	case *v, *ok = <-*ch[44]:
+		return 44, nil
+	case *v, *ok = <-*ch[45]:
+		return 45, nil
+	case *v, *ok = <-*ch[46]:
+		return 46, nil
+	case *v, *ok = <-*ch[47]:
+		return 47, nil
+	case *v, *ok = <-*ch[48]:
+		return 48, nil
+	case *v, *ok = <-*ch[49]:
+		return 49, nil
+	case *v, *ok = <-*ch[50]:
+		return 50, nil
+	case *v, *ok = <-*ch[51]:
+		return 51, nil
+	case *v, *ok = <-*ch[52]:
+		return 52, nil
+	case *v, *ok = <-*ch[53]:
+		return 53, nil
+	case *v, *ok = <-*ch[54]:
+		return 54, nil
+	case *v, *ok = <-*ch[55]:
+		return 55, nil
+	case *v, *ok = <-*ch[56]:
+		return 56, nil
+	case *v, *ok = <-*ch[57]:
+		return 57, nil
+	case *v, *ok = <-*ch[58]:
+		return 58, nil
+	case *v, *ok = <-*ch[59]:
+		return 59, nil
+	case *v, *ok = <-*ch[60]:
+		return 60, nil
+	case *v, *ok = <-*ch[61]:
+		return 61, nil
+	case *v, *ok = <-*ch[62]:
+		return 62, nil
+	case *v, *ok = <-*ch[63]:
+		return 63, nil
+	case *v, *ok = <-*ch[64]:
+		return 64, nil
+	case *v, *ok = <-*ch[65]:
+		return 65, nil
+	case *v, *ok = <-*ch[66]:
+		return 66, nil
+	case *v, *ok = <-*ch[67]:
+		return 67, nil
+	case *v, *ok = <-*ch[68]:
+		return 68, nil
+	case *v, *ok = <-*ch[69]:
+		return 69, nil
+	case *v, *ok = <-*ch[70]:
+		return 70, nil
+	case *v, *ok = <-*ch[71]:
+		return 71, nil
+	case *v, *ok = <-*ch[72]:
+		return 72, nil
+	case *v, *ok = <-*ch[73]:
+		return 73, nil
+	case *v, *ok = <-*ch[74]:
+		return 74, nil
+	case *v, *ok = <-*ch[75]:
+		return 75, nil
+	case *v, *ok = <-*ch[76]:
+		return 76, nil
+	case *v, *ok = <-*ch[77]:
+		return 77, nil
+	case *v, *ok = <-*ch[78]:
+		return 78, nil
+	case *v, *ok = <-*ch[79]:
+		return 79, nil
+	case *v, *ok = <-*ch[80]:
+		return 80, nil
+	case *v, *ok = <-*ch[81]:
+		return 81, nil
+	case *v, *ok = <-*ch[82]:
+		return 82, nil
+	case *v, *ok = <-*ch[83]:
+		return 83, nil
+	case *v, *ok = <-*ch[84]:
+		return 84, nil
+	case *v, *ok = <-*ch[85]:
+		return 85, nil
+	case *v, *ok = <-*ch[86]:
+		return 86, nil
+	case *v, *ok = <-*ch[87]:
+		return 87, nil
+	case *v, *ok = <-*ch[88]:
+		return 88, nil
+	case *v, *ok = <-*ch[89]:
+		return 89, nil
+	case *v, *ok = <-*ch[90]:
+		return 90, nil
+	case *v, *ok = <-*ch[91]:
+		return 91, nil
+	case *v, *ok = <-*ch[92]:
+		return 92, nil
+	case *v, *ok = <-*ch[93]:
+		return 93, nil
+	case *v, *ok = <-*ch[94]:
+		return 94, nil
+	case *v, *ok = <-*ch[95]:
+		return 95, nil
+	case *v, *ok = <-*ch[96]:
+		return 96, nil
+	case *v, *ok = <-*ch[97]:
+		return 97, nil
+	case *v, *ok = <-*ch[98]:
+		return 98, nil
 	}
 }
+
+func select100(ctx context.Context, ch []*<-chan []any, v *[]any, ok *bool) (int, error) {
+	// Return immediately if the context is already cancelled
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	default:
+	}
 
-func select100(ctx context.Context, ch []chan any, v *any, ok *bool) (int, bool) {
-	select {
-	case <-ctx.Done():
-		return 0, false
-	case v, ok = <-ch[0]:
-		return 0, true
-	case v, ok = <-ch[1]:
-		return 1, true
-	case v, ok = <-ch[2]:
-		return 2, true
-	case v, ok = <-ch[3]:
-		return 3, true
-	case v, ok = <-ch[4]:
-		return 4, true
-	case v, ok = <-ch[5]:
-		return 5, true
-	case v, ok = <-ch[6]:
-		return 6, true
-	case v, ok = <-ch[7]:
-		return 7, true
-	case v, ok = <-ch[8]:
-		return 8, true
-	case v, ok = <-ch[9]:
-		return 9, true
-	case v, ok = <-ch[10]:
-		return 10, true
-	case v, ok = <-ch[11]:
-		return 11, true
-	case v, ok = <-ch[12]:
-		return 12, true
-	case v, ok = <-ch[13]:
-		return 13, true
-	case v, ok = <-ch[14]:
-		return 14, true
-	case v, ok = <-ch[15]:
-		return 15, true
-	case v, ok = <-ch[16]:
-		return 16, true
-	case v, ok = <-ch[17]:
-		return 17, true
-	case v, ok = <-ch[18]:
-		return 18, true
-	case v, ok = <-ch[19]:
-		return 19, true
-	case v, ok = <-ch[20]:
-		return 20, true
-	case v, ok = <-ch[21]:
-		return 21, true
-	case v, ok = <-ch[22]:
-		return 22, true
-	case v, ok = <-ch[23]:
-		return 23, true
-	case v, ok = <-ch[24]:
-		return 24, true
-	case v, ok = <-ch[25]:
-		return 25, true
-	case v, ok = <-ch[26]:
-		return 26, true
-	case v, ok = <-ch[27]:
-		return 27, true
-	case v, ok = <-ch[28]:
-		return 28, true
-	case v, ok = <-ch[29]:
-		return 29, true
-	case v, ok = <-ch[30]:
-		return 30, true
-	case v, ok = <-ch[31]:
-		return 31, true
-	case v, ok = <-ch[32]:
-		return 32, true
-	case v, ok = <-ch[33]:
-		return 33, true
-	case v, ok = <-ch[34]:
-		return 34, true
-	case v, ok = <-ch[35]:
-		return 35, true
-	case v, ok = <-ch[36]:
-		return 36, true
-	case v, ok = <-ch[37]:
-		return 37, true
-	case v, ok = <-ch[38]:
-		return 38, true
-	case v, ok = <-ch[39]:
-		return 39, true
-	case v, ok = <-ch[40]:
-		return 40, true
-	case v, ok = <-ch[41]:
-		return 41, true
-	case v, ok = <-ch[42]:
-		return 42, true
-	case v, ok = <-ch[43]:
-		return 43, true
-	case v, ok = <-ch[44]:
-		return 44, true
-	case v, ok = <-ch[45]:
-		return 45, true
-	case v, ok = <-ch[46]:
-		return 46, true
-	case v, ok = <-ch[47]:
-		return 47, true
-	case v, ok = <-ch[48]:
-		return 48, true
-	case v, ok = <-ch[49]:
-		return 49, true
-	case v, ok = <-ch[50]:
-		return 50, true
-	case v, ok = <-ch[51]:
-		return 51, true
-	case v, ok = <-ch[52]:
-		return 52, true
-	case v, ok = <-ch[53]:
-		return 53, true
-	case v, ok = <-ch[54]:
-		return 54, true
-	case v, ok = <-ch[55]:
-		return 55, true
-	case v, ok = <-ch[56]:
-		return 56, true
-	case v, ok = <-ch[57]:
-		return 57, true
-	case v, ok = <-ch[58]:
-		return 58, true
-	case v, ok = <-ch[59]:
-		return 59, true
-	case v, ok = <-ch[60]:
-		return 60, true
-	case v, ok = <-ch[61]:
-		return 61, true
-	case v, ok = <-ch[62]:
-		return 62, true
-	case v, ok = <-ch[63]:
-		return 63, true
-	case v, ok = <-ch[64]:
-		return 64, true
-	case v, ok = <-ch[65]:
-		return 65, true
-	case v, ok = <-ch[66]:
-		return 66, true
-	case v, ok = <-ch[67]:
-		return 67, true
-	case v, ok = <-ch[68]:
-		return 68, true
-	case v, ok = <-ch[69]:
-		return 69, true
-	case v, ok = <-ch[70]:
-		return 70, true
-	case v, ok = <-ch[71]:
-		return 71, true
-	case v, ok = <-ch[72]:
-		return 72, true
-	case v, ok = <-ch[73]:
-		return 73, true
-	case v, ok = <-ch[74]:
-		return 74, true
-	case v, ok = <-ch[75]:
-		return 75, true
-	case v, ok = <-ch[76]:
-		return 76, true
-	case v, ok = <-ch[77]:
-		return 77, true
-	case v, ok = <-ch[78]:
-		return 78, true
-	case v, ok = <-ch[79]:
-		return 79, true
-	case v, ok = <-ch[80]:
-		return 80, true
-	case v, ok = <-ch[81]:
-		return 81, true
-	case v, ok = <-ch[82]:
-		return 82, true
-	case v, ok = <-ch[83]:
-		return 83, true
-	case v, ok = <-ch[84]:
-		return 84, true
-	case v, ok = <-ch[85]:
-		return 85, true
-	case v, ok = <-ch[86]:
-		return 86, true
-	case v, ok = <-ch[87]:
-		return 87, true
-	case v, ok = <-ch[88]:
-		return 88, true
-	case v, ok = <-ch[89]:
-		return 89, true
-	case v, ok = <-ch[90]:
-		return 90, true
-	case v, ok = <-ch[91]:
-		return 91, true
-	case v, ok = <-ch[92]:
-		return 92, true
-	case v, ok = <-ch[93]:
-		return 93, true
-	case v, ok = <-ch[94]:
-		return 94, true
-	case v, ok = <-ch[95]:
-		return 95, true
-	case v, ok = <-ch[96]:
-		return 96, true
-	case v, ok = <-ch[97]:
-		return 97, true
-	case v, ok = <-ch[98]:
-		return 98, true
-	case v, ok = <-ch[99]:
-		return 99, true
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case *v, *ok = <-*ch[0]:
+		return 0, nil
+	case *v, *ok = <-*ch[1]:
+		return 1, nil
+	case *v, *ok = <-*ch[2]:
+		return 2, nil
+	case *v, *ok = <-*ch[3]:
+		return 3, nil
+	case *v, *ok = <-*ch[4]:
+		return 4, nil
+	case *v, *ok = <-*ch[5]:
+		return 5, nil
+	case *v, *ok = <-*ch[6]:
+		return 6, nil
+	case *v, *ok = <-*ch[7]:
+		return 7, nil
+	case *v, *ok = <-*ch[8]:
+		return 8, nil
+	case *v, *ok = <-*ch[9]:
+		return 9, nil
+	case *v, *ok = <-*ch[10]:
+		return 10, nil
+	case *v, *ok = <-*ch[11]:
+		return 11, nil
+	case *v, *ok = <-*ch[12]:
+		return 12, nil
+	case *v, *ok = <-*ch[13]:
+		return 13, nil
+	case *v, *ok = <-*ch[14]:
+		return 14, nil
+	case *v, *ok = <-*ch[15]:
+		return 15, nil
+	case *v, *ok = <-*ch[16]:
+		return 16, nil
+	case *v, *ok = <-*ch[17]:
+		return 17, nil
+	case *v, *ok = <-*ch[18]:
+		return 18, nil
+	case *v, *ok = <-*ch[19]:
+		return 19, nil
+	case *v, *ok = <-*ch[20]:
+		return 20, nil
+	case *v, *ok = <-*ch[21]:
+		return 21, nil
+	case *v, *ok = <-*ch[22]:
+		return 22, nil
+	case *v, *ok = <-*ch[23]:
+		return 23, nil
+	case *v, *ok = <-*ch[24]:
+		return 24, nil
+	case *v, *ok = <-*ch[25]:
+		return 25, nil
+	case *v, *ok = <-*ch[26]:
+		return 26, nil
+	case *v, *ok = <-*ch[27]:
+		return 27, nil
+	case *v, *ok = <-*ch[28]:
+		return 28, nil
+	case *v, *ok = <-*ch[29]:
+		return 29, nil
+	case *v, *ok = <-*ch[30]:
+		return 30, nil
+	case *v, *ok = <-*ch[31]:
+		return 31, nil
+	case *v, *ok = <-*ch[32]:
+		return 32, nil
+	case *v, *ok = <-*ch[33]:
+		return 33, nil
+	case *v, *ok = <-*ch[34]:
+		return 34, nil
+	case *v, *ok = <-*ch[35]:
+		return 35, nil
+	case *v, *ok = <-*ch[36]:
+		return 36, nil
+	case *v, *ok = <-*ch[37]:
+		return 37, nil
+	case *v, *ok = <-*ch[38]:
+		return 38, nil
+	case *v, *ok = <-*ch[39]:
+		return 39, nil
+	case *v, *ok = <-*ch[40]:
+		return 40, nil
+	case *v, *ok = <-*ch[41]:
+		return 41, nil
+	case *v, *ok = <-*ch[42]:
+		return 42, nil
+	case *v, *ok = <-*ch[43]:
+		return 43, nil
+	case *v, *ok = <-*ch[44]:
+		return 44, nil
+	case *v, *ok = <-*ch[45]:
+		return 45, nil
+	case *v, *ok = <-*ch[46]:
+		return 46, nil
+	case *v, *ok = <-*ch[47]:
+		return 47, nil
+	case *v, *ok = <-*ch[48]:
+		return 48, nil
+	case *v, *ok = <-*ch[49]:
+		return 49, nil
+	case *v, *ok = <-*ch[50]:
+		return 50, nil
+	case *v, *ok = <-*ch[51]:
+		return 51, nil
+	case *v, *ok = <-*ch[52]:
+		return 52, nil
+	case *v, *ok = <-*ch[53]:
+		return 53, nil
+	case *v, *ok = <-*ch[54]:
+		return 54, nil
+	case *v, *ok = <-*ch[55]:
+		return 55, nil
+	case *v, *ok = <-*ch[56]:
+		return 56, nil
+	case *v, *ok = <-*ch[57]:
+		return 57, nil
+	case *v, *ok = <-*ch[58]:
+		return 58, nil
+	case *v, *ok = <-*ch[59]:
+		return 59, nil
+	case *v, *ok = <-*ch[60]:
+		return 60, nil
+	case *v, *ok = <-*ch[61]:
+		return 61, nil
+	case *v, *ok = <-*ch[62]:
+		return 62, nil
+	case *v, *ok = <-*ch[63]:
+		return 63, nil
+	case *v, *ok = <-*ch[64]:
+		return 64, nil
+	case *v, *ok = <-*ch[65]:
+		return 65, nil
+	case *v, *ok = <-*ch[66]:
+		return 66, nil
+	case *v, *ok = <-*ch[67]:
+		return 67, nil
+	case *v, *ok = <-*ch[68]:
+		return 68, nil
+	case *v, *ok = <-*ch[69]:
+		return 69, nil
+	case *v, *ok = <-*ch[70]:
+		return 70, nil
+	case *v, *ok = <-*ch[71]:
+		return 71, nil
+	case *v, *ok = <-*ch[72]:
+		return 72, nil
+	case *v, *ok = <-*ch[73]:
+		return 73, nil
+	case *v, *ok = <-*ch[74]:
+		return 74, nil
+	case *v, *ok = <-*ch[75]:
+		return 75, nil
+	case *v, *ok = <-*ch[76]:
+		return 76, nil
+	case *v, *ok = <-*ch[77]:
+		return 77, nil
+	case *v, *ok = <-*ch[78]:
+		return 78, nil
+	case *v, *ok = <-*ch[79]:
+		return 79, nil
+	case *v, *ok = <-*ch[80]:
+		return 80, nil
+	case *v, *ok = <-*ch[81]:
+		return 81, nil
+	case *v, *ok = <-*ch[82]:
+		return 82, nil
+	case *v, *ok = <-*ch[83]:
+		return 83, nil
+	case *v, *ok = <-*ch[84]:
+		return 84, nil
+	case *v, *ok = <-*ch[85]:
+		return 85, nil
+	case *v, *ok = <-*ch[86]:
+		return 86, nil
+	case *v, *ok = <-*ch[87]:
+		return 87, nil
+	case *v, *ok = <-*ch[88]:
+		return 88, nil
+	case *v, *ok = <-*ch[89]:
+		return 89, nil
+	case *v, *ok = <-*ch[90]:
+		return 90, nil
+	case *v, *ok = <-*ch[91]:
+		return 91, nil
+	case *v, *ok = <-*ch[92]:
+		return 92, nil
+	case *v, *ok = <-*ch[93]:
+		return 93, nil
+	case *v, *ok = <-*ch[94]:
+		return 94, nil
+	case *v, *ok = <-*ch[95]:
+		return 95, nil
+	case *v, *ok = <-*ch[96]:
+		return 96, nil
+	case *v, *ok = <-*ch[97]:
+		return 97, nil
+	case *v, *ok = <-*ch[98]:
+		return 98, nil
+	case *v, *ok = <-*ch[99]:
+		return 99, nil
 	}
 }

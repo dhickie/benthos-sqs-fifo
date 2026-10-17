@@ -177,10 +177,10 @@ type BatchSuccessResult interface {
 
 func toBatchOpResult[T BatchSuccessResult](
 	successes []T, failures []types.BatchResultErrorEntry, batchId string, idExtractor func(T) *string) *BatchOpResult {
-	s := util.Select(successes, func(v T) *BatchItemSuccess {
+	s := util.Transform(successes, func(v T) *BatchItemSuccess {
 		return newBatchItemSuccess(*idExtractor(v))
 	})
-	f := util.Select(failures, func(v types.BatchResultErrorEntry) *BatchItemFailure {
+	f := util.Transform(failures, func(v types.BatchResultErrorEntry) *BatchItemFailure {
 		return newBatchItemFailure("DeleteMessages", batchId, v.Id, v.Code, v.SenderFault)
 	})
 
