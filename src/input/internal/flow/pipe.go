@@ -154,6 +154,7 @@ func (c *Pipe) ReceiveChan() <-chan []any {
 // received. Any attempts to send more messages while the pipe is closing will return an error. If the context
 // provided to Close is cancelled while waiting, the pipe is forcefully closed and any pending messages are lost.
 func (c *Pipe) Close(ctx context.Context) {
+	// TODO - rework this - closure should return immediately and signal completion via a channel
 	c.closeLock.Lock()
 	defer c.closeLock.Unlock()
 

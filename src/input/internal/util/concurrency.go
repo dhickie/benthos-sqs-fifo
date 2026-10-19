@@ -2,6 +2,7 @@ package util
 
 import (
 	"context"
+	"errors"
 	"sync"
 	"uuid"
 )
@@ -81,6 +82,19 @@ func (c *ContextCond) Signal() {
 	case c.ch <- struct{}{}:
 		return
 	default:
+	}
+}
+
+// Broadcast signals all waiting threads that are waiting on this condition
+// When calling this method, it is highly recommended to hold the underlying lock before calling, otherwise the call
+// could theoretically never return.
+func (c *ContextCond) Broadcast() {
+	for {
+		select {
+		case c.ch <- struct{}{}:
+		default:
+			return
+		}
 	}
 }
 
@@ -219,4 +233,134 @@ func (h *SignalHandle) Signal() {
 // Signalled returns a channel which is received from when a signal has been received from a different routine.
 func (h *SignalHandle) Signalled() chan struct{} {
 	return h.out
+}
+
+// ------------------------------------------------------------------------------------------------------------------ //
+
+// SyncValue is a threadsafe generic type that allows one thread to wait for a specific value to be set by a different
+// thread before retuning to the caller.
+type SyncValue[T comparable] struct {
+	mu *sync.Mutex
+	c  *ContextCond
+	v  T
+}
+
+// NewSyncValue returns a pointer to a new SyncValue with the provided initial value.
+func NewSyncValue[T comparable](vInit T) *SyncValue[T] {
+	mu := &sync.Mutex{}
+	return &SyncValue[T]{
+		mu: mu,
+		c:  NewContextCond(mu),
+		v:  vInit,
+	}
+}
+
+// Set the value of the SyncValue to the provided value.
+// Any threads waiting for that value will resume execution.
+func (s *SyncValue[T]) Set(v T) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.v = v
+	s.c.Broadcast()
+}
+
+// Get returns the current value held in the SyncValue
+func (s *SyncValue[T]) Get() T {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	return s.v
+}
+
+// WaitForValue blocks until the SyncValue holds the provided value or the context is cancelled
+// Returns the value held when this happens.
+// Returns an error if the context is cancelled while waiting for the value.
+func (s *SyncValue[T]) WaitForValue(ctx context.Context, v T) (T, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	for s.v != v {
+		if err := s.c.Wait(ctx); err != nil {
+			return s.v, err
+		}
+	}
+
+	return s.v, nil
+}
+
+// WaitFor waits until the provided function of the value held by the SyncValue returns true, or the provided context
+// to be cancelled.
+// Returns the value held when this happens.
+// Returns an error if the context is cancelled while waiting for the condition to be met.
+func (s *SyncValue[T]) WaitFor(ctx context.Context, f func(T) bool) (T, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	for !f(s.v) {
+		if err := s.c.Wait(ctx); err != nil {
+			return s.v, err
+		}
+	}
+
+	return s.v, nil
+}
+
+// ------------------------------------------------------------------------------------------------------------------ //
+
+// ContextWaitGroup allows WaitGroup semantics while also providing a context to cut a wait short if the context is cancelled.
+type ContextWaitGroup struct {
+	mu      *sync.Mutex
+	v       *SyncValue[int]
+	waiting bool
+}
+
+// NewContextWaitGroup returns a pointer to a new ContextWaitGroup instance.
+func NewContextWaitGroup() *ContextWaitGroup {
+	return &ContextWaitGroup{
+		mu:      &sync.Mutex{},
+		v:       NewSyncValue[int](0),
+		waiting: false,
+	}
+}
+
+// Add adds the provided delta to the wait group's value
+// Returns an error if the wait group is already being waited on via a call to Wait()
+func (c *ContextWaitGroup) Add(delta int) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if c.waiting {
+		return errors.New("cannot add to a wait group that's being waited on")
+	}
+
+	c.v.Set(c.v.Get() + delta)
+	return nil
+}
+
+// Done reduces the wait group's value by one.
+// Returns an error if the wait group's value is already at 0.
+func (c *ContextWaitGroup) Done() error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if c.v.Get() == 0 {
+		return errors.New("cannot mark a wait group as done when there are no pending goroutines")
+	}
+
+	c.v.Set(c.v.Get() - 1)
+	return nil
+}
+
+// Wait waits until either the wait group's value hits 0, or the provided context is cancelled.
+// Returns the error from the context if the context is cancelled.
+func (c *ContextWaitGroup) Wait(ctx context.Context) error {
+	c.mu.Lock()
+	c.waiting = true
+	c.mu.Unlock()
+
+	if _, err := c.v.WaitForValue(ctx, 0); err != nil {
+		return err
+	}
+	return nil
 }

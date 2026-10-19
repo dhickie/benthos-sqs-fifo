@@ -2,6 +2,7 @@ package flow
 
 import (
 	"context"
+	"dhickie/benthos-sqs-fifo/src/input/internal/util"
 	"sync"
 )
 
@@ -34,11 +35,11 @@ func NewWorkerPool(ctx context.Context, numWorkers int) *WorkerPool {
 	return wp
 }
 
-func (p *WorkerPool) Do(h *Handler, w []any, o *Pipe) error {
+func (p *WorkerPool) Do(wg *util.ContextWaitGroup, h *Handler, w []any, o *Pipe) error {
 	f := func() ([]any, error) {
 		return h.Handle(p.ctx, w)
 	}
-	wi := NewWorkItem(f, o)
+	wi := NewWorkItem(f, o, wg)
 
 	select {
 	case <-p.ctx.Done():
@@ -89,6 +90,7 @@ func (w *Worker) run() {
 				return
 			}
 			i.output.SendChan() <- r
+			i.wg.Done()
 		}
 	}
 }
@@ -96,11 +98,13 @@ func (w *Worker) run() {
 type WorkItem struct {
 	f      func() ([]any, error)
 	output *Pipe
+	wg     *util.ContextWaitGroup
 }
 
-func NewWorkItem(f func() ([]any, error), output *Pipe) *WorkItem {
+func NewWorkItem(f func() ([]any, error), output *Pipe, wg *util.ContextWaitGroup) *WorkItem {
 	return &WorkItem{
 		f:      f,
 		output: output,
+		wg:     wg,
 	}
 }

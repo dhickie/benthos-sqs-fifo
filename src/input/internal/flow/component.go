@@ -18,6 +18,7 @@ type Component struct {
 	stopped chan struct{} // Closed when the component has stopped
 
 	workerPool *WorkerPool
+	workWgMap  map[*Handler]*util.ContextWaitGroup // For keeping track of work currently being carried out by the worker pool
 }
 
 type HandlerCoupling struct {
@@ -32,6 +33,7 @@ func NewComponent(ctx context.Context, couplings []HandlerCoupling, maxConcurren
 	outputMap := make(map[string]*Pipe, len(couplings))
 	rChan := make([]*<-chan []any, len(couplings))
 	rChanMap := make(map[*<-chan []any]*Handler, len(couplings))
+	workWgMap := make(map[*Handler]*util.ContextWaitGroup, maxConcurrency)
 
 	pool := NewWorkerPool(ctx, maxConcurrency)
 
@@ -42,6 +44,7 @@ func NewComponent(ctx context.Context, couplings []HandlerCoupling, maxConcurren
 		ch := c.inputPipe.ReceiveChan()
 		rChan[i] = &ch
 		rChanMap[&ch] = c.handler
+		workWgMap[c.handler] = util.NewContextWaitGroup()
 	}
 
 	c := &Component{
@@ -54,6 +57,7 @@ func NewComponent(ctx context.Context, couplings []HandlerCoupling, maxConcurren
 		wg:         sync.WaitGroup{},
 		stopped:    make(chan struct{}),
 		workerPool: pool,
+		workWgMap:  workWgMap,
 	}
 
 	c.wg.Go(c.processLoop)
@@ -80,6 +84,7 @@ func (c *Component) processLoop() {
 	var ok bool
 	var h *Handler
 	var out *Pipe
+	var wg *util.ContextWaitGroup
 
 	for {
 		if i, err = util.Select(c.ctx, c.rChan, &v, &ok); err != nil {
@@ -88,15 +93,21 @@ func (c *Component) processLoop() {
 
 		h = c.rChanMap[c.rChan[i]]
 		out = c.outputMap[h.id]
+		wg = c.workWgMap[h]
 
 		if ok {
 			// Message received - schedule the work
-			if err = c.workerPool.Do(h, v, out); err != nil {
+			_ = wg.Add(1)
+			if err = c.workerPool.Do(wg, h, v, out); err != nil {
 				// Context cancelled - kill the loop
 				return
 			}
 		} else {
-			// Input pipe has closed - close the output pipe
+			// Input pipe has closed - close the output pipe when all work is finished
+			if err = wg.Wait(c.ctx); err != nil {
+				// Context cancelled - kill the loop
+				return
+			}
 			close(out.SendChan())
 			if len(c.rChan) == 1 {
 				// That was the last open channel, kill the loop

@@ -2,6 +2,8 @@ package flow
 
 import (
 	"context"
+	"dhickie/benthos-sqs-fifo/src/input/internal/test/wait"
+	"dhickie/benthos-sqs-fifo/src/input/internal/util"
 	"log/slog"
 	"strconv"
 	"testing"
@@ -88,9 +90,9 @@ func TestComponents_CanContainMultipleHandlers(t *testing.T) {
 	}
 }
 
-func TestComponent_Stops_WhenInputPipeHasClosed(t *testing.T) {
+func TestComponent_Stops_AndClosesOutputPipe_WhenInputPipeHasClosed(t *testing.T) {
 	// Arrange
-	c, inP, _ := createComponent(t.Context(), itoa)
+	c, inP, outP := createComponent(t.Context(), itoa)
 
 	// Act
 	close(inP.SendChan())
@@ -98,6 +100,11 @@ func TestComponent_Stops_WhenInputPipeHasClosed(t *testing.T) {
 	// Assert
 	_, ok := <-c.Stopped()
 	assert.False(t, ok)
+	err := wait.Until(t.Context(), func(_ context.Context) (bool, error) {
+		_, ok := <-outP.ReceiveChan()
+		return !ok, nil
+	}, time.Second)
+	assert.NoError(t, err)
 }
 
 func TestComponent_Stops_WhenContextIsCancelled(t *testing.T) {
@@ -139,9 +146,28 @@ func TestComponent_WaitsToStop_UntilAllInputPipesAreClosed(t *testing.T) {
 	assert.False(t, ok)
 }
 
-func TestComponent_ClosesOutputPipe_WhenWorkFinished(t *testing.T) {
+func TestComponent_WaitsForWorkToFinish_BeforeStopping(t *testing.T) {
 	// Arrange
-	c, inP, outP := createComponent(t.Context(), itoa)
+	started := util.NewSyncValue(false)
+	cont := util.NewSyncValue(false)
+	workFunc := bigWorkFactory(started, cont)
+	c, inP, _ := createComponent(t.Context(), workFunc)
+	input := []int{123}
+
+	// Act
+	_ = inP.Send(t.Context(), input...)
+	started.WaitForValue(t.Context(), true)
+	close(inP.SendChan())
+	err := wait.Until(t.Context(), func(_ context.Context) (bool, error) {
+		<-c.Stopped()
+		return true, nil
+	}, time.Duration(10)*time.Millisecond)
+	cont.Set(true)
+	_, ok := <-c.Stopped()
+
+	// Assert
+	assert.Error(t, err)
+	assert.False(t, ok)
 }
 
 func itoa(_ context.Context, i []int) ([]string, error) {
@@ -163,6 +189,14 @@ func reverse(_ context.Context, str []string) ([]string, error) {
 	}
 
 	return o, nil
+}
+
+func bigWorkFactory(started *util.SyncValue[bool], cont *util.SyncValue[bool]) func(context.Context, []int) ([]string, error) {
+	return func(ctx context.Context, input []int) ([]string, error) {
+		started.Set(true)
+		cont.WaitForValue(ctx, true)
+		return itoa(ctx, input)
+	}
 }
 
 func createComponent(ctx context.Context, handleFunc func(context.Context, []int) ([]string, error)) (*Component, *Pipe, *Pipe) {
