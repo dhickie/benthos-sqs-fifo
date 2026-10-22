@@ -205,13 +205,9 @@ func createComponent(ctx context.Context, handleFunc func(context.Context, []int
 	inP := NewPipe("input", bp, l)
 	outP := NewPipe("output", bp, l)
 	handler := NewHandler(handleFunc)
-	coupling := HandlerCoupling{
-		handler:    handler,
-		inputPipe:  inP,
-		outputPipe: outP,
-	}
+	coupling := NewHandlerCoupling(handler, inP, outP, nil, 1)
 
-	return NewComponent(ctx, []HandlerCoupling{coupling}, 1), inP, outP
+	return NewComponent(ctx, []*HandlerCoupling{coupling}, 1), inP, outP
 }
 
 func createComponentChain(ctx context.Context, f1 func(context.Context, []int) ([]string, error), f2 func(context.Context, []string) ([]string, error)) ([]*Component, *Pipe, *Pipe) {
@@ -220,8 +216,8 @@ func createComponentChain(ctx context.Context, f1 func(context.Context, []int) (
 	p3 := NewPipe("output", bp, l)
 	handler1 := NewHandler(f1)
 	handler2 := NewHandler(f2)
-	couplings1 := []HandlerCoupling{{handler1, p1, p2}}
-	couplings2 := []HandlerCoupling{{handler2, p2, p3}}
+	couplings1 := []*HandlerCoupling{NewHandlerCoupling(handler1, p1, p2, nil, 1)}
+	couplings2 := []*HandlerCoupling{NewHandlerCoupling(handler2, p2, p3, nil, 1)}
 	c1 := NewComponent(ctx, couplings1, 1)
 	c2 := NewComponent(ctx, couplings2, 1)
 
@@ -235,9 +231,9 @@ func createMultiHandlerComponent(ctx context.Context, f1 func(context.Context, [
 	outP2 := NewPipe("output2", bp, l)
 	handler1 := NewHandler(f1)
 	handler2 := NewHandler(f2)
-	couplings := []HandlerCoupling{
-		{handler1, inP1, outP1},
-		{handler2, inP2, outP2},
+	couplings := []*HandlerCoupling{
+		NewHandlerCoupling(handler1, inP1, outP1, nil, 1),
+		NewHandlerCoupling(handler2, inP2, outP2, nil, 1),
 	}
 	c := NewComponent(ctx, couplings, 1)
 	return c, []*Pipe{inP1, inP2}, []*Pipe{outP1, outP2}

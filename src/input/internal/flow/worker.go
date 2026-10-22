@@ -35,9 +35,11 @@ func NewWorkerPool(ctx context.Context, numWorkers int) *WorkerPool {
 	return wp
 }
 
-func (p *WorkerPool) Do(wg *util.ContextWaitGroup, h *Handler, w []any, o *Pipe) error {
+func (p *WorkerPool) Do(wg *util.ContextWaitGroup, h *Handler, w []any, o *Pipe, retryPolicy *RetryPolicy) error {
 	f := func() ([]any, error) {
-		return h.Handle(p.ctx, w)
+		if r, err := h.Handle(p.ctx, w); err != nil && retryPolicy != nil {
+			// Handler has a retry policy, so enact it
+		}
 	}
 	wi := NewWorkItem(f, o, wg)
 
