@@ -2,6 +2,7 @@ package flow
 
 import (
 	"context"
+	"dhickie/benthos-sqs-fifo/src/input/internal/test/wait"
 	"dhickie/benthos-sqs-fifo/src/input/internal/util"
 	"sync"
 )
@@ -36,9 +37,43 @@ func NewWorkerPool(ctx context.Context, numWorkers int) *WorkerPool {
 }
 
 func (p *WorkerPool) Do(wg *util.ContextWaitGroup, h *Handler, w []any, o *Pipe, retryPolicy *RetryPolicy) error {
-	f := func() ([]any, error) {
-		if r, err := h.Handle(p.ctx, w); err != nil && retryPolicy != nil {
-			// Handler has a retry policy, so enact it
+	f := func() error {
+		numAttempts := 0
+		var err error
+		var r []any
+
+		// Try until we succeed or hit the maximum number of attempts
+		for {
+			r, err = h.Handle(p.ctx, w)
+			if err == nil {
+				o.SendChan() <- r
+				return nil
+			}
+
+			// Was the context cancelled?
+			if p.ctx.Err() != nil {
+				return p.ctx.Err()
+			}
+
+			// The handler returned an error, do we have a retry policy?
+			numAttempts++
+
+			retry := retryPolicy != nil && (retryPolicy.maxAttempts == 0 || numAttempts < retryPolicy.maxAttempts)
+
+			if retry {
+				if wErr := wait.For(p.ctx, retryPolicy.interval); wErr != nil {
+					return p.ctx.Err()
+				}
+
+				continue
+			}
+
+			// We're out of retries, is there an error pipe to send to?
+			if retryPolicy != nil && retryPolicy.errPipe != nil {
+				retryPolicy.errPipe.SendChan() <- w
+			}
+
+			return nil
 		}
 	}
 	wi := NewWorkItem(f, o, wg)
@@ -74,7 +109,6 @@ func NewWorker(ctx context.Context, wg *sync.WaitGroup, input chan *WorkItem) *W
 
 func (w *Worker) run() {
 	var i *WorkItem
-	var r []any
 	var err error
 
 	for {
@@ -88,22 +122,22 @@ func (w *Worker) run() {
 		case <-w.ctx.Done():
 			return
 		case i = <-w.input:
-			if r, err = i.f(); err != nil { // TODO: Handle handler errors
+			if err = i.f(); err != nil {
+				// The work function only returns an error if the context is cancelled
 				return
 			}
-			i.output.SendChan() <- r
 			i.wg.Done()
 		}
 	}
 }
 
 type WorkItem struct {
-	f      func() ([]any, error)
+	f      func() error
 	output *Pipe
 	wg     *util.ContextWaitGroup
 }
 
-func NewWorkItem(f func() ([]any, error), output *Pipe, wg *util.ContextWaitGroup) *WorkItem {
+func NewWorkItem(f func() error, output *Pipe, wg *util.ContextWaitGroup) *WorkItem {
 	return &WorkItem{
 		f:      f,
 		output: output,

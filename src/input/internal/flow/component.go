@@ -86,6 +86,7 @@ func NewComponent(ctx context.Context, couplings []*HandlerCoupling, maxConcurre
 		stopped:    make(chan struct{}),
 		workerPool: pool,
 		workWgMap:  workWgMap,
+		retryMap:   retryMap,
 	}
 
 	c.wg.Go(c.processLoop)

@@ -4,6 +4,7 @@ import (
 	"context"
 	"dhickie/benthos-sqs-fifo/src/input/internal/test/wait"
 	"dhickie/benthos-sqs-fifo/src/input/internal/util"
+	"errors"
 	"log/slog"
 	"strconv"
 	"testing"
@@ -170,6 +171,65 @@ func TestComponent_WaitsForWorkToFinish_BeforeStopping(t *testing.T) {
 	assert.False(t, ok)
 }
 
+func TestComponent_SendsToErrorPipe_AfterFailure(t *testing.T) {
+	// Arrange
+	input := []int{123}
+	f := func(_ context.Context, i []int) ([]string, error) {
+		return nil, errors.New("test error")
+	}
+	_, inP, errorP := createErrorComponent(t.Context(), f, 1)
+	defer close(inP.SendChan())
+
+	// Act
+	_ = inP.Send(t.Context(), input...)
+	result, err := errorP.Receive(t.Context())
+
+	// Assert
+	assert.NoError(t, err)
+	assert.Len(t, result, 1)
+	assert.Equal(t, input[0], result[0].(int))
+}
+
+func TestComponent_RetriesHandler_UpToMaxAttempts(t *testing.T) {
+	// Arrange
+	input := []int{123}
+	attempts := 0
+	maxAttempts := 2
+	f := func(_ context.Context, i []int) ([]string, error) {
+		attempts++
+		return nil, errors.New("test error")
+	}
+	_, inP, errorP := createErrorComponent(t.Context(), f, maxAttempts)
+	defer close(inP.SendChan())
+
+	// Act
+	_ = inP.Send(t.Context(), input...)
+	errorP.Receive(t.Context()) // Ensure the work is completed
+
+	// Assert
+	assert.Equal(t, maxAttempts, attempts)
+}
+
+func TestComponent_IgnoresErrors_IfNoErrorPipeIsDefined(t *testing.T) {
+	// Arrange
+	input := []int{123}
+	attempts := 0
+	maxAttempts := 2
+	f := func(_ context.Context, i []int) ([]string, error) {
+		attempts++
+		return nil, errors.New("test error")
+	}
+	c, inP := createErrorComponentWithNoErrorPipe(t.Context(), f, maxAttempts)
+
+	// Act
+	_ = inP.Send(t.Context(), input...)
+	close(inP.SendChan())
+	<-c.Stopped()
+
+	// Assert
+	assert.Equal(t, maxAttempts, attempts)
+}
+
 func itoa(_ context.Context, i []int) ([]string, error) {
 	o := make([]string, len(i))
 	for i, v := range i {
@@ -205,7 +265,7 @@ func createComponent(ctx context.Context, handleFunc func(context.Context, []int
 	inP := NewPipe("input", bp, l)
 	outP := NewPipe("output", bp, l)
 	handler := NewHandler(handleFunc)
-	coupling := NewHandlerCoupling(handler, inP, outP, nil, 1)
+	coupling := NewHandlerCoupling(handler, inP, outP, nil)
 
 	return NewComponent(ctx, []*HandlerCoupling{coupling}, 1), inP, outP
 }
@@ -216,8 +276,8 @@ func createComponentChain(ctx context.Context, f1 func(context.Context, []int) (
 	p3 := NewPipe("output", bp, l)
 	handler1 := NewHandler(f1)
 	handler2 := NewHandler(f2)
-	couplings1 := []*HandlerCoupling{NewHandlerCoupling(handler1, p1, p2, nil, 1)}
-	couplings2 := []*HandlerCoupling{NewHandlerCoupling(handler2, p2, p3, nil, 1)}
+	couplings1 := []*HandlerCoupling{NewHandlerCoupling(handler1, p1, p2, nil)}
+	couplings2 := []*HandlerCoupling{NewHandlerCoupling(handler2, p2, p3, nil)}
 	c1 := NewComponent(ctx, couplings1, 1)
 	c2 := NewComponent(ctx, couplings2, 1)
 
@@ -232,9 +292,28 @@ func createMultiHandlerComponent(ctx context.Context, f1 func(context.Context, [
 	handler1 := NewHandler(f1)
 	handler2 := NewHandler(f2)
 	couplings := []*HandlerCoupling{
-		NewHandlerCoupling(handler1, inP1, outP1, nil, 1),
-		NewHandlerCoupling(handler2, inP2, outP2, nil, 1),
+		NewHandlerCoupling(handler1, inP1, outP1, nil),
+		NewHandlerCoupling(handler2, inP2, outP2, nil),
 	}
 	c := NewComponent(ctx, couplings, 1)
 	return c, []*Pipe{inP1, inP2}, []*Pipe{outP1, outP2}
+}
+
+func createErrorComponent(ctx context.Context, f func(context.Context, []int) ([]string, error), maxAttempts int) (*Component, *Pipe, *Pipe) {
+	inP := NewPipe("input", bp, l)
+	outP := NewPipe("output", bp, l)
+	errorP := NewPipe("error", bp, l)
+	retryPolicy := NewRetryPolicy(errorP, maxAttempts, time.Microsecond)
+	handler := NewHandler(f)
+	coupling := NewHandlerCoupling(handler, inP, outP, retryPolicy)
+	return NewComponent(ctx, []*HandlerCoupling{coupling}, 1), inP, errorP
+}
+
+func createErrorComponentWithNoErrorPipe(ctx context.Context, f func(context.Context, []int) ([]string, error), maxAttempts int) (*Component, *Pipe) {
+	inP := NewPipe("input", bp, l)
+	outP := NewPipe("output", bp, l)
+	retryPolicy := NewRetryPolicy(nil, maxAttempts, time.Microsecond)
+	handler := NewHandler(f)
+	coupling := NewHandlerCoupling(handler, inP, outP, retryPolicy)
+	return NewComponent(ctx, []*HandlerCoupling{coupling}, 1), inP
 }
