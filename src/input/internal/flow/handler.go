@@ -1,37 +1,34 @@
+//go:generate go run generate.go
+
 package flow
 
 import (
 	"context"
-	"uuid"
 )
 
 type Handler struct {
 	id         string
-	handleFunc func(context.Context, []any) ([]any, error)
+	handleFunc func(context.Context, []any) ([][]InternalHandleResult, error)
 }
 
-type HandleFunc[Tin any, Tout any] func(context.Context, []Tin) ([]Tout, error)
-
-func NewHandler[Tin any, Tout any](handleFunc HandleFunc[Tin, Tout]) *Handler {
-	f := func(ctx context.Context, in []any) ([]any, error) {
-		inConv := make([]Tin, len(in))
-		for i, v := range in {
-			inConv[i] = v.(Tin)
-		}
-
-		out, err := handleFunc(ctx, inConv)
-		outConv := make([]any, len(out))
-		for i, v := range out {
-			outConv[i] = v
-		}
-		return outConv, err
-	}
-	return &Handler{
-		id:         uuid.New().String(),
-		handleFunc: f,
-	}
+type HandleResult[Tin any] struct {
+	input Tin
+	err   error
 }
 
-func (h *Handler) Handle(ctx context.Context, in []any) ([]any, error) {
+type ValueHandleResult[Tin any, Tout any] struct {
+	HandleResult[Tin]
+	ok     bool
+	output Tout
+}
+
+type InternalHandleResult struct {
+	input  any
+	ok     bool
+	err    error
+	output any
+}
+
+func (h *Handler) Handle(ctx context.Context, in []any) ([][]InternalHandleResult, error) {
 	return h.handleFunc(ctx, in)
 }
