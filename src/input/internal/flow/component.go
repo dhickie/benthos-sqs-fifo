@@ -9,7 +9,7 @@ import (
 
 type Component struct {
 	inputMap  map[string]*Handler        // Map of input pipe IDs to handlers
-	outputMap map[string]*Pipe           // Map of handler IDs to output pipes
+	outputMap map[string][]*Pipe         // Map of handler IDs to output pipes
 	retryMap  map[string]*RetryPolicy    // Map of handler IDs to their retry policies
 	inputs    []*Pipe                    // All the input pipes
 	rChan     []*<-chan []any            // All of the receive channels for incoming pipes
@@ -40,11 +40,11 @@ func NewRetryPolicy(errPipe *Pipe, maxAttempts int, interval time.Duration) *Ret
 type HandlerCoupling struct {
 	handler     *Handler
 	inputPipe   *Pipe
-	outputPipe  *Pipe
+	outputPipe  []*Pipe
 	retryPolicy *RetryPolicy
 }
 
-func NewHandlerCoupling(h *Handler, in *Pipe, out *Pipe, retryPolicy *RetryPolicy) *HandlerCoupling {
+func NewHandlerCoupling(h *Handler, in *Pipe, out []*Pipe, retryPolicy *RetryPolicy) *HandlerCoupling {
 	return &HandlerCoupling{
 		handler:     h,
 		inputPipe:   in,
@@ -56,7 +56,7 @@ func NewHandlerCoupling(h *Handler, in *Pipe, out *Pipe, retryPolicy *RetryPolic
 func NewComponent(ctx context.Context, couplings []*HandlerCoupling, maxConcurrency int) *Component {
 	inputs := make([]*Pipe, 0, len(couplings))
 	inputMap := make(map[string]*Handler, len(couplings))
-	outputMap := make(map[string]*Pipe, len(couplings))
+	outputMap := make(map[string][]*Pipe, len(couplings))
 	retryMap := make(map[string]*RetryPolicy)
 	rChan := make([]*<-chan []any, len(couplings))
 	rChanMap := make(map[*<-chan []any]*Handler, len(couplings))
@@ -112,7 +112,7 @@ func (c *Component) processLoop() {
 	var v []any
 	var ok bool
 	var h *Handler
-	var out *Pipe
+	var out []*Pipe
 	var retryPolicy *RetryPolicy
 	var wg *util.ContextWaitGroup
 
@@ -134,12 +134,14 @@ func (c *Component) processLoop() {
 				return
 			}
 		} else {
-			// Input pipe has closed - close the output pipe when all work is finished
+			// Input pipe has closed - close all the output pipes when all work is finished
 			if err = wg.Wait(c.ctx); err != nil {
 				// Context cancelled - kill the loop
 				return
 			}
-			close(out.SendChan())
+			for _, p := range out {
+				close(p.SendChan())
+			}
 			if len(c.rChan) == 1 {
 				// That was the last open channel, kill the loop
 				return

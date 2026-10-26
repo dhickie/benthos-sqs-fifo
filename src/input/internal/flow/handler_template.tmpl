@@ -21,7 +21,7 @@ func NewHandler_0[Tin any](handleFunc HandleFunc_0[Tin]) *Handler {
 		return [][]InternalHandleResult{
 			[]InternalHandleResult{
 				{
-					input:  nil,
+					input:  in[0],
 					ok:     false,
 					err:    err,
 					output: nil,
@@ -45,6 +45,9 @@ func NewBatchHandler_0[Tin any](handleFunc BatchHandleFunc_0[Tin]) *Handler {
 		}
 
 		r, err := handleFunc(ctx, inConv)
+		if err != nil {
+			return nil, err
+		}
 
 		// For a batch handler with no return values, the caller only needs to know about failures to put through the retry policy
 		outConv := make([]InternalHandleResult, len(r.failures))
@@ -96,6 +99,9 @@ func NewBatchHandler_{{.NumOut}}[Tin any{{range .GenIndexes}}, Tout{{.}} any{{en
 		}
 
 		r1{{range .OutIndexes}}, r{{.}}{{end}}, err := handleFunc(ctx, inConv)
+		if err != nil {
+			return nil, err
+		}
 
 		var rCount int
 

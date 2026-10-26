@@ -39,7 +39,7 @@ func NewHandler_0[Tin any](handleFunc HandleFunc_0[Tin]) *Handler {
 		return [][]InternalHandleResult{
 			[]InternalHandleResult{
 				{
-					input:  nil,
+					input:  in[0],
 					ok:     false,
 					err:    err,
 					output: nil,
@@ -63,6 +63,9 @@ func NewBatchHandler_0[Tin any](handleFunc BatchHandleFunc_0[Tin]) *Handler {
 		}
 
 		r, err := handleFunc(ctx, inConv)
+		if err != nil {
+			return nil, err
+		}
 
 		// For a batch handler with no return values, the caller only needs to know about failures to put through the retry policy
 		outConv := make([]InternalHandleResult, len(r.failures))
@@ -114,6 +117,9 @@ func NewBatchHandler_1[Tin any, Tout1 any](handleFunc BatchHandleFunc_1[Tin, Tou
 		}
 
 		r1, err := handleFunc(ctx, inConv)
+		if err != nil {
+			return nil, err
+		}
 
 		var rCount int
 
@@ -184,6 +190,9 @@ func NewBatchHandler_2[Tin any, Tout1 any, Tout2 any](handleFunc BatchHandleFunc
 		}
 
 		r1, r2, err := handleFunc(ctx, inConv)
+		if err != nil {
+			return nil, err
+		}
 
 		var rCount int
 
@@ -280,6 +289,9 @@ func NewBatchHandler_3[Tin any, Tout1 any, Tout2 any, Tout3 any](handleFunc Batc
 		}
 
 		r1, r2, r3, err := handleFunc(ctx, inConv)
+		if err != nil {
+			return nil, err
+		}
 
 		var rCount int
 
@@ -402,6 +414,9 @@ func NewBatchHandler_4[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any](hand
 		}
 
 		r1, r2, r3, r4, err := handleFunc(ctx, inConv)
+		if err != nil {
+			return nil, err
+		}
 
 		var rCount int
 
@@ -550,6 +565,9 @@ func NewBatchHandler_5[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout
 		}
 
 		r1, r2, r3, r4, r5, err := handleFunc(ctx, inConv)
+		if err != nil {
+			return nil, err
+		}
 
 		var rCount int
 
@@ -724,6 +742,9 @@ func NewBatchHandler_6[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout
 		}
 
 		r1, r2, r3, r4, r5, r6, err := handleFunc(ctx, inConv)
+		if err != nil {
+			return nil, err
+		}
 
 		var rCount int
 
@@ -924,6 +945,9 @@ func NewBatchHandler_7[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout
 		}
 
 		r1, r2, r3, r4, r5, r6, r7, err := handleFunc(ctx, inConv)
+		if err != nil {
+			return nil, err
+		}
 
 		var rCount int
 
@@ -1150,6 +1174,9 @@ func NewBatchHandler_8[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout
 		}
 
 		r1, r2, r3, r4, r5, r6, r7, r8, err := handleFunc(ctx, inConv)
+		if err != nil {
+			return nil, err
+		}
 
 		var rCount int
 
@@ -1402,6 +1429,9 @@ func NewBatchHandler_9[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout
 		}
 
 		r1, r2, r3, r4, r5, r6, r7, r8, r9, err := handleFunc(ctx, inConv)
+		if err != nil {
+			return nil, err
+		}
 
 		var rCount int
 
@@ -1680,6 +1710,9 @@ func NewBatchHandler_10[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tou
 		}
 
 		r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, err := handleFunc(ctx, inConv)
+		if err != nil {
+			return nil, err
+		}
 
 		var rCount int
 
