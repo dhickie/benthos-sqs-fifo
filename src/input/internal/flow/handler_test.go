@@ -41,21 +41,21 @@ func TestHandle_PassesMultipleValuesCorrectly(t *testing.T) {
 	expectedOut := []string{
 		"1", "2", "3", "4", "5",
 	}
-	handleFunc := func(_ context.Context, i []int) ([]string, error) {
+	handleFunc := func(_ context.Context, i []int) (*ValueBatchHandleResult[int, string], error) {
 		out := make([]string, len(i))
 		for i, v := range i {
 			out[i] = strconv.Itoa(v)
 		}
-		return out, nil
+		return NewValueBatchHandleResult[int, string](out, nil), nil
 	}
-	handler := NewHandler(handleFunc)
+	handler := NewBatchHandler_1(handleFunc)
 
 	// Act
 	result, _ := handler.Handle(t.Context(), in)
 
 	// Assert
-	for i, v := range result {
-		conv, ok := v.(string)
+	for i, v := range result[0] {
+		conv, ok := v.output.(string)
 		assert.True(t, ok)
 		assert.Equal(t, expectedOut[i], conv)
 	}
@@ -82,18 +82,18 @@ func testValue[Tin any, Tout any](t *testing.T, values map[reflect.Type]any) {
 	expectedOutput := values[reflect.TypeFor[Tout]()].(Tout)
 
 	h := newTestHandler[Tin, Tout](t, values)
-	h.expectedInput = []Tin{input}
+	h.expectedInput = input
 	if reflect.TypeFor[Tin]().Kind() == reflect.Func {
 		// Don't assert function equality - it can't be done
 		h.assertInputValue = false
 	}
-	handler := NewHandler[Tin, Tout](h.handleTestInput)
+	handler := NewHandler_1[Tin, Tout](h.handleTestInput)
 
 	// Act
 	output, _ := handler.Handle(t.Context(), []any{input})
 
 	// Assert
-	oConv, ok := output[0].(Tout)
+	oConv, ok := output[0][0].output.(Tout)
 	assert.True(t, ok)
 	if reflect.TypeFor[Tout]().Kind() != reflect.Func {
 		assert.True(t, reflect.DeepEqual(expectedOutput, oConv))
@@ -105,7 +105,7 @@ func testValue[Tin any, Tout any](t *testing.T, values map[reflect.Type]any) {
 type testHandler[Tin any, Tout any] struct {
 	t                *testing.T
 	values           map[reflect.Type]any
-	expectedInput    []Tin
+	expectedInput    Tin
 	assertInputValue bool
 }
 
@@ -117,15 +117,13 @@ func newTestHandler[Tin any, Tout any](t *testing.T, values map[reflect.Type]any
 	}
 }
 
-func (h *testHandler[Tin, Tout]) handleTestInput(_ context.Context, in []Tin) ([]Tout, error) {
-	for i, v := range in {
-		assert.Equal(h.t, reflect.TypeOf(h.expectedInput[i]), reflect.TypeOf(v))
-		if h.assertInputValue {
-			assert.Equal(h.t, h.expectedInput[i], v)
-		}
+func (h *testHandler[Tin, Tout]) handleTestInput(_ context.Context, in Tin) (*ValueHandleResult[Tout], error) {
+	assert.Equal(h.t, reflect.TypeOf(h.expectedInput), reflect.TypeOf(in))
+	if h.assertInputValue {
+		assert.Equal(h.t, h.expectedInput, in)
 	}
 
-	return []Tout{h.values[reflect.TypeFor[Tout]()].(Tout)}, nil
+	return NewValueHandleResult(h.values[reflect.TypeFor[Tout]()].(Tout), true), nil
 }
 
 // ------------------------------------------------------------------------------------------------------------------ //

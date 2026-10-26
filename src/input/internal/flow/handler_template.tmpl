@@ -7,23 +7,23 @@ import (
 )
 
 // Handler functions accepted from code creating handlers
-type HandleFunc_0[Tin any] func(context.Context, Tin) (HandleResult[Tin], error)
-type BatchHandleFunc_0[Tin any] func(context.Context, []Tin) ([]HandleResult[Tin], error)
-{{range .}}type HandleFunc_{{.NumOut}}[Tin any{{range .GenIndexes}}, Tout{{.}} any{{end}}] func(context.Context, Tin) (ValueHandleResult[Tin, Tout1]{{range .OutIndexes}}, ValueHandleResult[Tin, Tout{{.}}]{{end}}, error)
-type BatchHandleFunc_{{.NumOut}}[Tin any{{range .GenIndexes}}, Tout{{.}} any{{end}}] func(context.Context, []Tin) ([]ValueHandleResult[Tin, Tout1]{{range .OutIndexes}}, []ValueHandleResult[Tin, Tout{{.}}]{{end}}, error)
+type HandleFunc_0[Tin any] func(context.Context, Tin) error
+type BatchHandleFunc_0[Tin any] func(context.Context, []Tin) (*BatchHandleResult[Tin], error)
+{{range .}}type HandleFunc_{{.NumOut}}[Tin any{{range .GenIndexes}}, Tout{{.}} any{{end}}] func(context.Context, Tin) (*ValueHandleResult[Tout1]{{range .OutIndexes}}, *ValueHandleResult[Tout{{.}}]{{end}}, error)
+type BatchHandleFunc_{{.NumOut}}[Tin any{{range .GenIndexes}}, Tout{{.}} any{{end}}] func(context.Context, []Tin) (*ValueBatchHandleResult[Tin, Tout1]{{range .OutIndexes}}, *ValueBatchHandleResult[Tin, Tout{{.}}]{{end}}, error)
 {{end}}
 
 // Functions that convert a provided handler function into a type agnostic internal handler function that accepts any type
 func NewHandler_0[Tin any](handleFunc HandleFunc_0[Tin]) *Handler {
 	// Build a function that converts the user provided typed handler into a type agnostic handler the framework can use
 	f := func(ctx context.Context, in []any) ([][]InternalHandleResult, error) {
-		r, err := handleFunc(ctx, in[0].(Tin))
+		err := handleFunc(ctx, in[0].(Tin))
 		return [][]InternalHandleResult{
 			[]InternalHandleResult{
 				{
-					input:  r.input,
+					input:  nil,
 					ok:     false,
-					err:    r.err,
+					err:    err,
 					output: nil,
 				},
 			},
@@ -46,8 +46,9 @@ func NewBatchHandler_0[Tin any](handleFunc BatchHandleFunc_0[Tin]) *Handler {
 
 		r, err := handleFunc(ctx, inConv)
 
-		outConv := make([]InternalHandleResult, len(r))
-		for i, v := range r {
+		// For a batch handler with no return values, the caller only needs to know about failures to put through the retry policy
+		outConv := make([]InternalHandleResult, len(r.failures))
+		for i, v := range r.failures {
 			outConv[i] = InternalHandleResult{
 				input:  v.input,
 				ok:     false,
@@ -71,9 +72,9 @@ func NewHandler_{{.NumOut}}[Tin any{{range .GenIndexes}}, Tout{{.}} any{{end}}](
 		return [][]InternalHandleResult{ {{range .GenIndexes}}
 			[]InternalHandleResult{
 				{
-					input:  r{{.}}.input,
+					input:  nil,
 					ok:     r{{.}}.ok,
-					err:    r{{.}}.err,
+					err:    nil,
 					output: r{{.}}.output,
 				},
 			},{{end}}
@@ -96,13 +97,24 @@ func NewBatchHandler_{{.NumOut}}[Tin any{{range .GenIndexes}}, Tout{{.}} any{{en
 
 		r1{{range .OutIndexes}}, r{{.}}{{end}}, err := handleFunc(ctx, inConv)
 
-		{{range .GenIndexes}}outConv{{.}} := make([]InternalHandleResult, len(r{{.}}))
-		for i, v := range r{{.}} {
+		var rCount int
+
+		{{range .GenIndexes}}rCount = len(r{{.}}.results)+len(r{{.}}.failures)
+		outConv{{.}} := make([]InternalHandleResult, rCount)
+		for i, v := range r{{.}}.results {
 			outConv{{.}}[i] = InternalHandleResult{
-				input:  v.input,
-				ok:     v.ok,
-				err:    v.err,
-				output: v.output,
+				input:  nil,
+				ok:     true,
+				err:    nil,
+				output: v,
+			}
+		}
+		for i, j := len(r{{.}}.results), 0; i < rCount; i, j = i+1, j+1 {
+			outConv{{.}}[i] = InternalHandleResult{
+				input: r{{.}}.failures[j].input,
+				ok: false,
+				err: r{{.}}.failures[j].err,
+				output: nil,
 			}
 		}
 		{{end}}

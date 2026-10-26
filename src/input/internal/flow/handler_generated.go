@@ -7,41 +7,41 @@ import (
 )
 
 // Handler functions accepted from code creating handlers
-type HandleFunc_0[Tin any] func(context.Context, Tin) (HandleResult[Tin], error)
-type BatchHandleFunc_0[Tin any] func(context.Context, []Tin) ([]HandleResult[Tin], error)
-type HandleFunc_1[Tin any, Tout1 any] func(context.Context, Tin) (ValueHandleResult[Tin, Tout1], error)
-type BatchHandleFunc_1[Tin any, Tout1 any] func(context.Context, []Tin) ([]ValueHandleResult[Tin, Tout1], error)
-type HandleFunc_2[Tin any, Tout1 any, Tout2 any] func(context.Context, Tin) (ValueHandleResult[Tin, Tout1], ValueHandleResult[Tin, Tout2], error)
-type BatchHandleFunc_2[Tin any, Tout1 any, Tout2 any] func(context.Context, []Tin) ([]ValueHandleResult[Tin, Tout1], []ValueHandleResult[Tin, Tout2], error)
-type HandleFunc_3[Tin any, Tout1 any, Tout2 any, Tout3 any] func(context.Context, Tin) (ValueHandleResult[Tin, Tout1], ValueHandleResult[Tin, Tout2], ValueHandleResult[Tin, Tout3], error)
-type BatchHandleFunc_3[Tin any, Tout1 any, Tout2 any, Tout3 any] func(context.Context, []Tin) ([]ValueHandleResult[Tin, Tout1], []ValueHandleResult[Tin, Tout2], []ValueHandleResult[Tin, Tout3], error)
-type HandleFunc_4[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any] func(context.Context, Tin) (ValueHandleResult[Tin, Tout1], ValueHandleResult[Tin, Tout2], ValueHandleResult[Tin, Tout3], ValueHandleResult[Tin, Tout4], error)
-type BatchHandleFunc_4[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any] func(context.Context, []Tin) ([]ValueHandleResult[Tin, Tout1], []ValueHandleResult[Tin, Tout2], []ValueHandleResult[Tin, Tout3], []ValueHandleResult[Tin, Tout4], error)
-type HandleFunc_5[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 any] func(context.Context, Tin) (ValueHandleResult[Tin, Tout1], ValueHandleResult[Tin, Tout2], ValueHandleResult[Tin, Tout3], ValueHandleResult[Tin, Tout4], ValueHandleResult[Tin, Tout5], error)
-type BatchHandleFunc_5[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 any] func(context.Context, []Tin) ([]ValueHandleResult[Tin, Tout1], []ValueHandleResult[Tin, Tout2], []ValueHandleResult[Tin, Tout3], []ValueHandleResult[Tin, Tout4], []ValueHandleResult[Tin, Tout5], error)
-type HandleFunc_6[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 any, Tout6 any] func(context.Context, Tin) (ValueHandleResult[Tin, Tout1], ValueHandleResult[Tin, Tout2], ValueHandleResult[Tin, Tout3], ValueHandleResult[Tin, Tout4], ValueHandleResult[Tin, Tout5], ValueHandleResult[Tin, Tout6], error)
-type BatchHandleFunc_6[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 any, Tout6 any] func(context.Context, []Tin) ([]ValueHandleResult[Tin, Tout1], []ValueHandleResult[Tin, Tout2], []ValueHandleResult[Tin, Tout3], []ValueHandleResult[Tin, Tout4], []ValueHandleResult[Tin, Tout5], []ValueHandleResult[Tin, Tout6], error)
-type HandleFunc_7[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 any, Tout6 any, Tout7 any] func(context.Context, Tin) (ValueHandleResult[Tin, Tout1], ValueHandleResult[Tin, Tout2], ValueHandleResult[Tin, Tout3], ValueHandleResult[Tin, Tout4], ValueHandleResult[Tin, Tout5], ValueHandleResult[Tin, Tout6], ValueHandleResult[Tin, Tout7], error)
-type BatchHandleFunc_7[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 any, Tout6 any, Tout7 any] func(context.Context, []Tin) ([]ValueHandleResult[Tin, Tout1], []ValueHandleResult[Tin, Tout2], []ValueHandleResult[Tin, Tout3], []ValueHandleResult[Tin, Tout4], []ValueHandleResult[Tin, Tout5], []ValueHandleResult[Tin, Tout6], []ValueHandleResult[Tin, Tout7], error)
-type HandleFunc_8[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 any, Tout6 any, Tout7 any, Tout8 any] func(context.Context, Tin) (ValueHandleResult[Tin, Tout1], ValueHandleResult[Tin, Tout2], ValueHandleResult[Tin, Tout3], ValueHandleResult[Tin, Tout4], ValueHandleResult[Tin, Tout5], ValueHandleResult[Tin, Tout6], ValueHandleResult[Tin, Tout7], ValueHandleResult[Tin, Tout8], error)
-type BatchHandleFunc_8[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 any, Tout6 any, Tout7 any, Tout8 any] func(context.Context, []Tin) ([]ValueHandleResult[Tin, Tout1], []ValueHandleResult[Tin, Tout2], []ValueHandleResult[Tin, Tout3], []ValueHandleResult[Tin, Tout4], []ValueHandleResult[Tin, Tout5], []ValueHandleResult[Tin, Tout6], []ValueHandleResult[Tin, Tout7], []ValueHandleResult[Tin, Tout8], error)
-type HandleFunc_9[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 any, Tout6 any, Tout7 any, Tout8 any, Tout9 any] func(context.Context, Tin) (ValueHandleResult[Tin, Tout1], ValueHandleResult[Tin, Tout2], ValueHandleResult[Tin, Tout3], ValueHandleResult[Tin, Tout4], ValueHandleResult[Tin, Tout5], ValueHandleResult[Tin, Tout6], ValueHandleResult[Tin, Tout7], ValueHandleResult[Tin, Tout8], ValueHandleResult[Tin, Tout9], error)
-type BatchHandleFunc_9[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 any, Tout6 any, Tout7 any, Tout8 any, Tout9 any] func(context.Context, []Tin) ([]ValueHandleResult[Tin, Tout1], []ValueHandleResult[Tin, Tout2], []ValueHandleResult[Tin, Tout3], []ValueHandleResult[Tin, Tout4], []ValueHandleResult[Tin, Tout5], []ValueHandleResult[Tin, Tout6], []ValueHandleResult[Tin, Tout7], []ValueHandleResult[Tin, Tout8], []ValueHandleResult[Tin, Tout9], error)
-type HandleFunc_10[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 any, Tout6 any, Tout7 any, Tout8 any, Tout9 any, Tout10 any] func(context.Context, Tin) (ValueHandleResult[Tin, Tout1], ValueHandleResult[Tin, Tout2], ValueHandleResult[Tin, Tout3], ValueHandleResult[Tin, Tout4], ValueHandleResult[Tin, Tout5], ValueHandleResult[Tin, Tout6], ValueHandleResult[Tin, Tout7], ValueHandleResult[Tin, Tout8], ValueHandleResult[Tin, Tout9], ValueHandleResult[Tin, Tout10], error)
-type BatchHandleFunc_10[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 any, Tout6 any, Tout7 any, Tout8 any, Tout9 any, Tout10 any] func(context.Context, []Tin) ([]ValueHandleResult[Tin, Tout1], []ValueHandleResult[Tin, Tout2], []ValueHandleResult[Tin, Tout3], []ValueHandleResult[Tin, Tout4], []ValueHandleResult[Tin, Tout5], []ValueHandleResult[Tin, Tout6], []ValueHandleResult[Tin, Tout7], []ValueHandleResult[Tin, Tout8], []ValueHandleResult[Tin, Tout9], []ValueHandleResult[Tin, Tout10], error)
+type HandleFunc_0[Tin any] func(context.Context, Tin) error
+type BatchHandleFunc_0[Tin any] func(context.Context, []Tin) (*BatchHandleResult[Tin], error)
+type HandleFunc_1[Tin any, Tout1 any] func(context.Context, Tin) (*ValueHandleResult[Tout1], error)
+type BatchHandleFunc_1[Tin any, Tout1 any] func(context.Context, []Tin) (*ValueBatchHandleResult[Tin, Tout1], error)
+type HandleFunc_2[Tin any, Tout1 any, Tout2 any] func(context.Context, Tin) (*ValueHandleResult[Tout1], *ValueHandleResult[Tout2], error)
+type BatchHandleFunc_2[Tin any, Tout1 any, Tout2 any] func(context.Context, []Tin) (*ValueBatchHandleResult[Tin, Tout1], *ValueBatchHandleResult[Tin, Tout2], error)
+type HandleFunc_3[Tin any, Tout1 any, Tout2 any, Tout3 any] func(context.Context, Tin) (*ValueHandleResult[Tout1], *ValueHandleResult[Tout2], *ValueHandleResult[Tout3], error)
+type BatchHandleFunc_3[Tin any, Tout1 any, Tout2 any, Tout3 any] func(context.Context, []Tin) (*ValueBatchHandleResult[Tin, Tout1], *ValueBatchHandleResult[Tin, Tout2], *ValueBatchHandleResult[Tin, Tout3], error)
+type HandleFunc_4[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any] func(context.Context, Tin) (*ValueHandleResult[Tout1], *ValueHandleResult[Tout2], *ValueHandleResult[Tout3], *ValueHandleResult[Tout4], error)
+type BatchHandleFunc_4[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any] func(context.Context, []Tin) (*ValueBatchHandleResult[Tin, Tout1], *ValueBatchHandleResult[Tin, Tout2], *ValueBatchHandleResult[Tin, Tout3], *ValueBatchHandleResult[Tin, Tout4], error)
+type HandleFunc_5[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 any] func(context.Context, Tin) (*ValueHandleResult[Tout1], *ValueHandleResult[Tout2], *ValueHandleResult[Tout3], *ValueHandleResult[Tout4], *ValueHandleResult[Tout5], error)
+type BatchHandleFunc_5[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 any] func(context.Context, []Tin) (*ValueBatchHandleResult[Tin, Tout1], *ValueBatchHandleResult[Tin, Tout2], *ValueBatchHandleResult[Tin, Tout3], *ValueBatchHandleResult[Tin, Tout4], *ValueBatchHandleResult[Tin, Tout5], error)
+type HandleFunc_6[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 any, Tout6 any] func(context.Context, Tin) (*ValueHandleResult[Tout1], *ValueHandleResult[Tout2], *ValueHandleResult[Tout3], *ValueHandleResult[Tout4], *ValueHandleResult[Tout5], *ValueHandleResult[Tout6], error)
+type BatchHandleFunc_6[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 any, Tout6 any] func(context.Context, []Tin) (*ValueBatchHandleResult[Tin, Tout1], *ValueBatchHandleResult[Tin, Tout2], *ValueBatchHandleResult[Tin, Tout3], *ValueBatchHandleResult[Tin, Tout4], *ValueBatchHandleResult[Tin, Tout5], *ValueBatchHandleResult[Tin, Tout6], error)
+type HandleFunc_7[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 any, Tout6 any, Tout7 any] func(context.Context, Tin) (*ValueHandleResult[Tout1], *ValueHandleResult[Tout2], *ValueHandleResult[Tout3], *ValueHandleResult[Tout4], *ValueHandleResult[Tout5], *ValueHandleResult[Tout6], *ValueHandleResult[Tout7], error)
+type BatchHandleFunc_7[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 any, Tout6 any, Tout7 any] func(context.Context, []Tin) (*ValueBatchHandleResult[Tin, Tout1], *ValueBatchHandleResult[Tin, Tout2], *ValueBatchHandleResult[Tin, Tout3], *ValueBatchHandleResult[Tin, Tout4], *ValueBatchHandleResult[Tin, Tout5], *ValueBatchHandleResult[Tin, Tout6], *ValueBatchHandleResult[Tin, Tout7], error)
+type HandleFunc_8[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 any, Tout6 any, Tout7 any, Tout8 any] func(context.Context, Tin) (*ValueHandleResult[Tout1], *ValueHandleResult[Tout2], *ValueHandleResult[Tout3], *ValueHandleResult[Tout4], *ValueHandleResult[Tout5], *ValueHandleResult[Tout6], *ValueHandleResult[Tout7], *ValueHandleResult[Tout8], error)
+type BatchHandleFunc_8[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 any, Tout6 any, Tout7 any, Tout8 any] func(context.Context, []Tin) (*ValueBatchHandleResult[Tin, Tout1], *ValueBatchHandleResult[Tin, Tout2], *ValueBatchHandleResult[Tin, Tout3], *ValueBatchHandleResult[Tin, Tout4], *ValueBatchHandleResult[Tin, Tout5], *ValueBatchHandleResult[Tin, Tout6], *ValueBatchHandleResult[Tin, Tout7], *ValueBatchHandleResult[Tin, Tout8], error)
+type HandleFunc_9[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 any, Tout6 any, Tout7 any, Tout8 any, Tout9 any] func(context.Context, Tin) (*ValueHandleResult[Tout1], *ValueHandleResult[Tout2], *ValueHandleResult[Tout3], *ValueHandleResult[Tout4], *ValueHandleResult[Tout5], *ValueHandleResult[Tout6], *ValueHandleResult[Tout7], *ValueHandleResult[Tout8], *ValueHandleResult[Tout9], error)
+type BatchHandleFunc_9[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 any, Tout6 any, Tout7 any, Tout8 any, Tout9 any] func(context.Context, []Tin) (*ValueBatchHandleResult[Tin, Tout1], *ValueBatchHandleResult[Tin, Tout2], *ValueBatchHandleResult[Tin, Tout3], *ValueBatchHandleResult[Tin, Tout4], *ValueBatchHandleResult[Tin, Tout5], *ValueBatchHandleResult[Tin, Tout6], *ValueBatchHandleResult[Tin, Tout7], *ValueBatchHandleResult[Tin, Tout8], *ValueBatchHandleResult[Tin, Tout9], error)
+type HandleFunc_10[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 any, Tout6 any, Tout7 any, Tout8 any, Tout9 any, Tout10 any] func(context.Context, Tin) (*ValueHandleResult[Tout1], *ValueHandleResult[Tout2], *ValueHandleResult[Tout3], *ValueHandleResult[Tout4], *ValueHandleResult[Tout5], *ValueHandleResult[Tout6], *ValueHandleResult[Tout7], *ValueHandleResult[Tout8], *ValueHandleResult[Tout9], *ValueHandleResult[Tout10], error)
+type BatchHandleFunc_10[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 any, Tout6 any, Tout7 any, Tout8 any, Tout9 any, Tout10 any] func(context.Context, []Tin) (*ValueBatchHandleResult[Tin, Tout1], *ValueBatchHandleResult[Tin, Tout2], *ValueBatchHandleResult[Tin, Tout3], *ValueBatchHandleResult[Tin, Tout4], *ValueBatchHandleResult[Tin, Tout5], *ValueBatchHandleResult[Tin, Tout6], *ValueBatchHandleResult[Tin, Tout7], *ValueBatchHandleResult[Tin, Tout8], *ValueBatchHandleResult[Tin, Tout9], *ValueBatchHandleResult[Tin, Tout10], error)
 
 
 // Functions that convert a provided handler function into a type agnostic internal handler function that accepts any type
 func NewHandler_0[Tin any](handleFunc HandleFunc_0[Tin]) *Handler {
 	// Build a function that converts the user provided typed handler into a type agnostic handler the framework can use
 	f := func(ctx context.Context, in []any) ([][]InternalHandleResult, error) {
-		r, err := handleFunc(ctx, in[0].(Tin))
+		err := handleFunc(ctx, in[0].(Tin))
 		return [][]InternalHandleResult{
 			[]InternalHandleResult{
 				{
-					input:  r.input,
+					input:  nil,
 					ok:     false,
-					err:    r.err,
+					err:    err,
 					output: nil,
 				},
 			},
@@ -64,8 +64,9 @@ func NewBatchHandler_0[Tin any](handleFunc BatchHandleFunc_0[Tin]) *Handler {
 
 		r, err := handleFunc(ctx, inConv)
 
-		outConv := make([]InternalHandleResult, len(r))
-		for i, v := range r {
+		// For a batch handler with no return values, the caller only needs to know about failures to put through the retry policy
+		outConv := make([]InternalHandleResult, len(r.failures))
+		for i, v := range r.failures {
 			outConv[i] = InternalHandleResult{
 				input:  v.input,
 				ok:     false,
@@ -89,9 +90,9 @@ func NewHandler_1[Tin any, Tout1 any](handleFunc HandleFunc_1[Tin, Tout1]) *Hand
 		return [][]InternalHandleResult{ 
 			[]InternalHandleResult{
 				{
-					input:  r1.input,
+					input:  nil,
 					ok:     r1.ok,
-					err:    r1.err,
+					err:    nil,
 					output: r1.output,
 				},
 			},
@@ -114,13 +115,24 @@ func NewBatchHandler_1[Tin any, Tout1 any](handleFunc BatchHandleFunc_1[Tin, Tou
 
 		r1, err := handleFunc(ctx, inConv)
 
-		outConv1 := make([]InternalHandleResult, len(r1))
-		for i, v := range r1 {
+		var rCount int
+
+		rCount = len(r1.results)+len(r1.failures)
+		outConv1 := make([]InternalHandleResult, rCount)
+		for i, v := range r1.results {
 			outConv1[i] = InternalHandleResult{
-				input:  v.input,
-				ok:     v.ok,
-				err:    v.err,
-				output: v.output,
+				input:  nil,
+				ok:     true,
+				err:    nil,
+				output: v,
+			}
+		}
+		for i, j := len(r1.results), 0; i < rCount; i, j = i+1, j+1 {
+			outConv1[i] = InternalHandleResult{
+				input: r1.failures[j].input,
+				ok: false,
+				err: r1.failures[j].err,
+				output: nil,
 			}
 		}
 		
@@ -140,17 +152,17 @@ func NewHandler_2[Tin any, Tout1 any, Tout2 any](handleFunc HandleFunc_2[Tin, To
 		return [][]InternalHandleResult{ 
 			[]InternalHandleResult{
 				{
-					input:  r1.input,
+					input:  nil,
 					ok:     r1.ok,
-					err:    r1.err,
+					err:    nil,
 					output: r1.output,
 				},
 			},
 			[]InternalHandleResult{
 				{
-					input:  r2.input,
+					input:  nil,
 					ok:     r2.ok,
-					err:    r2.err,
+					err:    nil,
 					output: r2.output,
 				},
 			},
@@ -173,22 +185,42 @@ func NewBatchHandler_2[Tin any, Tout1 any, Tout2 any](handleFunc BatchHandleFunc
 
 		r1, r2, err := handleFunc(ctx, inConv)
 
-		outConv1 := make([]InternalHandleResult, len(r1))
-		for i, v := range r1 {
+		var rCount int
+
+		rCount = len(r1.results)+len(r1.failures)
+		outConv1 := make([]InternalHandleResult, rCount)
+		for i, v := range r1.results {
 			outConv1[i] = InternalHandleResult{
-				input:  v.input,
-				ok:     v.ok,
-				err:    v.err,
-				output: v.output,
+				input:  nil,
+				ok:     true,
+				err:    nil,
+				output: v,
 			}
 		}
-		outConv2 := make([]InternalHandleResult, len(r2))
-		for i, v := range r2 {
+		for i, j := len(r1.results), 0; i < rCount; i, j = i+1, j+1 {
+			outConv1[i] = InternalHandleResult{
+				input: r1.failures[j].input,
+				ok: false,
+				err: r1.failures[j].err,
+				output: nil,
+			}
+		}
+		rCount = len(r2.results)+len(r2.failures)
+		outConv2 := make([]InternalHandleResult, rCount)
+		for i, v := range r2.results {
 			outConv2[i] = InternalHandleResult{
-				input:  v.input,
-				ok:     v.ok,
-				err:    v.err,
-				output: v.output,
+				input:  nil,
+				ok:     true,
+				err:    nil,
+				output: v,
+			}
+		}
+		for i, j := len(r2.results), 0; i < rCount; i, j = i+1, j+1 {
+			outConv2[i] = InternalHandleResult{
+				input: r2.failures[j].input,
+				ok: false,
+				err: r2.failures[j].err,
+				output: nil,
 			}
 		}
 		
@@ -208,25 +240,25 @@ func NewHandler_3[Tin any, Tout1 any, Tout2 any, Tout3 any](handleFunc HandleFun
 		return [][]InternalHandleResult{ 
 			[]InternalHandleResult{
 				{
-					input:  r1.input,
+					input:  nil,
 					ok:     r1.ok,
-					err:    r1.err,
+					err:    nil,
 					output: r1.output,
 				},
 			},
 			[]InternalHandleResult{
 				{
-					input:  r2.input,
+					input:  nil,
 					ok:     r2.ok,
-					err:    r2.err,
+					err:    nil,
 					output: r2.output,
 				},
 			},
 			[]InternalHandleResult{
 				{
-					input:  r3.input,
+					input:  nil,
 					ok:     r3.ok,
-					err:    r3.err,
+					err:    nil,
 					output: r3.output,
 				},
 			},
@@ -249,31 +281,60 @@ func NewBatchHandler_3[Tin any, Tout1 any, Tout2 any, Tout3 any](handleFunc Batc
 
 		r1, r2, r3, err := handleFunc(ctx, inConv)
 
-		outConv1 := make([]InternalHandleResult, len(r1))
-		for i, v := range r1 {
+		var rCount int
+
+		rCount = len(r1.results)+len(r1.failures)
+		outConv1 := make([]InternalHandleResult, rCount)
+		for i, v := range r1.results {
 			outConv1[i] = InternalHandleResult{
-				input:  v.input,
-				ok:     v.ok,
-				err:    v.err,
-				output: v.output,
+				input:  nil,
+				ok:     true,
+				err:    nil,
+				output: v,
 			}
 		}
-		outConv2 := make([]InternalHandleResult, len(r2))
-		for i, v := range r2 {
+		for i, j := len(r1.results), 0; i < rCount; i, j = i+1, j+1 {
+			outConv1[i] = InternalHandleResult{
+				input: r1.failures[j].input,
+				ok: false,
+				err: r1.failures[j].err,
+				output: nil,
+			}
+		}
+		rCount = len(r2.results)+len(r2.failures)
+		outConv2 := make([]InternalHandleResult, rCount)
+		for i, v := range r2.results {
 			outConv2[i] = InternalHandleResult{
-				input:  v.input,
-				ok:     v.ok,
-				err:    v.err,
-				output: v.output,
+				input:  nil,
+				ok:     true,
+				err:    nil,
+				output: v,
 			}
 		}
-		outConv3 := make([]InternalHandleResult, len(r3))
-		for i, v := range r3 {
+		for i, j := len(r2.results), 0; i < rCount; i, j = i+1, j+1 {
+			outConv2[i] = InternalHandleResult{
+				input: r2.failures[j].input,
+				ok: false,
+				err: r2.failures[j].err,
+				output: nil,
+			}
+		}
+		rCount = len(r3.results)+len(r3.failures)
+		outConv3 := make([]InternalHandleResult, rCount)
+		for i, v := range r3.results {
 			outConv3[i] = InternalHandleResult{
-				input:  v.input,
-				ok:     v.ok,
-				err:    v.err,
-				output: v.output,
+				input:  nil,
+				ok:     true,
+				err:    nil,
+				output: v,
+			}
+		}
+		for i, j := len(r3.results), 0; i < rCount; i, j = i+1, j+1 {
+			outConv3[i] = InternalHandleResult{
+				input: r3.failures[j].input,
+				ok: false,
+				err: r3.failures[j].err,
+				output: nil,
 			}
 		}
 		
@@ -293,33 +354,33 @@ func NewHandler_4[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any](handleFun
 		return [][]InternalHandleResult{ 
 			[]InternalHandleResult{
 				{
-					input:  r1.input,
+					input:  nil,
 					ok:     r1.ok,
-					err:    r1.err,
+					err:    nil,
 					output: r1.output,
 				},
 			},
 			[]InternalHandleResult{
 				{
-					input:  r2.input,
+					input:  nil,
 					ok:     r2.ok,
-					err:    r2.err,
+					err:    nil,
 					output: r2.output,
 				},
 			},
 			[]InternalHandleResult{
 				{
-					input:  r3.input,
+					input:  nil,
 					ok:     r3.ok,
-					err:    r3.err,
+					err:    nil,
 					output: r3.output,
 				},
 			},
 			[]InternalHandleResult{
 				{
-					input:  r4.input,
+					input:  nil,
 					ok:     r4.ok,
-					err:    r4.err,
+					err:    nil,
 					output: r4.output,
 				},
 			},
@@ -342,40 +403,78 @@ func NewBatchHandler_4[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any](hand
 
 		r1, r2, r3, r4, err := handleFunc(ctx, inConv)
 
-		outConv1 := make([]InternalHandleResult, len(r1))
-		for i, v := range r1 {
+		var rCount int
+
+		rCount = len(r1.results)+len(r1.failures)
+		outConv1 := make([]InternalHandleResult, rCount)
+		for i, v := range r1.results {
 			outConv1[i] = InternalHandleResult{
-				input:  v.input,
-				ok:     v.ok,
-				err:    v.err,
-				output: v.output,
+				input:  nil,
+				ok:     true,
+				err:    nil,
+				output: v,
 			}
 		}
-		outConv2 := make([]InternalHandleResult, len(r2))
-		for i, v := range r2 {
+		for i, j := len(r1.results), 0; i < rCount; i, j = i+1, j+1 {
+			outConv1[i] = InternalHandleResult{
+				input: r1.failures[j].input,
+				ok: false,
+				err: r1.failures[j].err,
+				output: nil,
+			}
+		}
+		rCount = len(r2.results)+len(r2.failures)
+		outConv2 := make([]InternalHandleResult, rCount)
+		for i, v := range r2.results {
 			outConv2[i] = InternalHandleResult{
-				input:  v.input,
-				ok:     v.ok,
-				err:    v.err,
-				output: v.output,
+				input:  nil,
+				ok:     true,
+				err:    nil,
+				output: v,
 			}
 		}
-		outConv3 := make([]InternalHandleResult, len(r3))
-		for i, v := range r3 {
+		for i, j := len(r2.results), 0; i < rCount; i, j = i+1, j+1 {
+			outConv2[i] = InternalHandleResult{
+				input: r2.failures[j].input,
+				ok: false,
+				err: r2.failures[j].err,
+				output: nil,
+			}
+		}
+		rCount = len(r3.results)+len(r3.failures)
+		outConv3 := make([]InternalHandleResult, rCount)
+		for i, v := range r3.results {
 			outConv3[i] = InternalHandleResult{
-				input:  v.input,
-				ok:     v.ok,
-				err:    v.err,
-				output: v.output,
+				input:  nil,
+				ok:     true,
+				err:    nil,
+				output: v,
 			}
 		}
-		outConv4 := make([]InternalHandleResult, len(r4))
-		for i, v := range r4 {
+		for i, j := len(r3.results), 0; i < rCount; i, j = i+1, j+1 {
+			outConv3[i] = InternalHandleResult{
+				input: r3.failures[j].input,
+				ok: false,
+				err: r3.failures[j].err,
+				output: nil,
+			}
+		}
+		rCount = len(r4.results)+len(r4.failures)
+		outConv4 := make([]InternalHandleResult, rCount)
+		for i, v := range r4.results {
 			outConv4[i] = InternalHandleResult{
-				input:  v.input,
-				ok:     v.ok,
-				err:    v.err,
-				output: v.output,
+				input:  nil,
+				ok:     true,
+				err:    nil,
+				output: v,
+			}
+		}
+		for i, j := len(r4.results), 0; i < rCount; i, j = i+1, j+1 {
+			outConv4[i] = InternalHandleResult{
+				input: r4.failures[j].input,
+				ok: false,
+				err: r4.failures[j].err,
+				output: nil,
 			}
 		}
 		
@@ -395,41 +494,41 @@ func NewHandler_5[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 any
 		return [][]InternalHandleResult{ 
 			[]InternalHandleResult{
 				{
-					input:  r1.input,
+					input:  nil,
 					ok:     r1.ok,
-					err:    r1.err,
+					err:    nil,
 					output: r1.output,
 				},
 			},
 			[]InternalHandleResult{
 				{
-					input:  r2.input,
+					input:  nil,
 					ok:     r2.ok,
-					err:    r2.err,
+					err:    nil,
 					output: r2.output,
 				},
 			},
 			[]InternalHandleResult{
 				{
-					input:  r3.input,
+					input:  nil,
 					ok:     r3.ok,
-					err:    r3.err,
+					err:    nil,
 					output: r3.output,
 				},
 			},
 			[]InternalHandleResult{
 				{
-					input:  r4.input,
+					input:  nil,
 					ok:     r4.ok,
-					err:    r4.err,
+					err:    nil,
 					output: r4.output,
 				},
 			},
 			[]InternalHandleResult{
 				{
-					input:  r5.input,
+					input:  nil,
 					ok:     r5.ok,
-					err:    r5.err,
+					err:    nil,
 					output: r5.output,
 				},
 			},
@@ -452,49 +551,96 @@ func NewBatchHandler_5[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout
 
 		r1, r2, r3, r4, r5, err := handleFunc(ctx, inConv)
 
-		outConv1 := make([]InternalHandleResult, len(r1))
-		for i, v := range r1 {
+		var rCount int
+
+		rCount = len(r1.results)+len(r1.failures)
+		outConv1 := make([]InternalHandleResult, rCount)
+		for i, v := range r1.results {
 			outConv1[i] = InternalHandleResult{
-				input:  v.input,
-				ok:     v.ok,
-				err:    v.err,
-				output: v.output,
+				input:  nil,
+				ok:     true,
+				err:    nil,
+				output: v,
 			}
 		}
-		outConv2 := make([]InternalHandleResult, len(r2))
-		for i, v := range r2 {
+		for i, j := len(r1.results), 0; i < rCount; i, j = i+1, j+1 {
+			outConv1[i] = InternalHandleResult{
+				input: r1.failures[j].input,
+				ok: false,
+				err: r1.failures[j].err,
+				output: nil,
+			}
+		}
+		rCount = len(r2.results)+len(r2.failures)
+		outConv2 := make([]InternalHandleResult, rCount)
+		for i, v := range r2.results {
 			outConv2[i] = InternalHandleResult{
-				input:  v.input,
-				ok:     v.ok,
-				err:    v.err,
-				output: v.output,
+				input:  nil,
+				ok:     true,
+				err:    nil,
+				output: v,
 			}
 		}
-		outConv3 := make([]InternalHandleResult, len(r3))
-		for i, v := range r3 {
+		for i, j := len(r2.results), 0; i < rCount; i, j = i+1, j+1 {
+			outConv2[i] = InternalHandleResult{
+				input: r2.failures[j].input,
+				ok: false,
+				err: r2.failures[j].err,
+				output: nil,
+			}
+		}
+		rCount = len(r3.results)+len(r3.failures)
+		outConv3 := make([]InternalHandleResult, rCount)
+		for i, v := range r3.results {
 			outConv3[i] = InternalHandleResult{
-				input:  v.input,
-				ok:     v.ok,
-				err:    v.err,
-				output: v.output,
+				input:  nil,
+				ok:     true,
+				err:    nil,
+				output: v,
 			}
 		}
-		outConv4 := make([]InternalHandleResult, len(r4))
-		for i, v := range r4 {
+		for i, j := len(r3.results), 0; i < rCount; i, j = i+1, j+1 {
+			outConv3[i] = InternalHandleResult{
+				input: r3.failures[j].input,
+				ok: false,
+				err: r3.failures[j].err,
+				output: nil,
+			}
+		}
+		rCount = len(r4.results)+len(r4.failures)
+		outConv4 := make([]InternalHandleResult, rCount)
+		for i, v := range r4.results {
 			outConv4[i] = InternalHandleResult{
-				input:  v.input,
-				ok:     v.ok,
-				err:    v.err,
-				output: v.output,
+				input:  nil,
+				ok:     true,
+				err:    nil,
+				output: v,
 			}
 		}
-		outConv5 := make([]InternalHandleResult, len(r5))
-		for i, v := range r5 {
+		for i, j := len(r4.results), 0; i < rCount; i, j = i+1, j+1 {
+			outConv4[i] = InternalHandleResult{
+				input: r4.failures[j].input,
+				ok: false,
+				err: r4.failures[j].err,
+				output: nil,
+			}
+		}
+		rCount = len(r5.results)+len(r5.failures)
+		outConv5 := make([]InternalHandleResult, rCount)
+		for i, v := range r5.results {
 			outConv5[i] = InternalHandleResult{
-				input:  v.input,
-				ok:     v.ok,
-				err:    v.err,
-				output: v.output,
+				input:  nil,
+				ok:     true,
+				err:    nil,
+				output: v,
+			}
+		}
+		for i, j := len(r5.results), 0; i < rCount; i, j = i+1, j+1 {
+			outConv5[i] = InternalHandleResult{
+				input: r5.failures[j].input,
+				ok: false,
+				err: r5.failures[j].err,
+				output: nil,
 			}
 		}
 		
@@ -514,49 +660,49 @@ func NewHandler_6[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 any
 		return [][]InternalHandleResult{ 
 			[]InternalHandleResult{
 				{
-					input:  r1.input,
+					input:  nil,
 					ok:     r1.ok,
-					err:    r1.err,
+					err:    nil,
 					output: r1.output,
 				},
 			},
 			[]InternalHandleResult{
 				{
-					input:  r2.input,
+					input:  nil,
 					ok:     r2.ok,
-					err:    r2.err,
+					err:    nil,
 					output: r2.output,
 				},
 			},
 			[]InternalHandleResult{
 				{
-					input:  r3.input,
+					input:  nil,
 					ok:     r3.ok,
-					err:    r3.err,
+					err:    nil,
 					output: r3.output,
 				},
 			},
 			[]InternalHandleResult{
 				{
-					input:  r4.input,
+					input:  nil,
 					ok:     r4.ok,
-					err:    r4.err,
+					err:    nil,
 					output: r4.output,
 				},
 			},
 			[]InternalHandleResult{
 				{
-					input:  r5.input,
+					input:  nil,
 					ok:     r5.ok,
-					err:    r5.err,
+					err:    nil,
 					output: r5.output,
 				},
 			},
 			[]InternalHandleResult{
 				{
-					input:  r6.input,
+					input:  nil,
 					ok:     r6.ok,
-					err:    r6.err,
+					err:    nil,
 					output: r6.output,
 				},
 			},
@@ -579,58 +725,114 @@ func NewBatchHandler_6[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout
 
 		r1, r2, r3, r4, r5, r6, err := handleFunc(ctx, inConv)
 
-		outConv1 := make([]InternalHandleResult, len(r1))
-		for i, v := range r1 {
+		var rCount int
+
+		rCount = len(r1.results)+len(r1.failures)
+		outConv1 := make([]InternalHandleResult, rCount)
+		for i, v := range r1.results {
 			outConv1[i] = InternalHandleResult{
-				input:  v.input,
-				ok:     v.ok,
-				err:    v.err,
-				output: v.output,
+				input:  nil,
+				ok:     true,
+				err:    nil,
+				output: v,
 			}
 		}
-		outConv2 := make([]InternalHandleResult, len(r2))
-		for i, v := range r2 {
+		for i, j := len(r1.results), 0; i < rCount; i, j = i+1, j+1 {
+			outConv1[i] = InternalHandleResult{
+				input: r1.failures[j].input,
+				ok: false,
+				err: r1.failures[j].err,
+				output: nil,
+			}
+		}
+		rCount = len(r2.results)+len(r2.failures)
+		outConv2 := make([]InternalHandleResult, rCount)
+		for i, v := range r2.results {
 			outConv2[i] = InternalHandleResult{
-				input:  v.input,
-				ok:     v.ok,
-				err:    v.err,
-				output: v.output,
+				input:  nil,
+				ok:     true,
+				err:    nil,
+				output: v,
 			}
 		}
-		outConv3 := make([]InternalHandleResult, len(r3))
-		for i, v := range r3 {
+		for i, j := len(r2.results), 0; i < rCount; i, j = i+1, j+1 {
+			outConv2[i] = InternalHandleResult{
+				input: r2.failures[j].input,
+				ok: false,
+				err: r2.failures[j].err,
+				output: nil,
+			}
+		}
+		rCount = len(r3.results)+len(r3.failures)
+		outConv3 := make([]InternalHandleResult, rCount)
+		for i, v := range r3.results {
 			outConv3[i] = InternalHandleResult{
-				input:  v.input,
-				ok:     v.ok,
-				err:    v.err,
-				output: v.output,
+				input:  nil,
+				ok:     true,
+				err:    nil,
+				output: v,
 			}
 		}
-		outConv4 := make([]InternalHandleResult, len(r4))
-		for i, v := range r4 {
+		for i, j := len(r3.results), 0; i < rCount; i, j = i+1, j+1 {
+			outConv3[i] = InternalHandleResult{
+				input: r3.failures[j].input,
+				ok: false,
+				err: r3.failures[j].err,
+				output: nil,
+			}
+		}
+		rCount = len(r4.results)+len(r4.failures)
+		outConv4 := make([]InternalHandleResult, rCount)
+		for i, v := range r4.results {
 			outConv4[i] = InternalHandleResult{
-				input:  v.input,
-				ok:     v.ok,
-				err:    v.err,
-				output: v.output,
+				input:  nil,
+				ok:     true,
+				err:    nil,
+				output: v,
 			}
 		}
-		outConv5 := make([]InternalHandleResult, len(r5))
-		for i, v := range r5 {
+		for i, j := len(r4.results), 0; i < rCount; i, j = i+1, j+1 {
+			outConv4[i] = InternalHandleResult{
+				input: r4.failures[j].input,
+				ok: false,
+				err: r4.failures[j].err,
+				output: nil,
+			}
+		}
+		rCount = len(r5.results)+len(r5.failures)
+		outConv5 := make([]InternalHandleResult, rCount)
+		for i, v := range r5.results {
 			outConv5[i] = InternalHandleResult{
-				input:  v.input,
-				ok:     v.ok,
-				err:    v.err,
-				output: v.output,
+				input:  nil,
+				ok:     true,
+				err:    nil,
+				output: v,
 			}
 		}
-		outConv6 := make([]InternalHandleResult, len(r6))
-		for i, v := range r6 {
+		for i, j := len(r5.results), 0; i < rCount; i, j = i+1, j+1 {
+			outConv5[i] = InternalHandleResult{
+				input: r5.failures[j].input,
+				ok: false,
+				err: r5.failures[j].err,
+				output: nil,
+			}
+		}
+		rCount = len(r6.results)+len(r6.failures)
+		outConv6 := make([]InternalHandleResult, rCount)
+		for i, v := range r6.results {
 			outConv6[i] = InternalHandleResult{
-				input:  v.input,
-				ok:     v.ok,
-				err:    v.err,
-				output: v.output,
+				input:  nil,
+				ok:     true,
+				err:    nil,
+				output: v,
+			}
+		}
+		for i, j := len(r6.results), 0; i < rCount; i, j = i+1, j+1 {
+			outConv6[i] = InternalHandleResult{
+				input: r6.failures[j].input,
+				ok: false,
+				err: r6.failures[j].err,
+				output: nil,
 			}
 		}
 		
@@ -650,57 +852,57 @@ func NewHandler_7[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 any
 		return [][]InternalHandleResult{ 
 			[]InternalHandleResult{
 				{
-					input:  r1.input,
+					input:  nil,
 					ok:     r1.ok,
-					err:    r1.err,
+					err:    nil,
 					output: r1.output,
 				},
 			},
 			[]InternalHandleResult{
 				{
-					input:  r2.input,
+					input:  nil,
 					ok:     r2.ok,
-					err:    r2.err,
+					err:    nil,
 					output: r2.output,
 				},
 			},
 			[]InternalHandleResult{
 				{
-					input:  r3.input,
+					input:  nil,
 					ok:     r3.ok,
-					err:    r3.err,
+					err:    nil,
 					output: r3.output,
 				},
 			},
 			[]InternalHandleResult{
 				{
-					input:  r4.input,
+					input:  nil,
 					ok:     r4.ok,
-					err:    r4.err,
+					err:    nil,
 					output: r4.output,
 				},
 			},
 			[]InternalHandleResult{
 				{
-					input:  r5.input,
+					input:  nil,
 					ok:     r5.ok,
-					err:    r5.err,
+					err:    nil,
 					output: r5.output,
 				},
 			},
 			[]InternalHandleResult{
 				{
-					input:  r6.input,
+					input:  nil,
 					ok:     r6.ok,
-					err:    r6.err,
+					err:    nil,
 					output: r6.output,
 				},
 			},
 			[]InternalHandleResult{
 				{
-					input:  r7.input,
+					input:  nil,
 					ok:     r7.ok,
-					err:    r7.err,
+					err:    nil,
 					output: r7.output,
 				},
 			},
@@ -723,67 +925,132 @@ func NewBatchHandler_7[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout
 
 		r1, r2, r3, r4, r5, r6, r7, err := handleFunc(ctx, inConv)
 
-		outConv1 := make([]InternalHandleResult, len(r1))
-		for i, v := range r1 {
+		var rCount int
+
+		rCount = len(r1.results)+len(r1.failures)
+		outConv1 := make([]InternalHandleResult, rCount)
+		for i, v := range r1.results {
 			outConv1[i] = InternalHandleResult{
-				input:  v.input,
-				ok:     v.ok,
-				err:    v.err,
-				output: v.output,
+				input:  nil,
+				ok:     true,
+				err:    nil,
+				output: v,
 			}
 		}
-		outConv2 := make([]InternalHandleResult, len(r2))
-		for i, v := range r2 {
+		for i, j := len(r1.results), 0; i < rCount; i, j = i+1, j+1 {
+			outConv1[i] = InternalHandleResult{
+				input: r1.failures[j].input,
+				ok: false,
+				err: r1.failures[j].err,
+				output: nil,
+			}
+		}
+		rCount = len(r2.results)+len(r2.failures)
+		outConv2 := make([]InternalHandleResult, rCount)
+		for i, v := range r2.results {
 			outConv2[i] = InternalHandleResult{
-				input:  v.input,
-				ok:     v.ok,
-				err:    v.err,
-				output: v.output,
+				input:  nil,
+				ok:     true,
+				err:    nil,
+				output: v,
 			}
 		}
-		outConv3 := make([]InternalHandleResult, len(r3))
-		for i, v := range r3 {
+		for i, j := len(r2.results), 0; i < rCount; i, j = i+1, j+1 {
+			outConv2[i] = InternalHandleResult{
+				input: r2.failures[j].input,
+				ok: false,
+				err: r2.failures[j].err,
+				output: nil,
+			}
+		}
+		rCount = len(r3.results)+len(r3.failures)
+		outConv3 := make([]InternalHandleResult, rCount)
+		for i, v := range r3.results {
 			outConv3[i] = InternalHandleResult{
-				input:  v.input,
-				ok:     v.ok,
-				err:    v.err,
-				output: v.output,
+				input:  nil,
+				ok:     true,
+				err:    nil,
+				output: v,
 			}
 		}
-		outConv4 := make([]InternalHandleResult, len(r4))
-		for i, v := range r4 {
+		for i, j := len(r3.results), 0; i < rCount; i, j = i+1, j+1 {
+			outConv3[i] = InternalHandleResult{
+				input: r3.failures[j].input,
+				ok: false,
+				err: r3.failures[j].err,
+				output: nil,
+			}
+		}
+		rCount = len(r4.results)+len(r4.failures)
+		outConv4 := make([]InternalHandleResult, rCount)
+		for i, v := range r4.results {
 			outConv4[i] = InternalHandleResult{
-				input:  v.input,
-				ok:     v.ok,
-				err:    v.err,
-				output: v.output,
+				input:  nil,
+				ok:     true,
+				err:    nil,
+				output: v,
 			}
 		}
-		outConv5 := make([]InternalHandleResult, len(r5))
-		for i, v := range r5 {
+		for i, j := len(r4.results), 0; i < rCount; i, j = i+1, j+1 {
+			outConv4[i] = InternalHandleResult{
+				input: r4.failures[j].input,
+				ok: false,
+				err: r4.failures[j].err,
+				output: nil,
+			}
+		}
+		rCount = len(r5.results)+len(r5.failures)
+		outConv5 := make([]InternalHandleResult, rCount)
+		for i, v := range r5.results {
 			outConv5[i] = InternalHandleResult{
-				input:  v.input,
-				ok:     v.ok,
-				err:    v.err,
-				output: v.output,
+				input:  nil,
+				ok:     true,
+				err:    nil,
+				output: v,
 			}
 		}
-		outConv6 := make([]InternalHandleResult, len(r6))
-		for i, v := range r6 {
+		for i, j := len(r5.results), 0; i < rCount; i, j = i+1, j+1 {
+			outConv5[i] = InternalHandleResult{
+				input: r5.failures[j].input,
+				ok: false,
+				err: r5.failures[j].err,
+				output: nil,
+			}
+		}
+		rCount = len(r6.results)+len(r6.failures)
+		outConv6 := make([]InternalHandleResult, rCount)
+		for i, v := range r6.results {
 			outConv6[i] = InternalHandleResult{
-				input:  v.input,
-				ok:     v.ok,
-				err:    v.err,
-				output: v.output,
+				input:  nil,
+				ok:     true,
+				err:    nil,
+				output: v,
 			}
 		}
-		outConv7 := make([]InternalHandleResult, len(r7))
-		for i, v := range r7 {
+		for i, j := len(r6.results), 0; i < rCount; i, j = i+1, j+1 {
+			outConv6[i] = InternalHandleResult{
+				input: r6.failures[j].input,
+				ok: false,
+				err: r6.failures[j].err,
+				output: nil,
+			}
+		}
+		rCount = len(r7.results)+len(r7.failures)
+		outConv7 := make([]InternalHandleResult, rCount)
+		for i, v := range r7.results {
 			outConv7[i] = InternalHandleResult{
-				input:  v.input,
-				ok:     v.ok,
-				err:    v.err,
-				output: v.output,
+				input:  nil,
+				ok:     true,
+				err:    nil,
+				output: v,
+			}
+		}
+		for i, j := len(r7.results), 0; i < rCount; i, j = i+1, j+1 {
+			outConv7[i] = InternalHandleResult{
+				input: r7.failures[j].input,
+				ok: false,
+				err: r7.failures[j].err,
+				output: nil,
 			}
 		}
 		
@@ -803,65 +1070,65 @@ func NewHandler_8[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 any
 		return [][]InternalHandleResult{ 
 			[]InternalHandleResult{
 				{
-					input:  r1.input,
+					input:  nil,
 					ok:     r1.ok,
-					err:    r1.err,
+					err:    nil,
 					output: r1.output,
 				},
 			},
 			[]InternalHandleResult{
 				{
-					input:  r2.input,
+					input:  nil,
 					ok:     r2.ok,
-					err:    r2.err,
+					err:    nil,
 					output: r2.output,
 				},
 			},
 			[]InternalHandleResult{
 				{
-					input:  r3.input,
+					input:  nil,
 					ok:     r3.ok,
-					err:    r3.err,
+					err:    nil,
 					output: r3.output,
 				},
 			},
 			[]InternalHandleResult{
 				{
-					input:  r4.input,
+					input:  nil,
 					ok:     r4.ok,
-					err:    r4.err,
+					err:    nil,
 					output: r4.output,
 				},
 			},
 			[]InternalHandleResult{
 				{
-					input:  r5.input,
+					input:  nil,
 					ok:     r5.ok,
-					err:    r5.err,
+					err:    nil,
 					output: r5.output,
 				},
 			},
 			[]InternalHandleResult{
 				{
-					input:  r6.input,
+					input:  nil,
 					ok:     r6.ok,
-					err:    r6.err,
+					err:    nil,
 					output: r6.output,
 				},
 			},
 			[]InternalHandleResult{
 				{
-					input:  r7.input,
+					input:  nil,
 					ok:     r7.ok,
-					err:    r7.err,
+					err:    nil,
 					output: r7.output,
 				},
 			},
 			[]InternalHandleResult{
 				{
-					input:  r8.input,
+					input:  nil,
 					ok:     r8.ok,
-					err:    r8.err,
+					err:    nil,
 					output: r8.output,
 				},
 			},
@@ -884,76 +1151,150 @@ func NewBatchHandler_8[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout
 
 		r1, r2, r3, r4, r5, r6, r7, r8, err := handleFunc(ctx, inConv)
 
-		outConv1 := make([]InternalHandleResult, len(r1))
-		for i, v := range r1 {
+		var rCount int
+
+		rCount = len(r1.results)+len(r1.failures)
+		outConv1 := make([]InternalHandleResult, rCount)
+		for i, v := range r1.results {
 			outConv1[i] = InternalHandleResult{
-				input:  v.input,
-				ok:     v.ok,
-				err:    v.err,
-				output: v.output,
+				input:  nil,
+				ok:     true,
+				err:    nil,
+				output: v,
 			}
 		}
-		outConv2 := make([]InternalHandleResult, len(r2))
-		for i, v := range r2 {
+		for i, j := len(r1.results), 0; i < rCount; i, j = i+1, j+1 {
+			outConv1[i] = InternalHandleResult{
+				input: r1.failures[j].input,
+				ok: false,
+				err: r1.failures[j].err,
+				output: nil,
+			}
+		}
+		rCount = len(r2.results)+len(r2.failures)
+		outConv2 := make([]InternalHandleResult, rCount)
+		for i, v := range r2.results {
 			outConv2[i] = InternalHandleResult{
-				input:  v.input,
-				ok:     v.ok,
-				err:    v.err,
-				output: v.output,
+				input:  nil,
+				ok:     true,
+				err:    nil,
+				output: v,
 			}
 		}
-		outConv3 := make([]InternalHandleResult, len(r3))
-		for i, v := range r3 {
+		for i, j := len(r2.results), 0; i < rCount; i, j = i+1, j+1 {
+			outConv2[i] = InternalHandleResult{
+				input: r2.failures[j].input,
+				ok: false,
+				err: r2.failures[j].err,
+				output: nil,
+			}
+		}
+		rCount = len(r3.results)+len(r3.failures)
+		outConv3 := make([]InternalHandleResult, rCount)
+		for i, v := range r3.results {
 			outConv3[i] = InternalHandleResult{
-				input:  v.input,
-				ok:     v.ok,
-				err:    v.err,
-				output: v.output,
+				input:  nil,
+				ok:     true,
+				err:    nil,
+				output: v,
 			}
 		}
-		outConv4 := make([]InternalHandleResult, len(r4))
-		for i, v := range r4 {
+		for i, j := len(r3.results), 0; i < rCount; i, j = i+1, j+1 {
+			outConv3[i] = InternalHandleResult{
+				input: r3.failures[j].input,
+				ok: false,
+				err: r3.failures[j].err,
+				output: nil,
+			}
+		}
+		rCount = len(r4.results)+len(r4.failures)
+		outConv4 := make([]InternalHandleResult, rCount)
+		for i, v := range r4.results {
 			outConv4[i] = InternalHandleResult{
-				input:  v.input,
-				ok:     v.ok,
-				err:    v.err,
-				output: v.output,
+				input:  nil,
+				ok:     true,
+				err:    nil,
+				output: v,
 			}
 		}
-		outConv5 := make([]InternalHandleResult, len(r5))
-		for i, v := range r5 {
+		for i, j := len(r4.results), 0; i < rCount; i, j = i+1, j+1 {
+			outConv4[i] = InternalHandleResult{
+				input: r4.failures[j].input,
+				ok: false,
+				err: r4.failures[j].err,
+				output: nil,
+			}
+		}
+		rCount = len(r5.results)+len(r5.failures)
+		outConv5 := make([]InternalHandleResult, rCount)
+		for i, v := range r5.results {
 			outConv5[i] = InternalHandleResult{
-				input:  v.input,
-				ok:     v.ok,
-				err:    v.err,
-				output: v.output,
+				input:  nil,
+				ok:     true,
+				err:    nil,
+				output: v,
 			}
 		}
-		outConv6 := make([]InternalHandleResult, len(r6))
-		for i, v := range r6 {
+		for i, j := len(r5.results), 0; i < rCount; i, j = i+1, j+1 {
+			outConv5[i] = InternalHandleResult{
+				input: r5.failures[j].input,
+				ok: false,
+				err: r5.failures[j].err,
+				output: nil,
+			}
+		}
+		rCount = len(r6.results)+len(r6.failures)
+		outConv6 := make([]InternalHandleResult, rCount)
+		for i, v := range r6.results {
 			outConv6[i] = InternalHandleResult{
-				input:  v.input,
-				ok:     v.ok,
-				err:    v.err,
-				output: v.output,
+				input:  nil,
+				ok:     true,
+				err:    nil,
+				output: v,
 			}
 		}
-		outConv7 := make([]InternalHandleResult, len(r7))
-		for i, v := range r7 {
+		for i, j := len(r6.results), 0; i < rCount; i, j = i+1, j+1 {
+			outConv6[i] = InternalHandleResult{
+				input: r6.failures[j].input,
+				ok: false,
+				err: r6.failures[j].err,
+				output: nil,
+			}
+		}
+		rCount = len(r7.results)+len(r7.failures)
+		outConv7 := make([]InternalHandleResult, rCount)
+		for i, v := range r7.results {
 			outConv7[i] = InternalHandleResult{
-				input:  v.input,
-				ok:     v.ok,
-				err:    v.err,
-				output: v.output,
+				input:  nil,
+				ok:     true,
+				err:    nil,
+				output: v,
 			}
 		}
-		outConv8 := make([]InternalHandleResult, len(r8))
-		for i, v := range r8 {
+		for i, j := len(r7.results), 0; i < rCount; i, j = i+1, j+1 {
+			outConv7[i] = InternalHandleResult{
+				input: r7.failures[j].input,
+				ok: false,
+				err: r7.failures[j].err,
+				output: nil,
+			}
+		}
+		rCount = len(r8.results)+len(r8.failures)
+		outConv8 := make([]InternalHandleResult, rCount)
+		for i, v := range r8.results {
 			outConv8[i] = InternalHandleResult{
-				input:  v.input,
-				ok:     v.ok,
-				err:    v.err,
-				output: v.output,
+				input:  nil,
+				ok:     true,
+				err:    nil,
+				output: v,
+			}
+		}
+		for i, j := len(r8.results), 0; i < rCount; i, j = i+1, j+1 {
+			outConv8[i] = InternalHandleResult{
+				input: r8.failures[j].input,
+				ok: false,
+				err: r8.failures[j].err,
+				output: nil,
 			}
 		}
 		
@@ -973,73 +1314,73 @@ func NewHandler_9[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 any
 		return [][]InternalHandleResult{ 
 			[]InternalHandleResult{
 				{
-					input:  r1.input,
+					input:  nil,
 					ok:     r1.ok,
-					err:    r1.err,
+					err:    nil,
 					output: r1.output,
 				},
 			},
 			[]InternalHandleResult{
 				{
-					input:  r2.input,
+					input:  nil,
 					ok:     r2.ok,
-					err:    r2.err,
+					err:    nil,
 					output: r2.output,
 				},
 			},
 			[]InternalHandleResult{
 				{
-					input:  r3.input,
+					input:  nil,
 					ok:     r3.ok,
-					err:    r3.err,
+					err:    nil,
 					output: r3.output,
 				},
 			},
 			[]InternalHandleResult{
 				{
-					input:  r4.input,
+					input:  nil,
 					ok:     r4.ok,
-					err:    r4.err,
+					err:    nil,
 					output: r4.output,
 				},
 			},
 			[]InternalHandleResult{
 				{
-					input:  r5.input,
+					input:  nil,
 					ok:     r5.ok,
-					err:    r5.err,
+					err:    nil,
 					output: r5.output,
 				},
 			},
 			[]InternalHandleResult{
 				{
-					input:  r6.input,
+					input:  nil,
 					ok:     r6.ok,
-					err:    r6.err,
+					err:    nil,
 					output: r6.output,
 				},
 			},
 			[]InternalHandleResult{
 				{
-					input:  r7.input,
+					input:  nil,
 					ok:     r7.ok,
-					err:    r7.err,
+					err:    nil,
 					output: r7.output,
 				},
 			},
 			[]InternalHandleResult{
 				{
-					input:  r8.input,
+					input:  nil,
 					ok:     r8.ok,
-					err:    r8.err,
+					err:    nil,
 					output: r8.output,
 				},
 			},
 			[]InternalHandleResult{
 				{
-					input:  r9.input,
+					input:  nil,
 					ok:     r9.ok,
-					err:    r9.err,
+					err:    nil,
 					output: r9.output,
 				},
 			},
@@ -1062,85 +1403,168 @@ func NewBatchHandler_9[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout
 
 		r1, r2, r3, r4, r5, r6, r7, r8, r9, err := handleFunc(ctx, inConv)
 
-		outConv1 := make([]InternalHandleResult, len(r1))
-		for i, v := range r1 {
+		var rCount int
+
+		rCount = len(r1.results)+len(r1.failures)
+		outConv1 := make([]InternalHandleResult, rCount)
+		for i, v := range r1.results {
 			outConv1[i] = InternalHandleResult{
-				input:  v.input,
-				ok:     v.ok,
-				err:    v.err,
-				output: v.output,
+				input:  nil,
+				ok:     true,
+				err:    nil,
+				output: v,
 			}
 		}
-		outConv2 := make([]InternalHandleResult, len(r2))
-		for i, v := range r2 {
+		for i, j := len(r1.results), 0; i < rCount; i, j = i+1, j+1 {
+			outConv1[i] = InternalHandleResult{
+				input: r1.failures[j].input,
+				ok: false,
+				err: r1.failures[j].err,
+				output: nil,
+			}
+		}
+		rCount = len(r2.results)+len(r2.failures)
+		outConv2 := make([]InternalHandleResult, rCount)
+		for i, v := range r2.results {
 			outConv2[i] = InternalHandleResult{
-				input:  v.input,
-				ok:     v.ok,
-				err:    v.err,
-				output: v.output,
+				input:  nil,
+				ok:     true,
+				err:    nil,
+				output: v,
 			}
 		}
-		outConv3 := make([]InternalHandleResult, len(r3))
-		for i, v := range r3 {
+		for i, j := len(r2.results), 0; i < rCount; i, j = i+1, j+1 {
+			outConv2[i] = InternalHandleResult{
+				input: r2.failures[j].input,
+				ok: false,
+				err: r2.failures[j].err,
+				output: nil,
+			}
+		}
+		rCount = len(r3.results)+len(r3.failures)
+		outConv3 := make([]InternalHandleResult, rCount)
+		for i, v := range r3.results {
 			outConv3[i] = InternalHandleResult{
-				input:  v.input,
-				ok:     v.ok,
-				err:    v.err,
-				output: v.output,
+				input:  nil,
+				ok:     true,
+				err:    nil,
+				output: v,
 			}
 		}
-		outConv4 := make([]InternalHandleResult, len(r4))
-		for i, v := range r4 {
+		for i, j := len(r3.results), 0; i < rCount; i, j = i+1, j+1 {
+			outConv3[i] = InternalHandleResult{
+				input: r3.failures[j].input,
+				ok: false,
+				err: r3.failures[j].err,
+				output: nil,
+			}
+		}
+		rCount = len(r4.results)+len(r4.failures)
+		outConv4 := make([]InternalHandleResult, rCount)
+		for i, v := range r4.results {
 			outConv4[i] = InternalHandleResult{
-				input:  v.input,
-				ok:     v.ok,
-				err:    v.err,
-				output: v.output,
+				input:  nil,
+				ok:     true,
+				err:    nil,
+				output: v,
 			}
 		}
-		outConv5 := make([]InternalHandleResult, len(r5))
-		for i, v := range r5 {
+		for i, j := len(r4.results), 0; i < rCount; i, j = i+1, j+1 {
+			outConv4[i] = InternalHandleResult{
+				input: r4.failures[j].input,
+				ok: false,
+				err: r4.failures[j].err,
+				output: nil,
+			}
+		}
+		rCount = len(r5.results)+len(r5.failures)
+		outConv5 := make([]InternalHandleResult, rCount)
+		for i, v := range r5.results {
 			outConv5[i] = InternalHandleResult{
-				input:  v.input,
-				ok:     v.ok,
-				err:    v.err,
-				output: v.output,
+				input:  nil,
+				ok:     true,
+				err:    nil,
+				output: v,
 			}
 		}
-		outConv6 := make([]InternalHandleResult, len(r6))
-		for i, v := range r6 {
+		for i, j := len(r5.results), 0; i < rCount; i, j = i+1, j+1 {
+			outConv5[i] = InternalHandleResult{
+				input: r5.failures[j].input,
+				ok: false,
+				err: r5.failures[j].err,
+				output: nil,
+			}
+		}
+		rCount = len(r6.results)+len(r6.failures)
+		outConv6 := make([]InternalHandleResult, rCount)
+		for i, v := range r6.results {
 			outConv6[i] = InternalHandleResult{
-				input:  v.input,
-				ok:     v.ok,
-				err:    v.err,
-				output: v.output,
+				input:  nil,
+				ok:     true,
+				err:    nil,
+				output: v,
 			}
 		}
-		outConv7 := make([]InternalHandleResult, len(r7))
-		for i, v := range r7 {
+		for i, j := len(r6.results), 0; i < rCount; i, j = i+1, j+1 {
+			outConv6[i] = InternalHandleResult{
+				input: r6.failures[j].input,
+				ok: false,
+				err: r6.failures[j].err,
+				output: nil,
+			}
+		}
+		rCount = len(r7.results)+len(r7.failures)
+		outConv7 := make([]InternalHandleResult, rCount)
+		for i, v := range r7.results {
 			outConv7[i] = InternalHandleResult{
-				input:  v.input,
-				ok:     v.ok,
-				err:    v.err,
-				output: v.output,
+				input:  nil,
+				ok:     true,
+				err:    nil,
+				output: v,
 			}
 		}
-		outConv8 := make([]InternalHandleResult, len(r8))
-		for i, v := range r8 {
+		for i, j := len(r7.results), 0; i < rCount; i, j = i+1, j+1 {
+			outConv7[i] = InternalHandleResult{
+				input: r7.failures[j].input,
+				ok: false,
+				err: r7.failures[j].err,
+				output: nil,
+			}
+		}
+		rCount = len(r8.results)+len(r8.failures)
+		outConv8 := make([]InternalHandleResult, rCount)
+		for i, v := range r8.results {
 			outConv8[i] = InternalHandleResult{
-				input:  v.input,
-				ok:     v.ok,
-				err:    v.err,
-				output: v.output,
+				input:  nil,
+				ok:     true,
+				err:    nil,
+				output: v,
 			}
 		}
-		outConv9 := make([]InternalHandleResult, len(r9))
-		for i, v := range r9 {
+		for i, j := len(r8.results), 0; i < rCount; i, j = i+1, j+1 {
+			outConv8[i] = InternalHandleResult{
+				input: r8.failures[j].input,
+				ok: false,
+				err: r8.failures[j].err,
+				output: nil,
+			}
+		}
+		rCount = len(r9.results)+len(r9.failures)
+		outConv9 := make([]InternalHandleResult, rCount)
+		for i, v := range r9.results {
 			outConv9[i] = InternalHandleResult{
-				input:  v.input,
-				ok:     v.ok,
-				err:    v.err,
-				output: v.output,
+				input:  nil,
+				ok:     true,
+				err:    nil,
+				output: v,
+			}
+		}
+		for i, j := len(r9.results), 0; i < rCount; i, j = i+1, j+1 {
+			outConv9[i] = InternalHandleResult{
+				input: r9.failures[j].input,
+				ok: false,
+				err: r9.failures[j].err,
+				output: nil,
 			}
 		}
 		
@@ -1160,81 +1584,81 @@ func NewHandler_10[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 an
 		return [][]InternalHandleResult{ 
 			[]InternalHandleResult{
 				{
-					input:  r1.input,
+					input:  nil,
 					ok:     r1.ok,
-					err:    r1.err,
+					err:    nil,
 					output: r1.output,
 				},
 			},
 			[]InternalHandleResult{
 				{
-					input:  r2.input,
+					input:  nil,
 					ok:     r2.ok,
-					err:    r2.err,
+					err:    nil,
 					output: r2.output,
 				},
 			},
 			[]InternalHandleResult{
 				{
-					input:  r3.input,
+					input:  nil,
 					ok:     r3.ok,
-					err:    r3.err,
+					err:    nil,
 					output: r3.output,
 				},
 			},
 			[]InternalHandleResult{
 				{
-					input:  r4.input,
+					input:  nil,
 					ok:     r4.ok,
-					err:    r4.err,
+					err:    nil,
 					output: r4.output,
 				},
 			},
 			[]InternalHandleResult{
 				{
-					input:  r5.input,
+					input:  nil,
 					ok:     r5.ok,
-					err:    r5.err,
+					err:    nil,
 					output: r5.output,
 				},
 			},
 			[]InternalHandleResult{
 				{
-					input:  r6.input,
+					input:  nil,
 					ok:     r6.ok,
-					err:    r6.err,
+					err:    nil,
 					output: r6.output,
 				},
 			},
 			[]InternalHandleResult{
 				{
-					input:  r7.input,
+					input:  nil,
 					ok:     r7.ok,
-					err:    r7.err,
+					err:    nil,
 					output: r7.output,
 				},
 			},
 			[]InternalHandleResult{
 				{
-					input:  r8.input,
+					input:  nil,
 					ok:     r8.ok,
-					err:    r8.err,
+					err:    nil,
 					output: r8.output,
 				},
 			},
 			[]InternalHandleResult{
 				{
-					input:  r9.input,
+					input:  nil,
 					ok:     r9.ok,
-					err:    r9.err,
+					err:    nil,
 					output: r9.output,
 				},
 			},
 			[]InternalHandleResult{
 				{
-					input:  r10.input,
+					input:  nil,
 					ok:     r10.ok,
-					err:    r10.err,
+					err:    nil,
 					output: r10.output,
 				},
 			},
@@ -1257,94 +1681,186 @@ func NewBatchHandler_10[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tou
 
 		r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, err := handleFunc(ctx, inConv)
 
-		outConv1 := make([]InternalHandleResult, len(r1))
-		for i, v := range r1 {
+		var rCount int
+
+		rCount = len(r1.results)+len(r1.failures)
+		outConv1 := make([]InternalHandleResult, rCount)
+		for i, v := range r1.results {
 			outConv1[i] = InternalHandleResult{
-				input:  v.input,
-				ok:     v.ok,
-				err:    v.err,
-				output: v.output,
+				input:  nil,
+				ok:     true,
+				err:    nil,
+				output: v,
 			}
 		}
-		outConv2 := make([]InternalHandleResult, len(r2))
-		for i, v := range r2 {
+		for i, j := len(r1.results), 0; i < rCount; i, j = i+1, j+1 {
+			outConv1[i] = InternalHandleResult{
+				input: r1.failures[j].input,
+				ok: false,
+				err: r1.failures[j].err,
+				output: nil,
+			}
+		}
+		rCount = len(r2.results)+len(r2.failures)
+		outConv2 := make([]InternalHandleResult, rCount)
+		for i, v := range r2.results {
 			outConv2[i] = InternalHandleResult{
-				input:  v.input,
-				ok:     v.ok,
-				err:    v.err,
-				output: v.output,
+				input:  nil,
+				ok:     true,
+				err:    nil,
+				output: v,
 			}
 		}
-		outConv3 := make([]InternalHandleResult, len(r3))
-		for i, v := range r3 {
+		for i, j := len(r2.results), 0; i < rCount; i, j = i+1, j+1 {
+			outConv2[i] = InternalHandleResult{
+				input: r2.failures[j].input,
+				ok: false,
+				err: r2.failures[j].err,
+				output: nil,
+			}
+		}
+		rCount = len(r3.results)+len(r3.failures)
+		outConv3 := make([]InternalHandleResult, rCount)
+		for i, v := range r3.results {
 			outConv3[i] = InternalHandleResult{
-				input:  v.input,
-				ok:     v.ok,
-				err:    v.err,
-				output: v.output,
+				input:  nil,
+				ok:     true,
+				err:    nil,
+				output: v,
 			}
 		}
-		outConv4 := make([]InternalHandleResult, len(r4))
-		for i, v := range r4 {
+		for i, j := len(r3.results), 0; i < rCount; i, j = i+1, j+1 {
+			outConv3[i] = InternalHandleResult{
+				input: r3.failures[j].input,
+				ok: false,
+				err: r3.failures[j].err,
+				output: nil,
+			}
+		}
+		rCount = len(r4.results)+len(r4.failures)
+		outConv4 := make([]InternalHandleResult, rCount)
+		for i, v := range r4.results {
 			outConv4[i] = InternalHandleResult{
-				input:  v.input,
-				ok:     v.ok,
-				err:    v.err,
-				output: v.output,
+				input:  nil,
+				ok:     true,
+				err:    nil,
+				output: v,
 			}
 		}
-		outConv5 := make([]InternalHandleResult, len(r5))
-		for i, v := range r5 {
+		for i, j := len(r4.results), 0; i < rCount; i, j = i+1, j+1 {
+			outConv4[i] = InternalHandleResult{
+				input: r4.failures[j].input,
+				ok: false,
+				err: r4.failures[j].err,
+				output: nil,
+			}
+		}
+		rCount = len(r5.results)+len(r5.failures)
+		outConv5 := make([]InternalHandleResult, rCount)
+		for i, v := range r5.results {
 			outConv5[i] = InternalHandleResult{
-				input:  v.input,
-				ok:     v.ok,
-				err:    v.err,
-				output: v.output,
+				input:  nil,
+				ok:     true,
+				err:    nil,
+				output: v,
 			}
 		}
-		outConv6 := make([]InternalHandleResult, len(r6))
-		for i, v := range r6 {
+		for i, j := len(r5.results), 0; i < rCount; i, j = i+1, j+1 {
+			outConv5[i] = InternalHandleResult{
+				input: r5.failures[j].input,
+				ok: false,
+				err: r5.failures[j].err,
+				output: nil,
+			}
+		}
+		rCount = len(r6.results)+len(r6.failures)
+		outConv6 := make([]InternalHandleResult, rCount)
+		for i, v := range r6.results {
 			outConv6[i] = InternalHandleResult{
-				input:  v.input,
-				ok:     v.ok,
-				err:    v.err,
-				output: v.output,
+				input:  nil,
+				ok:     true,
+				err:    nil,
+				output: v,
 			}
 		}
-		outConv7 := make([]InternalHandleResult, len(r7))
-		for i, v := range r7 {
+		for i, j := len(r6.results), 0; i < rCount; i, j = i+1, j+1 {
+			outConv6[i] = InternalHandleResult{
+				input: r6.failures[j].input,
+				ok: false,
+				err: r6.failures[j].err,
+				output: nil,
+			}
+		}
+		rCount = len(r7.results)+len(r7.failures)
+		outConv7 := make([]InternalHandleResult, rCount)
+		for i, v := range r7.results {
 			outConv7[i] = InternalHandleResult{
-				input:  v.input,
-				ok:     v.ok,
-				err:    v.err,
-				output: v.output,
+				input:  nil,
+				ok:     true,
+				err:    nil,
+				output: v,
 			}
 		}
-		outConv8 := make([]InternalHandleResult, len(r8))
-		for i, v := range r8 {
+		for i, j := len(r7.results), 0; i < rCount; i, j = i+1, j+1 {
+			outConv7[i] = InternalHandleResult{
+				input: r7.failures[j].input,
+				ok: false,
+				err: r7.failures[j].err,
+				output: nil,
+			}
+		}
+		rCount = len(r8.results)+len(r8.failures)
+		outConv8 := make([]InternalHandleResult, rCount)
+		for i, v := range r8.results {
 			outConv8[i] = InternalHandleResult{
-				input:  v.input,
-				ok:     v.ok,
-				err:    v.err,
-				output: v.output,
+				input:  nil,
+				ok:     true,
+				err:    nil,
+				output: v,
 			}
 		}
-		outConv9 := make([]InternalHandleResult, len(r9))
-		for i, v := range r9 {
+		for i, j := len(r8.results), 0; i < rCount; i, j = i+1, j+1 {
+			outConv8[i] = InternalHandleResult{
+				input: r8.failures[j].input,
+				ok: false,
+				err: r8.failures[j].err,
+				output: nil,
+			}
+		}
+		rCount = len(r9.results)+len(r9.failures)
+		outConv9 := make([]InternalHandleResult, rCount)
+		for i, v := range r9.results {
 			outConv9[i] = InternalHandleResult{
-				input:  v.input,
-				ok:     v.ok,
-				err:    v.err,
-				output: v.output,
+				input:  nil,
+				ok:     true,
+				err:    nil,
+				output: v,
 			}
 		}
-		outConv10 := make([]InternalHandleResult, len(r10))
-		for i, v := range r10 {
+		for i, j := len(r9.results), 0; i < rCount; i, j = i+1, j+1 {
+			outConv9[i] = InternalHandleResult{
+				input: r9.failures[j].input,
+				ok: false,
+				err: r9.failures[j].err,
+				output: nil,
+			}
+		}
+		rCount = len(r10.results)+len(r10.failures)
+		outConv10 := make([]InternalHandleResult, rCount)
+		for i, v := range r10.results {
 			outConv10[i] = InternalHandleResult{
-				input:  v.input,
-				ok:     v.ok,
-				err:    v.err,
-				output: v.output,
+				input:  nil,
+				ok:     true,
+				err:    nil,
+				output: v,
+			}
+		}
+		for i, j := len(r10.results), 0; i < rCount; i, j = i+1, j+1 {
+			outConv10[i] = InternalHandleResult{
+				input: r10.failures[j].input,
+				ok: false,
+				err: r10.failures[j].err,
+				output: nil,
 			}
 		}
 		
