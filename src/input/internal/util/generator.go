@@ -9,8 +9,18 @@ import (
 )
 
 func GenerateSource(templateFile string, outputFile string, data any, formatSource bool) {
+	// Define functions for incrementing or decrementing integer values
+	funcs := template.FuncMap{
+		"inc": func(i int) int {
+			return i + 1
+		},
+		"dec": func(i int) int {
+			return i - 1
+		},
+	}
+
 	// Read the template
-	tmpl, err := template.ParseFiles(templateFile)
+	tmpl, err := template.New(templateFile).Funcs(funcs).ParseFiles(templateFile)
 	if err != nil {
 		log.Fatal(err)
 	}

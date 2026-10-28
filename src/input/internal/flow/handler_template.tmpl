@@ -72,15 +72,29 @@ func NewHandler_{{.NumOut}}[Tin any{{range .GenIndexes}}, Tout{{.}} any{{end}}](
 	// Build a function that converts the user provided typed handler into a type agnostic handler the framework can use
 	f := func(ctx context.Context, in []any) ([][]InternalHandleResult, error) {
 		r1{{range .OutIndexes}}, r{{.}}{{end}}, err := handleFunc(ctx, in[0].(Tin))
-		return [][]InternalHandleResult{ {{range .GenIndexes}}
-			[]InternalHandleResult{
+		{{range .GenIndexes}}var iR{{.}} []InternalHandleResult
+		if err != nil {
+			iR{{.}} = []InternalHandleResult{
 				{
-					input:  nil,
+					input:  in[0],
+					ok:     false,
+					err:    err,
+					output: nil,
+				},
+			}
+		} else {
+			iR{{.}} = []InternalHandleResult{
+				{
+					input:  in[0],
 					ok:     r{{.}}.ok,
 					err:    nil,
 					output: r{{.}}.output,
 				},
-			},{{end}}
+			}
+		}
+		{{end}}
+		return [][]InternalHandleResult{ {{range .GenIndexes}}
+			iR{{.}},{{end}}
 		}, err
 	}
 

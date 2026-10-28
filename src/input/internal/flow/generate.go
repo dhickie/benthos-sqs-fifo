@@ -35,5 +35,5 @@ func main() {
 		}
 	}
 
-	util.GenerateSource("handler_template.tmpl", "handler_generated.go", data, false)
+	util.GenerateSource("handler_template.tmpl", "handler_generated.go", data, true)
 }

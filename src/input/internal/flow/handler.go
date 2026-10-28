@@ -24,13 +24,13 @@ func NewValueHandleResult[Tout any](result Tout, ok bool) *ValueHandleResult[Tou
 }
 
 type BatchHandleResult[Tin any] struct {
-	failures []BatchFailure[Tin]
+	failures []*BatchFailure[Tin]
 }
 
-func NewBatchHandleResult[Tin any](failures []BatchFailure[Tin]) *BatchHandleResult[Tin] {
-	var f []BatchFailure[Tin]
+func NewBatchHandleResult[Tin any](failures []*BatchFailure[Tin]) *BatchHandleResult[Tin] {
+	var f []*BatchFailure[Tin]
 	if failures == nil {
-		f = make([]BatchFailure[Tin], 0)
+		f = make([]*BatchFailure[Tin], 0)
 	} else {
 		f = failures
 	}
@@ -45,16 +45,16 @@ type ValueBatchHandleResult[Tin any, Tout any] struct {
 	BatchHandleResult[Tin]
 }
 
-func NewValueBatchHandleResult[Tin any, Tout any](results []Tout, failures []BatchFailure[Tin]) *ValueBatchHandleResult[Tin, Tout] {
+func NewValueBatchHandleResult[Tin any, Tout any](results []Tout, failures []*BatchFailure[Tin]) *ValueBatchHandleResult[Tin, Tout] {
 	var r []Tout
-	var f []BatchFailure[Tin]
+	var f []*BatchFailure[Tin]
 	if results == nil {
 		r = make([]Tout, 0)
 	} else {
 		r = results
 	}
 	if failures == nil {
-		f = make([]BatchFailure[Tin], 0)
+		f = make([]*BatchFailure[Tin], 0)
 	} else {
 		f = failures
 	}
