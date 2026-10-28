@@ -7,6 +7,7 @@ import (
 	"errors"
 	"log/slog"
 	"strconv"
+	"sync"
 	"testing"
 	"time"
 
@@ -89,6 +90,91 @@ func TestComponents_CanContainMultipleHandlers(t *testing.T) {
 
 		assert.Equal(t, expOut2[i], vStr)
 	}
+}
+
+func TestComponents_CanHaveNoOutput(t *testing.T) {
+	// Arrange
+	in := 1
+	mu := &sync.Mutex{}
+	cond := sync.NewCond(mu)
+	c, inP := createZeroOutputComponent(t.Context(), func(ctx context.Context, i int) error {
+		mu.Lock()
+		defer mu.Unlock()
+
+		cond.Signal()
+		return nil
+	})
+
+	// Act
+	mu.Lock()
+	defer mu.Unlock()
+	inP.Send(t.Context(), in)
+	cond.Wait()
+	close(inP.SendChan())
+
+	// Assert
+	<-c.Stopped()
+}
+
+func TestComponent_CanHaveOptionalOutputs(t *testing.T) {
+	// Arrange
+	in := []int{1, 2}
+	expectedOut := "2"
+	_, inP, outP := createComponent(t.Context(), func(_ context.Context, in []int) (*ValueBatchHandleResult[int, string], error) {
+		results := make([]string, 0)
+		for _, v := range in {
+			if v == 2 {
+				results = append(results, strconv.Itoa(v))
+			}
+		}
+
+		return NewValueBatchHandleResult[int](results, nil), nil
+	})
+	defer close(inP.SendChan())
+
+	// Act
+	inP.Send(t.Context(), in...)
+	out, err := outP.Receive(t.Context())
+
+	// Assert
+	assert.NoError(t, err)
+	assert.Len(t, out, 1)
+	assert.Equal(t, expectedOut, out[0])
+}
+
+func TestComponent_CanHaveMultipleOutputs(t *testing.T) {
+	// Arrange
+	in := []int{1, 2}
+	expectedOut1 := "1"
+	expectedOut2 := "2"
+	f := func(_ context.Context, in []int) (*ValueBatchHandleResult[int, string], *ValueBatchHandleResult[int, string], error) {
+		out1 := make([]string, 0)
+		out2 := make([]string, 0)
+		for _, v := range in {
+			if v == 1 {
+				out1 = append(out1, strconv.Itoa(v))
+			} else {
+				out2 = append(out2, strconv.Itoa(v))
+			}
+		}
+
+		return NewValueBatchHandleResult[int](out1, nil), NewValueBatchHandleResult[int](out2, nil), nil
+	}
+	_, inP, outP1, outP2 := createMultiOutputComponent(t.Context(), f)
+	defer close(inP.SendChan())
+
+	// Act
+	inP.Send(t.Context(), in...)
+	out1, err1 := outP1.Receive(t.Context())
+	out2, err2 := outP2.Receive(t.Context())
+
+	// Assert
+	assert.NoError(t, err1)
+	assert.NoError(t, err2)
+	assert.Len(t, out1, 1)
+	assert.Len(t, out2, 1)
+	assert.Equal(t, expectedOut1, out1[0])
+	assert.Equal(t, expectedOut2, out2[0])
 }
 
 func TestComponent_Stops_AndClosesOutputPipe_WhenInputPipeHasClosed(t *testing.T) {
@@ -177,7 +263,7 @@ func TestComponent_SendsToErrorPipe_AfterFailure(t *testing.T) {
 	f := func(_ context.Context, i []int) (*ValueBatchHandleResult[int, string], error) {
 		return nil, errors.New("test error")
 	}
-	_, inP, errorP := createErrorComponent(t.Context(), f, 1)
+	_, inP, _, errorP := createErrorComponent(t.Context(), f, 1, 1)
 	defer close(inP.SendChan())
 
 	// Act
@@ -199,7 +285,7 @@ func TestComponent_RetriesHandler_UpToMaxAttempts(t *testing.T) {
 		attempts++
 		return nil, errors.New("test error")
 	}
-	_, inP, errorP := createErrorComponent(t.Context(), f, maxAttempts)
+	_, inP, _, errorP := createErrorComponent(t.Context(), f, maxAttempts, 1)
 	defer close(inP.SendChan())
 
 	// Act
@@ -228,6 +314,48 @@ func TestComponent_IgnoresErrors_IfNoErrorPipeIsDefined(t *testing.T) {
 
 	// Assert
 	assert.Equal(t, maxAttempts, attempts)
+}
+
+func TestComponent_OnlyRetriesFailedMessagesFromBatch(t *testing.T) {
+	// Arrange
+	input := []int{1, 2}
+	attempts1 := 0
+	attempts2 := 0
+	maxAttempts := 2
+	expectedOut := []string{"1", "2"}
+	f := func(_ context.Context, in []int) (*ValueBatchHandleResult[int, string], error) {
+		success := make([]string, 0)
+		failure := make([]*BatchFailure[int], 0)
+		for _, v := range in {
+			if v == 1 {
+				attempts1++
+				success = append(success, strconv.Itoa(v))
+			} else {
+				attempts2++
+				if attempts2 == 2 {
+					success = append(success, strconv.Itoa(v))
+				} else {
+					failure = append(failure, NewBatchFailure(v, errors.New("oh no")))
+				}
+			}
+		}
+
+		return NewValueBatchHandleResult(success, failure), nil
+	}
+	_, inP, outP, _ := createErrorComponent(t.Context(), f, maxAttempts, 2)
+
+	// Act
+	inP.Send(t.Context(), input...)
+	out, err := outP.Receive(t.Context())
+
+	// Assert
+	assert.NoError(t, err)
+	assert.Len(t, out, 2)
+	assert.Equal(t, attempts1, 1)
+	assert.Equal(t, attempts2, 2)
+	for i, v := range out {
+		assert.Equal(t, expectedOut[i], v)
+	}
 }
 
 func itoa(_ context.Context, i []int) (*ValueBatchHandleResult[int, string], error) {
@@ -260,7 +388,6 @@ func bigWorkFactory(started *util.SyncValue[bool], cont *util.SyncValue[bool]) f
 }
 
 func createComponent(ctx context.Context, handleFunc func(context.Context, []int) (*ValueBatchHandleResult[int, string], error)) (*Component, *Pipe, *Pipe) {
-	l := slog.Default()
 	bp := NewBatchPolicy(5, time.Second)
 	inP := NewPipe("input", bp, l)
 	outP := NewPipe("output", bp, l)
@@ -299,14 +426,15 @@ func createMultiHandlerComponent(ctx context.Context, f1 func(context.Context, [
 	return c, []*Pipe{inP1, inP2}, []*Pipe{outP1, outP2}
 }
 
-func createErrorComponent(ctx context.Context, f func(context.Context, []int) (*ValueBatchHandleResult[int, string], error), maxAttempts int) (*Component, *Pipe, *Pipe) {
+func createErrorComponent(ctx context.Context, f func(context.Context, []int) (*ValueBatchHandleResult[int, string], error), maxAttempts int, batchSize int) (*Component, *Pipe, *Pipe, *Pipe) {
+	bp := NewBatchPolicy(batchSize, time.Minute)
 	inP := NewPipe("input", bp, l)
 	outP := NewPipe("output", bp, l)
 	errorP := NewPipe("error", bp, l)
 	retryPolicy := NewRetryPolicy(errorP, maxAttempts, time.Microsecond)
 	handler := NewBatchHandler_1(f)
 	coupling := NewHandlerCoupling(handler, inP, []*Pipe{outP}, retryPolicy)
-	return NewComponent(ctx, []*HandlerCoupling{coupling}, 1), inP, errorP
+	return NewComponent(ctx, []*HandlerCoupling{coupling}, 1), inP, outP, errorP
 }
 
 func createErrorComponentWithNoErrorPipe(ctx context.Context, f func(context.Context, []int) (*ValueBatchHandleResult[int, string], error), maxAttempts int) (*Component, *Pipe) {
@@ -316,4 +444,23 @@ func createErrorComponentWithNoErrorPipe(ctx context.Context, f func(context.Con
 	handler := NewBatchHandler_1(f)
 	coupling := NewHandlerCoupling(handler, inP, []*Pipe{outP}, retryPolicy)
 	return NewComponent(ctx, []*HandlerCoupling{coupling}, 1), inP
+}
+
+func createZeroOutputComponent(ctx context.Context, f func(context.Context, int) error) (*Component, *Pipe) {
+	bp := NewBatchPolicy(5, time.Second)
+	inP := NewPipe("input", bp, l)
+	handler := NewHandler_0(f)
+	coupling := NewHandlerCoupling(handler, inP, nil, nil)
+
+	return NewComponent(ctx, []*HandlerCoupling{coupling}, 1), inP
+}
+
+func createMultiOutputComponent(ctx context.Context, f func(context.Context, []int) (*ValueBatchHandleResult[int, string], *ValueBatchHandleResult[int, string], error)) (*Component, *Pipe, *Pipe, *Pipe) {
+	inP := NewPipe("input", bp, l)
+	outP1 := NewPipe("output1", bp, l)
+	outP2 := NewPipe("output2", bp, l)
+	handler := NewBatchHandler_2(f)
+	coupling := NewHandlerCoupling(handler, inP, []*Pipe{outP1, outP2}, nil)
+
+	return NewComponent(ctx, []*HandlerCoupling{coupling}, 1), inP, outP1, outP2
 }

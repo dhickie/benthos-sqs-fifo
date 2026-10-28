@@ -58,7 +58,11 @@ func (p *WorkerPool) Do(wg *util.ContextWaitGroup, h *Handler, w []any, o []*Pip
 							retryMsgs = append(retryMsgs, q.input)
 						}
 					}
-					o[i].SendChan() <- msgs
+
+					// Only try to send to the output channel if there is one defined
+					if len(msgs) > 0 && o != nil && len(o) > i {
+						o[i].SendChan() <- msgs
+					}
 				}
 
 				if len(retryMsgs) > 0 {
