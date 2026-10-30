@@ -1,0 +1,147 @@
+// Minimal flow
+app := flow.App("myApp")
+    .WithFlows(
+        flow.Flow[int]("myFlow").
+            WithHandler[string](
+                flow.Handler[int]("handler1").
+                    WithHandleFunc(f)
+            ).
+            WithEndHandler[string](
+                flow.EndHandler[string]("handler2").
+                    WithHandleFunc(f)
+            )
+    ).
+    Build()
+
+// With batching policy
+app := flow.App("myApp")
+    .WithFlows(
+        flow.Flow[int]("myFlow").
+            WithHandler[int,string](
+                flow.Handler[int,string]("handler1").
+                    WithBatching(10, time.Second). // Has to be specified before the handle func
+                    WithHandleFunc(f)
+            ).
+            WithEndHandler[string](
+                flow.Handler[string]("handler2").
+                    WithHandleFunc(f)
+            )
+    ).
+    Build()
+
+// With error handler
+app := flow.App("myApp")
+    .WithFlows(
+        flow.Flow[int]("myFlow").
+            WithHandler(
+                flow.Handler[int]("handler1").
+                    WithHandleFunc(f)
+            ).
+            WithEndHandler(
+                flow.Handler[string]("handler2").
+                    WithHandleFunc(f).
+                    WithRetryPolicy( // Can be specified any time
+                        3, // Max attempts
+                        flow.Handler[string]("errorHandler")
+                            .WithHandleFunc(fErr)
+                    )
+            )
+    ).
+    Build()
+
+// With multiple flows
+app := flow.App("myApp")
+    .WithFlows(
+        flow.Flow[int]("flow1").
+            WithHandler(
+                flow.Handler[int]("handler1").
+                    WithHandleFunc(f)
+            ).
+            WithHandler(
+                flow.Handler[string]("handler2").
+                    WithHandleFunc(f)
+            ).
+            WithHandler(
+                flow.Handler[MyType]("handler3").
+                    WithHandleFunc(f)
+            ),
+        flow.Flow[int]("flow2").
+            WithHandler(
+                flow.Handler[int]("handler4").
+                    WithHandleFunc(f)
+            ),
+            WithHandler(
+                flow.Handler[string]("handler5").
+                    .WithHandleFunc(f)
+            )
+    ).
+    Build()
+
+// With handlers grouped into components
+app := flow.App("myApp")
+    .WithFlows(
+        flow.Flow[int]("myFlow").
+            WithHandler(
+                flow.Handler[int]("handler1").
+                    WithHandleFunc(f)
+            ).
+            WithHandler(
+                flow.Handler[string]("handler2").
+                    WithHandleFunc(f)
+            ).
+            WithHandler(
+                flow.Handler[string]("handler2").
+                    WithHandleFunc(f)
+            )
+    ).
+    WithComponents(
+        flow.Component("myComponent")
+            .WithHandlers("handler1", "handler3")
+            .WithConcurrency(10)
+    ).
+    Build()
+
+// With flows triggering other flows
+flow := flow.Flow[int]("reusableFlow").
+    WithHandler[int, string](
+        flow.Handler[int, string]("handler1").
+            WithHandleFunc(f)
+    ).
+    WithEndHandler[string](
+        flow.Handler[string]("handler2").
+            WithHandleFunc(f)
+    )
+
+app := flow.App("myApp")
+    .WithFlows(
+        flow.Flow[string]("myFlow").
+            WithHandler(
+                flow.Handler[string,int]("handler1").
+                    WithHandleFunc(f)
+            ).
+            WithFlow[int](flow) // Can't call WithHandler after calling WithFlow - flow will terminate at the end
+    ).
+    Build()
+
+// With splitting flows
+fork1Flow := flow.Flow("fork1").
+    WithHandler(
+        flow.Handler("forkHandler").
+            WithHandleFunc(f)
+    )
+fork2Flow := flow.Flow("fork2").
+    WithHandler(
+        flow.Handler("forkHandler").
+            WithHandleFunc(f)
+    )
+
+app := flow.App("myApp").
+    WithFlows(
+        flow.Flow("myFlow").
+            WithHandler(
+                flow.Handler[int]("handler1").
+                    WithHandleFunc(f)
+            ).
+            Split(fork1Flow, fork2Flow) // Cannot call WithHandler or WithFlow after Split
+    ).
+    Build()
