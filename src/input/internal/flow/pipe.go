@@ -17,6 +17,9 @@ const (
 	logPropPipeName   = "pipeName"
 	logPropNumMsgs    = "numMsgs"
 	logPropNumBatches = "numBatches"
+
+	defaultBatchSize          = 1
+	defaultBatchPeriodSeconds = 3600
 )
 
 // Pipe represents a medium for asynchronously sending messages of any type to one or more receivers.
@@ -64,6 +67,14 @@ type Pipe struct {
 // NewPipe returns a pointer to a new pipe that can send and receive messages of the specified type, and applies
 // the provided batching policy to any sent messages before propagating messages to receivers.
 func NewPipe(name string, bp *BatchPolicy, logger *slog.Logger) *Pipe {
+	// Apply a default batch policy if one isn't provided
+	if bp == nil {
+		bp = NewBatchPolicy(defaultBatchSize, time.Duration(defaultBatchPeriodSeconds)*time.Second)
+	}
+	if logger == nil {
+		logger = slog.Default()
+	}
+
 	bLock := &sync.Mutex{}
 	ctx, cancel := context.WithCancel(context.Background())
 	iCtx, iCancel := context.WithCancel(context.Background())

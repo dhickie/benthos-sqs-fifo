@@ -8,19 +8,19 @@ import (
 )
 
 type Component struct {
-	inputMap  map[string]*Handler        // Map of input pipe IDs to handlers
+	inputMap  map[string]*handler        // Map of input pipe IDs to handlers
 	outputMap map[string][]*Pipe         // Map of handler IDs to output pipes
 	retryMap  map[string]*RetryPolicy    // Map of handler IDs to their retry policies
 	inputs    []*Pipe                    // All the input pipes
 	rChan     []*<-chan []any            // All of the receive channels for incoming pipes
-	rChanMap  map[*<-chan []any]*Handler // Map of receive channels to their corresponding handlers
+	rChanMap  map[*<-chan []any]*handler // Map of receive channels to their corresponding handlers
 
 	ctx     context.Context // Lifetime context
 	wg      sync.WaitGroup
 	stopped chan struct{} // Closed when the component has stopped
 
 	workerPool *WorkerPool
-	workWgMap  map[*Handler]*util.ContextWaitGroup // For keeping track of work currently being carried out by the worker pool
+	workWgMap  map[*handler]*util.ContextWaitGroup // For keeping track of work currently being carried out by the worker pool
 }
 
 type RetryPolicy struct {
@@ -38,13 +38,13 @@ func NewRetryPolicy(errPipe *Pipe, maxAttempts int, interval time.Duration) *Ret
 }
 
 type HandlerCoupling struct {
-	handler     *Handler
+	handler     *handler
 	inputPipe   *Pipe
 	outputPipe  []*Pipe
 	retryPolicy *RetryPolicy
 }
 
-func NewHandlerCoupling(h *Handler, in *Pipe, out []*Pipe, retryPolicy *RetryPolicy) *HandlerCoupling {
+func NewHandlerCoupling(h *handler, in *Pipe, out []*Pipe, retryPolicy *RetryPolicy) *HandlerCoupling {
 	return &HandlerCoupling{
 		handler:     h,
 		inputPipe:   in,
@@ -55,12 +55,12 @@ func NewHandlerCoupling(h *Handler, in *Pipe, out []*Pipe, retryPolicy *RetryPol
 
 func NewComponent(ctx context.Context, couplings []*HandlerCoupling, maxConcurrency int) *Component {
 	inputs := make([]*Pipe, 0, len(couplings))
-	inputMap := make(map[string]*Handler, len(couplings))
+	inputMap := make(map[string]*handler, len(couplings))
 	outputMap := make(map[string][]*Pipe, len(couplings))
 	retryMap := make(map[string]*RetryPolicy)
 	rChan := make([]*<-chan []any, len(couplings))
-	rChanMap := make(map[*<-chan []any]*Handler, len(couplings))
-	workWgMap := make(map[*Handler]*util.ContextWaitGroup, maxConcurrency)
+	rChanMap := make(map[*<-chan []any]*handler, len(couplings))
+	workWgMap := make(map[*handler]*util.ContextWaitGroup, maxConcurrency)
 
 	pool := NewWorkerPool(ctx, maxConcurrency)
 
@@ -111,7 +111,7 @@ func (c *Component) processLoop() {
 	var err error
 	var v []any
 	var ok bool
-	var h *Handler
+	var h *handler
 	var out []*Pipe
 	var retryPolicy *RetryPolicy
 	var wg *util.ContextWaitGroup

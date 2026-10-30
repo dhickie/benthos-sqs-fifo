@@ -21,7 +21,7 @@ var rng = test.NewRng(0)
 
 func TestSendAndReceive_UseSameTypeForMessage(t *testing.T) {
 	// Arrange
-	p := makePipe(1, time.Duration(1)*time.Minute)
+	p := makePipe()
 	defer p.Close(t.Context())
 	m := buildMessage()
 
@@ -42,7 +42,7 @@ func TestSendAndReceive_UseSameTypeForMessage(t *testing.T) {
 
 func TestSendAndReceive_SendsAndReceivesTheSameMessage(t *testing.T) {
 	// Arrange
-	p := makePipe(1, time.Duration(1)*time.Minute)
+	p := makePipe()
 	defer p.Close(t.Context())
 	m := buildMessage()
 
@@ -68,7 +68,7 @@ func TestSendAndReceive_SendsAndReceivesTheSameMessage(t *testing.T) {
 
 func TestChannels_CanSendAndReceiveMessages(t *testing.T) {
 	// Arrange
-	p := makePipe(1, time.Duration(1)*time.Minute)
+	p := makePipe()
 	defer p.Close(t.Context())
 	m := buildMessage()
 
@@ -83,7 +83,7 @@ func TestChannels_CanSendAndReceiveMessages(t *testing.T) {
 func TestReceive_ReceivesBatchedInput(t *testing.T) {
 	// Arrange
 	bSize := 10
-	p := makePipe(bSize, time.Duration(1)*time.Minute)
+	p := makeBatchPipe(bSize, time.Duration(1)*time.Minute)
 	defer p.Close(t.Context())
 	m := buildMessages(bSize)
 	for i := range bSize {
@@ -105,7 +105,7 @@ func TestReceive_ReceivesBatchedInput(t *testing.T) {
 func TestReceive_ReceivesUnfilledBatchAfterBatchPeriod(t *testing.T) {
 	// Arrange
 	bSize := 10
-	p := makePipe(bSize, time.Duration(1)*time.Millisecond)
+	p := makeBatchPipe(bSize, time.Duration(1)*time.Millisecond)
 	defer p.Close(t.Context())
 	m := buildMessage()
 	if err := p.Send(t.Context(), m); err != nil {
@@ -124,9 +124,8 @@ func TestReceive_ReceivesUnfilledBatchAfterBatchPeriod(t *testing.T) {
 
 func TestClose_WaitsForPipeToBeEmpty(t *testing.T) {
 	// Arrange
-	bSize := 1
 	nM := 2
-	p := makePipe(bSize, time.Duration(1)*time.Minute)
+	p := makePipe()
 	m := buildMessages(nM)
 	for i := range nM {
 		if err := p.Send(t.Context(), m[i]); err != nil {
@@ -153,7 +152,7 @@ func TestClose_WaitsForPipeToBeEmpty(t *testing.T) {
 func TestClose_ForceClosesPipeIfContextIsCancelled(t *testing.T) {
 	// Arrange
 	ctx, cancel := context.WithCancel(t.Context())
-	p := makePipe(1, time.Duration(1)*time.Minute)
+	p := makePipe()
 	m := buildMessage()
 	if err := p.Send(t.Context(), m); err != nil {
 		cancel()
@@ -311,9 +310,13 @@ func startCloseRoutine(ctx context.Context, t *testing.T, ch *Pipe) *sync.WaitGr
 	return &wg
 }
 
-func makePipe(batchSize int, period time.Duration) *Pipe {
+func makePipe() *Pipe {
+	return NewPipe("testpipe", nil, nil)
+}
+
+func makeBatchPipe(batchSize int, period time.Duration) *Pipe {
 	bp := NewBatchPolicy(batchSize, period)
-	return NewPipe("testpipe", bp, slog.Default())
+	return NewPipe("testpipe", bp, nil)
 }
 
 func buildMessages(n int) []*TestMessage {

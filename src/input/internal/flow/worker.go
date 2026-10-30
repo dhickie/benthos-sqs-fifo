@@ -36,7 +36,7 @@ func NewWorkerPool(ctx context.Context, numWorkers int) *WorkerPool {
 	return wp
 }
 
-func (p *WorkerPool) Do(wg *util.ContextWaitGroup, h *Handler, w []any, o []*Pipe, retryPolicy *RetryPolicy) error {
+func (p *WorkerPool) Do(wg *util.ContextWaitGroup, h *handler, w []any, o []*Pipe, retryPolicy *RetryPolicy) error {
 	f := func() error {
 		numAttempts := 0
 		var err error

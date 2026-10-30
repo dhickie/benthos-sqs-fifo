@@ -7,7 +7,35 @@ import (
 	"reflect"
 )
 
+func App(name string) *AppBuilder {
+	return &AppBuilder{
+		n: name,
+		f: make([]*CompletedFlowBuilder, 0),
+	}
+}
+
+func Flow[Tinit any](name string) *FlowBuilder[Tinit] {
+	return &FlowBuilder[Tinit]{
+		inT: reflect.TypeFor[Tinit](),
+		n:   name,
+		h:   make([]*handler, 0),
+	}
+}
+
+func Handler[Tin, Tout any](name string) *HandlerBuilder[Tin, Tout] {
+	return &HandlerBuilder[Tin, Tout]{
+		n: name,
+	}
+}
+
+func EndHandler[Tin any](name string) *EndHandlerBuilder[Tin] {
+	return &EndHandlerBuilder[Tin]{
+		n: name,
+	}
+}
+
 type AppBuilder struct {
+	n string
 	f []*CompletedFlowBuilder
 }
 
@@ -16,14 +44,15 @@ func (a *AppBuilder) WithFlows(flows ...*CompletedFlowBuilder) *AppBuilder {
 	return a
 }
 
-func (a *AppBuilder) Build() *App {
+func (a *AppBuilder) Build() *BuiltApp {
 	builtFlows := make(map[string]*flow)
 	for _, v := range a.f {
 		built := v.build()
 		builtFlows[built.n] = built
 	}
 
-	return &App{
+	return &BuiltApp{
+		name:  a.n,
 		flows: builtFlows,
 	}
 }
@@ -31,16 +60,12 @@ func (a *AppBuilder) Build() *App {
 type FlowBuilder[Tprev any] struct {
 	inT reflect.Type
 	n   string
-	h   []*Handler
+	h   []*handler
 }
 
 type CompletedFlowBuilder FlowBuilder[any]
 
 func (fb *FlowBuilder[Tprev]) WithHandler[Tout any](hb *HandlerBuilder[Tprev, Tout]) *FlowBuilder[Tout] {
-	if len(fb.h) == 0 {
-		fb.inT = reflect.TypeFor[Tprev]()
-	}
-
 	fb.h = append(fb.h, hb.build())
 	return fb.toNextBuilder[Tout]()
 }
@@ -67,7 +92,7 @@ func (fb *FlowBuilder[Tprev]) toCompletedBuilder() *CompletedFlowBuilder {
 }
 
 func (fb *CompletedFlowBuilder) build() *flow {
-	components := make([]*Component, len(fb.h))             // TODO one handler per component for now
+	components := make([]*Component, 0)                     // TODO one handler per component for now
 	inP := NewPipe(fmt.Sprintf("%v_input", fb.n), nil, nil) // TODO add logger
 	nextP := inP
 	for i, v := range fb.h {
@@ -104,7 +129,7 @@ func (h *HandlerBuilder[Tin, Tout]) WithHandleFunc(f func(context.Context, Tin) 
 	return h
 }
 
-func (h *HandlerBuilder[Tin, Tout]) build() *Handler {
+func (h *HandlerBuilder[Tin, Tout]) build() *handler {
 	return NewHandler_1(h.f)
 }
 
@@ -118,21 +143,22 @@ func (h *EndHandlerBuilder[Tin]) WithHandleFunc(f func(context.Context, Tin) err
 	return h
 }
 
-func (h *EndHandlerBuilder[Tin]) build() *Handler {
+func (h *EndHandlerBuilder[Tin]) build() *handler {
 	return NewHandler_0(h.f)
 }
 
-type App struct {
+type BuiltApp struct {
+	name  string
 	flows map[string]*flow
 }
 
-func (a *App) GetFlow[T any](name string) (*Flow[T], error) {
+func (a *BuiltApp) GetFlow[T any](name string) (*BuiltFlow[T], error) {
 	if f, ok := a.flows[name]; !ok {
 		return nil, errors.New("Flow doesn't exist")
 	} else if f.t != reflect.TypeFor[T]() {
 		return nil, errors.New("Flow doesn't have requested type")
 	} else {
-		return &Flow[T]{
+		return &BuiltFlow[T]{
 			f: f,
 		}, nil
 	}
@@ -149,11 +175,11 @@ func (f *flow) trigger(ctx context.Context, data ...any) error {
 	return f.p.Send(ctx, data...)
 }
 
-type Flow[T any] struct {
+type BuiltFlow[T any] struct {
 	f *flow
 }
 
-func (f *Flow[T]) Trigger(ctx context.Context, data ...*T) error {
+func (f *BuiltFlow[T]) Trigger(ctx context.Context, data ...T) error {
 	conv := make([]any, len(data))
 	for i, v := range data {
 		conv[i] = v

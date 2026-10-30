@@ -21,7 +21,7 @@ func TestComponent_CanReceiveAndCarryOutWork(t *testing.T) {
 	// Arrange
 	input := []int{1, 2, 3, 4, 5}
 	expectedOutput := []string{"1", "2", "3", "4", "5"}
-	_, inP, outP := createComponent(t.Context(), itoa)
+	_, inP, outP := createComponent(t.Context(), itoaBatch)
 
 	// Act
 	_ = inP.Send(t.Context(), input...)
@@ -42,7 +42,7 @@ func TestComponents_CanBeChainedTogether(t *testing.T) {
 	// Arrange
 	input := []int{123, 456}
 	expectedOutput := []string{"321", "654"}
-	_, inP, outP := createComponentChain(t.Context(), itoa, reverse)
+	_, inP, outP := createComponentChain(t.Context(), itoaBatch, reverseBatch)
 
 	// Act
 	_ = inP.Send(t.Context(), input...)
@@ -65,7 +65,7 @@ func TestComponents_CanContainMultipleHandlers(t *testing.T) {
 	in2 := []string{"123", "456"}
 	expOut1 := []string{"123", "456"}
 	expOut2 := []string{"321", "654"}
-	_, inPipes, outPipes := createMultiHandlerComponent(t.Context(), itoa, reverse)
+	_, inPipes, outPipes := createMultiHandlerComponent(t.Context(), itoaBatch, reverseBatch)
 
 	// Act
 	_ = inPipes[0].Send(t.Context(), in1...)
@@ -179,7 +179,7 @@ func TestComponent_CanHaveMultipleOutputs(t *testing.T) {
 
 func TestComponent_Stops_AndClosesOutputPipe_WhenInputPipeHasClosed(t *testing.T) {
 	// Arrange
-	c, inP, outP := createComponent(t.Context(), itoa)
+	c, inP, outP := createComponent(t.Context(), itoaBatch)
 
 	// Act
 	close(inP.SendChan())
@@ -198,7 +198,7 @@ func TestComponent_Stops_WhenContextIsCancelled(t *testing.T) {
 	// Arrange
 	ctx, cancel := context.WithCancel(t.Context())
 	defer cancel()
-	c, _, _ := createComponent(ctx, itoa)
+	c, _, _ := createComponent(ctx, itoaBatch)
 
 	// Act
 	cancel()
@@ -212,7 +212,7 @@ func TestComponent_WaitsToStop_UntilAllInputPipesAreClosed(t *testing.T) {
 	// Arrange
 	input := []string{"123", "456"}
 	expectedOutput := []string{"321", "654"}
-	c, inP, outP := createMultiHandlerComponent(t.Context(), itoa, reverse)
+	c, inP, outP := createMultiHandlerComponent(t.Context(), itoaBatch, reverseBatch)
 
 	// Act
 	close(inP[0].SendChan())
@@ -358,7 +358,7 @@ func TestComponent_OnlyRetriesFailedMessagesFromBatch(t *testing.T) {
 	}
 }
 
-func itoa(_ context.Context, i []int) (*ValueBatchHandleResult[int, string], error) {
+func itoaBatch(_ context.Context, i []int) (*ValueBatchHandleResult[int, string], error) {
 	o := make([]string, len(i))
 	for i, v := range i {
 		o[i] = strconv.Itoa(v)
@@ -366,7 +366,7 @@ func itoa(_ context.Context, i []int) (*ValueBatchHandleResult[int, string], err
 	return NewValueBatchHandleResult[int](o, nil), nil
 }
 
-func reverse(_ context.Context, str []string) (*ValueBatchHandleResult[string, string], error) {
+func reverseBatch(_ context.Context, str []string) (*ValueBatchHandleResult[string, string], error) {
 	o := make([]string, len(str))
 	for i, v := range str {
 		r := []rune(v)
@@ -383,7 +383,7 @@ func bigWorkFactory(started *util.SyncValue[bool], cont *util.SyncValue[bool]) f
 	return func(ctx context.Context, input []int) (*ValueBatchHandleResult[int, string], error) {
 		started.Set(true)
 		cont.WaitForValue(ctx, true)
-		return itoa(ctx, input)
+		return itoaBatch(ctx, input)
 	}
 }
 

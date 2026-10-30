@@ -6,7 +6,7 @@ import (
 	"context"
 )
 
-type Handler struct {
+type handler struct {
 	id         string
 	handleFunc func(context.Context, []any) ([][]InternalHandleResult, error)
 }
@@ -84,6 +84,6 @@ type InternalHandleResult struct {
 	err    error
 }
 
-func (h *Handler) Handle(ctx context.Context, in []any) ([][]InternalHandleResult, error) {
+func (h *handler) Handle(ctx context.Context, in []any) ([][]InternalHandleResult, error) {
 	return h.handleFunc(ctx, in)
 }
