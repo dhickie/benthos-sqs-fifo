@@ -71,6 +71,7 @@ func TestFluentApi_CanCreateBatchHandler(t *testing.T) {
 
 func TestFluentApi_CanCreateSimpleFlow(t *testing.T) {
 	// Arrange
+	inputMap := make(map[string]*Pipe)
 	fName := uuid.New().String()
 	hName1 := uuid.New().String()
 	hName2 := uuid.New().String()
@@ -88,7 +89,7 @@ func TestFluentApi_CanCreateSimpleFlow(t *testing.T) {
 			Handler[int, string](hName1).
 				WithHandleFunc(itoa),
 		).
-		WithEndHandler(
+		WithHandler(
 			EndHandler[string](hName2).
 				WithHandleFunc(func(c context.Context, i string) error {
 					mu.Lock()
@@ -100,7 +101,7 @@ func TestFluentApi_CanCreateSimpleFlow(t *testing.T) {
 					return nil
 				}),
 		)
-	built := f.build()
+	built := f.build(&inputMap)
 
 	// Act
 	err := built.p.Send(t.Context(), in)
@@ -114,6 +115,7 @@ func TestFluentApi_CanCreateSimpleFlow(t *testing.T) {
 
 func TestFluentApi_CanCreateBatchedFlow(t *testing.T) {
 	// Arrange
+	inputMap := make(map[string]*Pipe)
 	fName := uuid.New().String()
 	hName1 := uuid.New().String()
 	hName2 := uuid.New().String()
@@ -132,22 +134,22 @@ func TestFluentApi_CanCreateBatchedFlow(t *testing.T) {
 				WithBatching(3, time.Second).
 				WithHandleFunc(batchItoa),
 		).
-		WithEndHandler(
-			EndHandler[string](hName2).
-				WithBatching(3, time.Second).
-				WithHandleFunc(func(c context.Context, in []string) (*BatchHandleResult[string], error) {
-					mu.Lock()
-					defer mu.Unlock()
+		WithHandler[NilType](
+		EndHandler[string](hName2).
+			WithBatching(3, time.Second).
+			WithHandleFunc(func(c context.Context, in []string) (*BatchHandleResult[string], error) {
+				mu.Lock()
+				defer mu.Unlock()
 
-					for i := range in {
-						actualOut[i] = reverse(in[i])
-					}
-					cond.Signal()
+				for i := range in {
+					actualOut[i] = reverse(in[i])
+				}
+				cond.Signal()
 
-					return NewBatchHandleResult[string](nil), nil
-				}),
-		)
-	built := f.build()
+				return NewBatchHandleResult[string](nil), nil
+			}),
+	)
+	built := f.build(&inputMap)
 
 	// Act
 	err := built.p.Send(t.Context(), in...)
@@ -182,7 +184,7 @@ func TestFluentApi_CanCreateSimpleApp(t *testing.T) {
 					Handler[int, string](hName1).
 						WithHandleFunc(itoa),
 				).
-				WithEndHandler(
+				WithHandler(
 					EndHandler[string](hName2).
 						WithHandleFunc(func(c context.Context, i string) error {
 							mu.Lock()
@@ -219,7 +221,7 @@ func TestFluentApi_ReturnsErrorIfFlowDoesntExist(t *testing.T) {
 	a := App(aName).
 		WithFlows(
 			Flow[string](fName).
-				WithEndHandler(
+				WithHandler(
 					EndHandler[string](hName).
 						WithHandleFunc(func(c context.Context, i string) error {
 							return nil
@@ -244,7 +246,7 @@ func TestFluentApi_ReturnsErrorIfFlowHasDifferentTriggerType(t *testing.T) {
 	a := App(aName).
 		WithFlows(
 			Flow[string](fName).
-				WithEndHandler(
+				WithHandler(
 					EndHandler[string](hName).
 						WithHandleFunc(func(c context.Context, i string) error {
 							return nil
