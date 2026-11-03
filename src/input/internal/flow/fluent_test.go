@@ -2,11 +2,14 @@ package flow
 
 import (
 	"context"
+	"errors"
 	"strconv"
 	"sync"
 	"testing"
 	"time"
 	"uuid"
+
+	"dhickie/benthos-sqs-fifo/src/input/internal/util"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -69,9 +72,60 @@ func TestFluentApi_CanCreateBatchHandler(t *testing.T) {
 	}
 }
 
+func TestFluentApi_CanCreateRetriedHandler(t *testing.T) {
+	// Arrange
+	n := uuid.New().String()
+	maxA := 2
+	retryPeriod := time.Second
+
+	// Act
+	h := Handler[int, string](n).
+		WithMaxAttempts(maxA).
+		WithRetryPeriod(retryPeriod).
+		WithErrorFlow(
+			Flow[int]("errorFlow").
+				WithHandler(
+					EndHandler[int]("errorHandler").
+						WithHandleFunc(nullHandler[int]("nullErrorHandler")),
+				),
+		).
+		WithHandleFunc(itoa)
+
+	// Assert
+	assert.Equal(t, maxA, h.maxA)
+	assert.Equal(t, retryPeriod, h.retryPeriod)
+	assert.NotNil(t, h.eFb)
+}
+
+func TestFluentApi_CanCreateRetriedHandler_WhenMixedWithBatchConfig(t *testing.T) {
+	// Arrange
+	n := uuid.New().String()
+	maxA := 2
+	retryPeriod := time.Second
+
+	// Act
+	h := Handler[int, string](n).
+		WithMaxAttempts(maxA).
+		WithRetryPeriod(retryPeriod).
+		WithBatching(2, time.Minute).
+		WithErrorFlow(
+			Flow[int]("errorFlow").
+				WithHandler(
+					EndHandler[int]("errorHandler").
+						WithHandleFunc(nullHandler[int]("nullErrorHandler")),
+				),
+		).
+		WithHandleFunc(batchItoa)
+
+	// Assert
+	assert.Equal(t, maxA, h.maxA)
+	assert.Equal(t, retryPeriod, h.retryPeriod)
+	assert.NotNil(t, h.eFb)
+}
+
 func TestFluentApi_CanCreateSimpleFlow(t *testing.T) {
 	// Arrange
-	inputMap := make(map[string]*Pipe)
+	inputMap := make(map[string]*flow)
 	fName := uuid.New().String()
 	hName1 := uuid.New().String()
 	hName2 := uuid.New().String()
@@ -101,7 +155,7 @@ func TestFluentApi_CanCreateSimpleFlow(t *testing.T) {
 					return nil
 				}),
 		)
-	built := f.build(&inputMap)
+	built := f.build(&inputMap, util.NewSet[string]())
 
 	// Act
 	err := built.p.Send(t.Context(), in)
@@ -115,7 +169,7 @@ func TestFluentApi_CanCreateSimpleFlow(t *testing.T) {
 
 func TestFluentApi_CanCreateBatchedFlow(t *testing.T) {
 	// Arrange
-	inputMap := make(map[string]*Pipe)
+	inputMap := make(map[string]*flow)
 	fName := uuid.New().String()
 	hName1 := uuid.New().String()
 	hName2 := uuid.New().String()
@@ -134,22 +188,22 @@ func TestFluentApi_CanCreateBatchedFlow(t *testing.T) {
 				WithBatching(3, time.Second).
 				WithHandleFunc(batchItoa),
 		).
-		WithHandler[NilType](
-		EndHandler[string](hName2).
-			WithBatching(3, time.Second).
-			WithHandleFunc(func(c context.Context, in []string) (*BatchHandleResult[string], error) {
-				mu.Lock()
-				defer mu.Unlock()
+		WithHandler(
+			EndHandler[string](hName2).
+				WithBatching(3, time.Second).
+				WithHandleFunc(func(c context.Context, in []string) (*BatchHandleResult[string], error) {
+					mu.Lock()
+					defer mu.Unlock()
 
-				for i := range in {
-					actualOut[i] = reverse(in[i])
-				}
-				cond.Signal()
+					for i := range in {
+						actualOut[i] = reverse(in[i])
+					}
+					cond.Signal()
 
-				return NewBatchHandleResult[string](nil), nil
-			}),
-	)
-	built := f.build(&inputMap)
+					return NewBatchHandleResult[string](nil), nil
+				}),
+		)
+	built := f.build(&inputMap, util.NewSet[string]())
 
 	// Act
 	err := built.p.Send(t.Context(), in...)
@@ -210,6 +264,132 @@ func TestFluentApi_CanCreateSimpleApp(t *testing.T) {
 	// Assert
 	assert.Equal(t, expectedOut, actualOut)
 	assert.Equal(t, aName, a.n)
+}
+
+func TestFluentApi_CanCreateApp_WhichRetriesFailures(t *testing.T) {
+	// Arrange
+	aName := uuid.New().String()
+	fName := uuid.New().String()
+	hName1 := uuid.New().String()
+	hName2 := uuid.New().String()
+
+	attemptNo := 0
+	in := 123
+	expectedOut := "321"
+
+	var actualOut string
+	mu := &sync.Mutex{}
+	cond := sync.NewCond(mu)
+	mu.Lock()
+	defer mu.Unlock()
+
+	a := App(aName).
+		WithFlows(
+			Flow[int](fName).
+				WithHandler(
+					Handler[int, string](hName1).
+						WithHandleFunc(itoa),
+				).
+				WithHandler(
+					EndHandler[string](hName2).
+						WithMaxAttempts(2).
+						WithRetryPeriod(time.Microsecond).
+						WithHandleFunc(func(c context.Context, i string) error {
+							mu.Lock()
+							defer mu.Unlock()
+
+							if attemptNo == 0 {
+								attemptNo++
+								return errors.New("uh oh")
+							}
+							attemptNo++
+
+							actualOut = reverse(i)
+							cond.Signal()
+
+							return nil
+						}),
+				),
+		)
+	built := a.Build()
+
+	// Act
+	if f, err := built.GetFlow[int](fName); err != nil {
+		t.Fatal("Error getting flow from app")
+	} else {
+		f.Trigger(t.Context(), in)
+		cond.Wait()
+	}
+
+	// Assert
+	assert.Equal(t, expectedOut, actualOut)
+	assert.Equal(t, 2, attemptNo)
+}
+
+func TestFluentApi_CanCreateApp_WhichTriggersErrorFlow(t *testing.T) {
+	// Arrange
+	in := 123
+	expectedOut := "321"
+
+	var actualOut string
+	mu := &sync.Mutex{}
+	cond := sync.NewCond(mu)
+	mu.Lock()
+	defer mu.Unlock()
+
+	errFlow := Flow[int]("errorFlow").
+		WithHandler(
+			Handler[int, string]("itoa").
+				WithHandleFunc(itoa),
+		).
+		WithHandler(
+			EndHandler[string]("reverse").
+				WithHandleFunc(func(c context.Context, i string) error {
+					mu.Lock()
+					defer mu.Unlock()
+
+					actualOut = reverse(i)
+					cond.Signal()
+					return nil
+				}),
+		)
+
+	a := App("testApp").
+		WithFlows(
+			Flow[int]("mainFlow").
+				WithHandler(
+					EndHandler[int]("throwingHandler").
+						WithMaxAttempts(1).
+						WithRetryPeriod(time.Microsecond).
+						WithErrorFlow(errFlow).
+						WithHandleFunc(func(_ context.Context, i int) error {
+							return errors.New("uh oh")
+						}),
+				),
+			errFlow, // Also test that we can use the same flow multiple times in an app
+		)
+	built := a.Build()
+
+	// Act & Assert
+	f1, err := built.GetFlow[int]("mainFlow")
+	if err != nil {
+		t.Fatal("Error getting main flow from app")
+	}
+	f1.Trigger(t.Context(), in)
+	cond.Wait()
+	actualOut1 := actualOut
+
+	f2, err := built.GetFlow[int]("errorFlow")
+	if err != nil {
+		t.Fatal("Error getting error flow from app")
+	}
+	f2.Trigger(t.Context(), in)
+	cond.Wait()
+	actualOut2 := actualOut
+
+	// Assert
+	assert.Equal(t, expectedOut, actualOut1)
+	assert.Equal(t, expectedOut, actualOut2)
 }
 
 func TestFluentApi_ReturnsErrorIfFlowDoesntExist(t *testing.T) {
@@ -281,4 +461,10 @@ func reverse(i string) string {
 		r[x], r[y] = r[y], r[x]
 	}
 	return string(r)
+}
+
+func nullHandler[Tin any](name string) func(context.Context, Tin) error {
+	return func(_ context.Context, _ Tin) error {
+		return nil
+	}
 }

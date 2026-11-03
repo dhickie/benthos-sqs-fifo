@@ -2,11 +2,15 @@ package flow
 
 import (
 	"context"
+	"dhickie/benthos-sqs-fifo/src/input/internal/util"
 	"errors"
 	"fmt"
 	"reflect"
 	"time"
+	"uuid"
 )
+
+// TODO - review all default values
 
 func App(name string) *AppBuilder {
 	return &AppBuilder{
@@ -17,15 +21,18 @@ func App(name string) *AppBuilder {
 
 func Flow[Tinit any](name string) *FlowBuilder[Tinit] {
 	return &FlowBuilder[Tinit]{
-		inT: reflect.TypeFor[Tinit](),
+		id:  uuid.New().String(),
 		n:   name,
+		inT: reflect.TypeFor[Tinit](),
 		h:   make([]*completedHandlerBuilder, 0),
 	}
 }
 
 func Handler[Tin, Tout any](name string) *HandlerBuilder[Tin, Tout] {
 	return &HandlerBuilder[Tin, Tout]{
-		n: name,
+		n:           name,
+		maxA:        3,
+		retryPeriod: time.Second,
 	}
 }
 
@@ -49,9 +56,10 @@ func (a *AppBuilder) WithFlows(flows ...*FlowBuilder[NilType]) *AppBuilder {
 
 func (a *AppBuilder) Build() *BuiltApp {
 	builtFlows := make(map[string]*flow)
-	inputMap := make(map[string]*Pipe)
+	inputMap := make(map[string]*flow)
+	inProg := util.NewSet[string]()
 	for _, v := range a.f {
-		built := v.build(&inputMap)
+		built := v.build(&inputMap, inProg)
 		builtFlows[built.n] = built
 	}
 
@@ -62,8 +70,9 @@ func (a *AppBuilder) Build() *BuiltApp {
 }
 
 type FlowBuilder[Tprev any] struct {
-	inT reflect.Type
+	id  string
 	n   string
+	inT reflect.Type
 	h   []*completedHandlerBuilder
 }
 
@@ -75,31 +84,34 @@ func (fb *FlowBuilder[Tprev]) WithHandler[Tout any](hb *CompletedHandlerBuilder[
 
 func (fb *FlowBuilder[Tprev]) toNextBuilder[Tnext any]() *FlowBuilder[Tnext] {
 	return &FlowBuilder[Tnext]{
-		inT: fb.inT,
+		id:  fb.id,
 		n:   fb.n,
+		inT: fb.inT,
 		h:   fb.h,
 	}
 }
 
-func (fb *FlowBuilder[NilType]) build(hbMap *map[string]*Pipe) *flow {
+func (fb *FlowBuilder[NilType]) build(flowMap *map[string]*flow, inProg *util.Set[string]) *flow {
+	if f, ok := (*flowMap)[fb.id]; ok {
+		// The flow's already been built, just return it
+		return f
+	}
+
+	// Add this flow to the set of flows currently being built
+	if !inProg.Add(fb.id) {
+		// Circular reference
+		err := fmt.Sprintf("Unable to build flow %v - circular reference", fb.n)
+		panic(err)
+	}
+
 	couplings := make([]*HandlerCoupling, 0)
 	components := make([]*Component, 0)
 
 	// Create all the input pipes and associate them with their handlers
-	var termPipe *Pipe // The pipe after which handlers in this flow already exist in other components
-	var ok bool
 	for _, v := range fb.h {
-		if termPipe, ok = (*hbMap)[v.n]; ok {
-			// Handler has already been built - by definition it must be part of a component already
-			// Break from this loop and build the components for handlers that haven't been built yet
-			break
-		}
-
-		inputPipe := NewPipe(fmt.Sprintf("%v_input", fb.n), v.bp, nil)
-		(*hbMap)[v.n] = inputPipe
 		var errPipe *Pipe
 		if v.eFb != nil {
-			errPipe = v.eFb.build(hbMap).p
+			errPipe = v.eFb.build(flowMap, inProg).p
 		}
 		retryPolicy := NewRetryPolicy(errPipe, v.maxA, time.Second) // TODO replace with actual time period
 
@@ -113,19 +125,18 @@ func (fb *FlowBuilder[NilType]) build(hbMap *map[string]*Pipe) *flow {
 
 	// Associate input pipes as the previous handler's output & create a component (TODO one handler per component for now)
 	for i, v := range couplings {
-		if i == len(fb.h)-1 && termPipe == nil { // This is the final coupling but there are more handlers built for a different flow
+		if i == len(fb.h)-1 { // This is the final coupling, no need for an output pipe
 			v.outputPipe = make([]*Pipe, 0)
-		} else if i == len(fb.h)-1 { // This is the final coupling and there are no further handlers in the flow
-			v.outputPipe = []*Pipe{termPipe}
-		} else { // This isn't the final coupling in the flow
+		} else {
 			v.outputPipe = []*Pipe{
 				couplings[i+1].inputPipe,
 			}
 		}
 
-		components = append(components, NewComponent(context.TODO(), []*HandlerCoupling{v}, 1)) // TODO - review default concurrency
+		components = append(components, NewComponent(context.TODO(), []*HandlerCoupling{v}, 1)) // TODO - review default concurrency, add context
 	}
 
+	inProg.Remove(fb.id)
 	return &flow{
 		n: fb.n,
 		t: fb.inT,
