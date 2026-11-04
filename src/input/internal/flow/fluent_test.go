@@ -2,6 +2,7 @@ package flow
 
 import (
 	"context"
+	"dhickie/benthos-sqs-fifo/src/input/internal/test/wait"
 	"errors"
 	"strconv"
 	"sync"
@@ -381,6 +382,104 @@ func TestFluentApi_CanCreateApp_WithFlowThatTriggersOtherFlow(t *testing.T) {
 
 	// Assert
 	assert.Equal(t, expectedOutput, output)
+}
+
+func TestFluentApi_CanCreateApp_WithHandlersGroupedIntoComponents(t *testing.T) {
+	// Arrange
+	f1Started := make(chan struct{})
+	f1Wait := make(chan struct{})
+	f1Finish := make(chan struct{})
+	f2Finish := make(chan struct{})
+	var handler2Finish time.Time
+	var handler4Finish time.Time
+
+	f1 := Flow[int]("flow1").
+		WithHandler(
+			Handler[int, string]("handler1").
+				WithHandleFunc(itoa),
+		).
+		WithHandler(
+			EndHandler[string]("handler2").
+				WithHandleFunc(func(_ context.Context, i string) error {
+					f1Started <- struct{}{}
+					<-f1Wait
+					handler2Finish = time.Now()
+					f1Finish <- struct{}{}
+					return nil
+				}),
+		)
+	f2 := Flow[int]("flow2").
+		WithHandler(
+			Handler[int, string]("handler3").
+				WithHandleFunc(itoa),
+		).
+		WithHandler(
+			EndHandler[string]("handler4").
+				WithHandleFunc(func(_ context.Context, i string) error {
+					handler4Finish = time.Now()
+					f2Finish <- struct{}{}
+					return nil
+				}),
+		)
+	a := App("myApp").
+		WithFlow(f1).
+		WithFlow(f2).
+		WithComponents(
+			Component("myComponent").
+				WithHandlers("handler2", "handler4").
+				WithConcurrency(1),
+		).
+		Build()
+
+	f1Built, err := a.GetFlow[int]("flow1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	f2Built, err := a.GetFlow[int]("flow2")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Act
+	if err = f1Built.Trigger(t.Context(), 123); err != nil { // Trigger the first flow and wait for handler2 to start
+		t.Fatal(err)
+	}
+	<-f1Started
+
+	if err = f2Built.Trigger(t.Context(), 456); err != nil { // Trigger the second flow, and allow time for handler4 to fire (if something isn't working)
+		t.Fatal(err)
+	}
+	wait.For(t.Context(), time.Second)
+	f1Wait <- struct{}{}
+	<-f1Finish
+	<-f2Finish
+
+	// Assert
+	assert.Greater(t, handler4Finish, handler2Finish) // Assert handler 4 didn't fire while handler 2 was waiting
+}
+
+func TestFluentApi_Panics_IfComponentReferencesNonExistentHandler(t *testing.T) {
+	// Arrange
+	a := App("myApp").
+		WithFlow(
+			Flow[string]("myFlow").
+				WithHandler(
+					EndHandler[string]("myHandler").
+						WithHandleFunc(func(_ context.Context, i string) error {
+							return nil
+						}),
+				),
+		).
+		WithComponents(
+			Component("myComponent").
+				WithHandlers("otherHandler").
+				WithConcurrency(1),
+		)
+
+	// Act & Assert
+	assert.Panics(t, func() {
+		a.Build()
+	})
 }
 
 func TestFluentApi_ReturnsErrorIfFlowDoesntExist(t *testing.T) {
