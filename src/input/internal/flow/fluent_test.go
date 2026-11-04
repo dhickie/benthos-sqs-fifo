@@ -155,7 +155,7 @@ func TestFluentApi_CanCreateSimpleFlow(t *testing.T) {
 					return nil
 				}),
 		)
-	built := f.build(&inputMap, util.NewSet[string]())
+	built := (*flowBuilder)(f).build(&inputMap, util.NewSet[string]())
 
 	// Act
 	err := built.p.Send(t.Context(), in)
@@ -203,7 +203,7 @@ func TestFluentApi_CanCreateBatchedFlow(t *testing.T) {
 					return NewBatchHandleResult[string](nil), nil
 				}),
 		)
-	built := f.build(&inputMap, util.NewSet[string]())
+	built := (*flowBuilder)(f).build(&inputMap, util.NewSet[string]())
 
 	// Act
 	err := built.p.Send(t.Context(), in...)
@@ -232,7 +232,7 @@ func TestFluentApi_CanCreateSimpleApp(t *testing.T) {
 	defer mu.Unlock()
 
 	a := App(aName).
-		WithFlows(
+		WithFlow(
 			Flow[int](fName).
 				WithHandler(
 					Handler[int, string](hName1).
@@ -284,7 +284,7 @@ func TestFluentApi_CanCreateApp_WhichRetriesFailures(t *testing.T) {
 	defer mu.Unlock()
 
 	a := App(aName).
-		WithFlows(
+		WithFlow(
 			Flow[int](fName).
 				WithHandler(
 					Handler[int, string](hName1).
@@ -355,7 +355,7 @@ func TestFluentApi_CanCreateApp_WhichTriggersErrorFlow(t *testing.T) {
 		)
 
 	a := App("testApp").
-		WithFlows(
+		WithFlow(
 			Flow[int]("mainFlow").
 				WithHandler(
 					EndHandler[int]("throwingHandler").
@@ -366,8 +366,8 @@ func TestFluentApi_CanCreateApp_WhichTriggersErrorFlow(t *testing.T) {
 							return errors.New("uh oh")
 						}),
 				),
-			errFlow, // Also test that we can use the same flow multiple times in an app
-		)
+		).
+		WithFlow(errFlow) // Also test that we can use the same flow multiple times in an app
 	built := a.Build()
 
 	// Act & Assert
@@ -392,6 +392,43 @@ func TestFluentApi_CanCreateApp_WhichTriggersErrorFlow(t *testing.T) {
 	assert.Equal(t, expectedOut, actualOut2)
 }
 
+func TestFluentApi_CanCreateApp_WithFlowThatTriggersOtherFlow(t *testing.T) {
+	// Arrange
+	input := 123
+	expectedOutput := "321"
+	outputChan := make(chan string, 1)
+
+	endFlow := Flow[string]("reverseFlow").
+		WithHandler(
+			EndHandler[string]("reverseHandler").
+				WithHandleFunc(func(_ context.Context, i string) error {
+					outputChan <- reverse(i)
+					return nil
+				}),
+		)
+	startFlow := Flow[int]("itoaFlow").
+		WithHandler(
+			Handler[int, string]("itoaHandler").
+				WithHandleFunc(itoa),
+		).
+		WithFlow(endFlow)
+
+	app := App("app").
+		WithFlow(startFlow).
+		Build()
+	flow, err := app.GetFlow[int]("itoaFlow")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Act
+	flow.Trigger(t.Context(), input)
+	output := <-outputChan
+
+	// Assert
+	assert.Equal(t, expectedOutput, output)
+}
+
 func TestFluentApi_ReturnsErrorIfFlowDoesntExist(t *testing.T) {
 	// Arrange
 	aName := uuid.New().String()
@@ -399,7 +436,7 @@ func TestFluentApi_ReturnsErrorIfFlowDoesntExist(t *testing.T) {
 	hName := uuid.New().String()
 
 	a := App(aName).
-		WithFlows(
+		WithFlow(
 			Flow[string](fName).
 				WithHandler(
 					EndHandler[string](hName).
@@ -424,7 +461,7 @@ func TestFluentApi_ReturnsErrorIfFlowHasDifferentTriggerType(t *testing.T) {
 	hName := uuid.New().String()
 
 	a := App(aName).
-		WithFlows(
+		WithFlow(
 			Flow[string](fName).
 				WithHandler(
 					EndHandler[string](hName).

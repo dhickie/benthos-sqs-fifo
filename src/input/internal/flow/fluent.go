@@ -11,16 +11,19 @@ import (
 )
 
 // TODO - review all default values
+// TODO - add validation when building
+// TODO - replace public facing types with interfaces
+// TODO - all the comments
 
 func App(name string) *AppBuilder {
 	return &AppBuilder{
 		n: name,
-		f: make([]*FlowBuilder[NilType], 0),
+		f: make([]*flowBuilder, 0),
 	}
 }
 
-func Flow[Tinit any](name string) *FlowBuilder[Tinit] {
-	return &FlowBuilder[Tinit]{
+func Flow[Tinit any](name string) *FlowBuilder[Tinit, Tinit] {
+	return &FlowBuilder[Tinit, Tinit]{
 		id:  uuid.New().String(),
 		n:   name,
 		inT: reflect.TypeFor[Tinit](),
@@ -46,11 +49,11 @@ type NilType struct{}
 
 type AppBuilder struct {
 	n string
-	f []*FlowBuilder[NilType]
+	f []*flowBuilder
 }
 
-func (a *AppBuilder) WithFlows(flows ...*FlowBuilder[NilType]) *AppBuilder {
-	a.f = flows
+func (a *AppBuilder) WithFlow[Tinit any](flow *FlowBuilder[Tinit, NilType]) *AppBuilder {
+	a.f = append(a.f, (*flowBuilder)(flow))
 	return a
 }
 
@@ -69,29 +72,38 @@ func (a *AppBuilder) Build() *BuiltApp {
 	}
 }
 
-type FlowBuilder[Tprev any] struct {
+type flowBuilder struct {
 	id  string
 	n   string
 	inT reflect.Type
 	h   []*completedHandlerBuilder
+	fb  *flowBuilder
 }
 
-func (fb *FlowBuilder[Tprev]) WithHandler[Tout any](hb *CompletedHandlerBuilder[Tprev, Tout]) *FlowBuilder[Tout] {
+type FlowBuilder[Tinit, Tnext any] flowBuilder
+
+func (fb *FlowBuilder[Tinit, Tnext]) WithHandler[Tout any](hb *CompletedHandlerBuilder[Tnext, Tout]) *FlowBuilder[Tinit, Tout] {
 	h := completedHandlerBuilder(*hb)
 	fb.h = append(fb.h, &h)
 	return fb.toNextBuilder[Tout]()
 }
 
-func (fb *FlowBuilder[Tprev]) toNextBuilder[Tnext any]() *FlowBuilder[Tnext] {
-	return &FlowBuilder[Tnext]{
+func (fb *FlowBuilder[Tinit, Tnext]) WithFlow(endingFb *FlowBuilder[Tnext, NilType]) *FlowBuilder[Tinit, NilType] {
+	fb.fb = (*flowBuilder)(endingFb)
+	return fb.toNextBuilder[NilType]()
+}
+
+func (fb *FlowBuilder[Tinit, Tnext]) toNextBuilder[Tnextnext any]() *FlowBuilder[Tinit, Tnextnext] {
+	return &FlowBuilder[Tinit, Tnextnext]{
 		id:  fb.id,
 		n:   fb.n,
 		inT: fb.inT,
 		h:   fb.h,
+		fb:  fb.fb,
 	}
 }
 
-func (fb *FlowBuilder[NilType]) build(flowMap *map[string]*flow, inProg *util.Set[string]) *flow {
+func (fb *flowBuilder) build(flowMap *map[string]*flow, inProg *util.Set[string]) *flow {
 	if f, ok := (*flowMap)[fb.id]; ok {
 		// The flow's already been built, just return it
 		return f
@@ -123,10 +135,21 @@ func (fb *FlowBuilder[NilType]) build(flowMap *map[string]*flow, inProg *util.Se
 		couplings = append(couplings, coupling)
 	}
 
+	// If the flow is completed by another flow, build that flow as well
+	var nextFlowPipe *Pipe
+	if fb.fb != nil {
+		nextFlowPipe = fb.fb.build(flowMap, inProg).p
+	}
+
 	// Associate input pipes as the previous handler's output & create a component (TODO one handler per component for now)
 	for i, v := range couplings {
-		if i == len(fb.h)-1 { // This is the final coupling, no need for an output pipe
-			v.outputPipe = make([]*Pipe, 0)
+		if i == len(fb.h)-1 { // Final coupling
+			if nextFlowPipe != nil {
+				// Use the input from the following flow, if this flow is completed by another one
+				v.outputPipe = []*Pipe{nextFlowPipe}
+			} else {
+				v.outputPipe = make([]*Pipe, 0)
+			}
 		} else {
 			v.outputPipe = []*Pipe{
 				couplings[i+1].inputPipe,
@@ -150,7 +173,7 @@ type completedHandlerBuilder struct {
 	bp          *BatchPolicy
 	maxA        int
 	retryPeriod time.Duration
-	eFb         *FlowBuilder[NilType]
+	eFb         *flowBuilder
 	build       func() *handler
 }
 
@@ -161,7 +184,7 @@ type HandlerBuilder[Tin, Tout any] struct {
 	f           func(context.Context, Tin) (*ValueHandleResult[Tout], error)
 	maxA        int
 	retryPeriod time.Duration
-	eFb         *FlowBuilder[NilType]
+	eFb         *flowBuilder
 }
 
 func (h *HandlerBuilder[Tin, Tout]) WithBatching(batchSize int, period time.Duration) *BatchHandlerBuilder[Tin, Tout] {
@@ -186,15 +209,16 @@ func (h *HandlerBuilder[Tin, Tout]) WithRetryPeriod(period time.Duration) *Handl
 }
 
 func (h *HandlerBuilder[Tin, Tout]) WithErrorHandler(errHandler *CompletedHandlerBuilder[Tin, NilType]) *HandlerBuilder[Tin, Tout] {
-	h.eFb = Flow[Tin](h.n + "_Error").
+	efb := Flow[Tin](h.n + "_Error").
 		WithHandler(
 			errHandler,
 		)
+	h.eFb = (*flowBuilder)(efb)
 	return h
 }
 
-func (h *HandlerBuilder[Tin, Tout]) WithErrorFlow(errFlow *FlowBuilder[NilType]) *HandlerBuilder[Tin, Tout] {
-	h.eFb = errFlow
+func (h *HandlerBuilder[Tin, Tout]) WithErrorFlow(errFlow *FlowBuilder[Tin, NilType]) *HandlerBuilder[Tin, Tout] {
+	h.eFb = (*flowBuilder)(errFlow)
 	return h
 }
 
@@ -218,7 +242,7 @@ type BatchHandlerBuilder[Tin, Tout any] struct {
 	bp          time.Duration
 	maxA        int
 	retryPeriod time.Duration
-	eFb         *FlowBuilder[NilType]
+	eFb         *flowBuilder
 }
 
 func (h *BatchHandlerBuilder[Tin, Tout]) WithMaxAttempts(maxAttempts int) *BatchHandlerBuilder[Tin, Tout] {
@@ -232,15 +256,16 @@ func (h *BatchHandlerBuilder[Tin, Tout]) WithRetryPeriod(period time.Duration) *
 }
 
 func (h *BatchHandlerBuilder[Tin, Tout]) WithErrorHandler(errHandler *CompletedHandlerBuilder[Tin, NilType]) *BatchHandlerBuilder[Tin, Tout] {
-	h.eFb = Flow[Tin](h.n + "_Error").
+	efb := Flow[Tin](h.n + "_Error").
 		WithHandler(
 			errHandler,
 		)
+	h.eFb = (*flowBuilder)(efb)
 	return h
 }
 
-func (h *BatchHandlerBuilder[Tin, Tout]) WithErrorFlow(errFlow *FlowBuilder[NilType]) *BatchHandlerBuilder[Tin, Tout] {
-	h.eFb = errFlow
+func (h *BatchHandlerBuilder[Tin, Tout]) WithErrorFlow(errFlow *FlowBuilder[Tin, NilType]) *BatchHandlerBuilder[Tin, Tout] {
+	h.eFb = (*flowBuilder)(errFlow)
 	return h
 }
 
@@ -262,7 +287,7 @@ type EndHandlerBuilder[Tin any] struct {
 	f           func(context.Context, Tin) error
 	maxA        int
 	retryPeriod time.Duration
-	eFb         *FlowBuilder[NilType]
+	eFb         *flowBuilder
 }
 
 func (h *EndHandlerBuilder[Tin]) WithBatching(batchSize int, period time.Duration) *BatchEndHandlerBuilder[Tin] {
@@ -286,15 +311,16 @@ func (h *EndHandlerBuilder[Tin]) WithRetryPeriod(period time.Duration) *EndHandl
 }
 
 func (h *EndHandlerBuilder[Tin]) WithErrorHandler(errHandler *CompletedHandlerBuilder[Tin, NilType]) *EndHandlerBuilder[Tin] {
-	h.eFb = Flow[Tin](h.n + "_Error").
+	efb := Flow[Tin](h.n + "_Error").
 		WithHandler(
 			errHandler,
 		)
+	h.eFb = (*flowBuilder)(efb)
 	return h
 }
 
-func (h *EndHandlerBuilder[Tin]) WithErrorFlow(errFlow *FlowBuilder[NilType]) *EndHandlerBuilder[Tin] {
-	h.eFb = errFlow
+func (h *EndHandlerBuilder[Tin]) WithErrorFlow(errFlow *FlowBuilder[Tin, NilType]) *EndHandlerBuilder[Tin] {
+	h.eFb = (*flowBuilder)(errFlow)
 	return h
 }
 
@@ -318,7 +344,7 @@ type BatchEndHandlerBuilder[Tin any] struct {
 	bp          time.Duration
 	maxA        int
 	retryPeriod time.Duration
-	eFb         *FlowBuilder[NilType]
+	eFb         *flowBuilder
 }
 
 func (h *BatchEndHandlerBuilder[Tin]) WithMaxAttempts(maxAttempts int) *BatchEndHandlerBuilder[Tin] {
@@ -332,15 +358,16 @@ func (h *BatchEndHandlerBuilder[Tin]) WithRetryPeriod(period time.Duration) *Bat
 }
 
 func (h *BatchEndHandlerBuilder[Tin]) WithErrorHandler(errHandler *CompletedHandlerBuilder[Tin, NilType]) *BatchEndHandlerBuilder[Tin] {
-	h.eFb = Flow[Tin](h.n + "_Error").
+	efb := Flow[Tin](h.n + "_Error").
 		WithHandler(
 			errHandler,
 		)
+	h.eFb = (*flowBuilder)(efb)
 	return h
 }
 
-func (h *BatchEndHandlerBuilder[Tin]) WithErrorFlow(errFlow *FlowBuilder[NilType]) *BatchEndHandlerBuilder[Tin] {
-	h.eFb = errFlow
+func (h *BatchEndHandlerBuilder[Tin]) WithErrorFlow(errFlow *FlowBuilder[Tin, NilType]) *BatchEndHandlerBuilder[Tin] {
+	h.eFb = (*flowBuilder)(errFlow)
 	return h
 }
 
