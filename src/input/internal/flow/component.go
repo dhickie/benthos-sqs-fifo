@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-type Component struct {
+type component struct {
 	inputMap  map[string]*handler        // Map of input pipe IDs to handlers
 	outputMap map[string][]*Pipe         // Map of handler IDs to output pipes
 	retryMap  map[string]*RetryPolicy    // Map of handler IDs to their retry policies
@@ -53,7 +53,7 @@ func NewHandlerCoupling(h *handler, in *Pipe, out []*Pipe, retryPolicy *RetryPol
 	}
 }
 
-func NewComponent(ctx context.Context, couplings []*HandlerCoupling, maxConcurrency int) *Component {
+func NewComponent(ctx context.Context, couplings []*HandlerCoupling, maxConcurrency int) *component {
 	inputs := make([]*Pipe, 0, len(couplings))
 	inputMap := make(map[string]*handler, len(couplings))
 	outputMap := make(map[string][]*Pipe, len(couplings))
@@ -75,7 +75,7 @@ func NewComponent(ctx context.Context, couplings []*HandlerCoupling, maxConcurre
 		retryMap[c.handler.id] = c.retryPolicy
 	}
 
-	c := &Component{
+	c := &component{
 		inputMap:   inputMap,
 		outputMap:  outputMap,
 		inputs:     inputs,
@@ -95,18 +95,18 @@ func NewComponent(ctx context.Context, couplings []*HandlerCoupling, maxConcurre
 }
 
 // Stopped returns a channel that is closed once the component has stopped operating
-func (c *Component) Stopped() chan struct{} {
+func (c *component) Stopped() chan struct{} {
 	return c.stopped
 }
 
 // Waits until the process loop has stopped, and closes the stopped channel when it has
-func (c *Component) stopMonitor() {
+func (c *component) stopMonitor() {
 	c.wg.Wait()
 	close(c.stopped)
 }
 
 // Processes incoming messages for any handler in the component
-func (c *Component) processLoop() {
+func (c *component) processLoop() {
 	var i int
 	var err error
 	var v []any

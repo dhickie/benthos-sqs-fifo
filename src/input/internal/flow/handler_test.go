@@ -49,7 +49,7 @@ func TestHandle_PassesMultipleValuesCorrectly(t *testing.T) {
 		}
 		return NewValueBatchHandleResult[int, string](out, nil), nil
 	}
-	handler := NewBatchHandler_1(handleFunc)
+	handler := NewBatchHandler_1("myHandler", handleFunc)
 
 	// Act
 	result, _ := handler.Handle(t.Context(), in)
@@ -68,7 +68,7 @@ func TestHandle_ReturnsCorrectResponse_ForHandlerWithZeroOutputs_WithNoError(t *
 	handleFunc := func(_ context.Context, i int) error {
 		return nil
 	}
-	handler := NewHandler_0(handleFunc)
+	handler := NewHandler_0("myHandler", handleFunc)
 
 	// Act
 	result, err := handler.Handle(t.Context(), in)
@@ -90,7 +90,7 @@ func TestHandle_ReturnsCorrectResponse_ForHandlerWithZeroOutputs_WithError(t *te
 	handleFunc := func(_ context.Context, i int) error {
 		return expectedErr
 	}
-	handler := NewHandler_0(handleFunc)
+	handler := NewHandler_0("myHandler", handleFunc)
 
 	// Act
 	result, err := handler.Handle(t.Context(), in)
@@ -110,7 +110,7 @@ func TestHandle_ReturnsCorrectResponse_ForBatchHandlerWithZeroOutputs_WithNoErro
 	handleFunc := func(_ context.Context, i []int) (*BatchHandleResult[int], error) {
 		return NewBatchHandleResult[int](nil), nil
 	}
-	handler := NewBatchHandler_0(handleFunc)
+	handler := NewBatchHandler_0("myHandler", handleFunc)
 
 	// Act
 	result, err := handler.Handle(t.Context(), in)
@@ -132,7 +132,7 @@ func TestHandle_ReturnsCorrectResponse_ForBatchHandlerWithZeroOutputs_WithAllErr
 		}
 		return NewBatchHandleResult(failures), nil
 	}
-	handler := NewBatchHandler_0(handleFunc)
+	handler := NewBatchHandler_0("myHandler", handleFunc)
 
 	// Act
 	result, err := handler.Handle(t.Context(), in)
@@ -161,7 +161,7 @@ func TestHandle_ReturnsCorrectResponse_ForBatchHandlerWithZeroOutputs_WithPartia
 		}
 		return NewBatchHandleResult(failures), nil
 	}
-	handler := NewBatchHandler_0(handleFunc)
+	handler := NewBatchHandler_0("myHandler", handleFunc)
 
 	// Act
 	result, err := handler.Handle(t.Context(), in)
@@ -184,7 +184,7 @@ func TestHandle_ReturnsCorrectResponse_ForHandlerWithSingleOutput_WithNoError(t 
 	handleFunc := func(_ context.Context, i int) (*ValueHandleResult[string], error) {
 		return NewValueHandleResult(strconv.Itoa(i), true), nil
 	}
-	handler := NewHandler_1(handleFunc)
+	handler := NewHandler_1("myHandler", handleFunc)
 
 	// Act
 	result, err := handler.Handle(t.Context(), in)
@@ -206,7 +206,7 @@ func TestHandle_ReturnsCorrectResponse_ForHandlerWithSingleOutput_WithError(t *t
 	handleFunc := func(_ context.Context, i int) (*ValueHandleResult[string], error) {
 		return nil, expectedErr
 	}
-	handler := NewHandler_1(handleFunc)
+	handler := NewHandler_1("myHandler", handleFunc)
 
 	// Act
 	result, err := handler.Handle(t.Context(), in)
@@ -230,7 +230,7 @@ func TestHandle_ReturnsCorrectResponse_ForBatchHandlerWithSingleOutput_WithNoErr
 		}
 		return NewValueBatchHandleResult[int](result, nil), nil
 	}
-	handler := NewBatchHandler_1(handleFunc)
+	handler := NewBatchHandler_1("myHandler", handleFunc)
 
 	// Act
 	result, err := handler.Handle(t.Context(), in)
@@ -258,7 +258,7 @@ func TestHandle_ReturnsCorrectResponse_ForBatchHandlerWithSingleOutput_WithAllEr
 		}
 		return NewValueBatchHandleResult[int, string](nil, failures), nil
 	}
-	handler := NewBatchHandler_1(handleFunc)
+	handler := NewBatchHandler_1("myHandler", handleFunc)
 
 	// Act
 	result, err := handler.Handle(t.Context(), in)
@@ -290,7 +290,7 @@ func TestHandle_ReturnsCorrectResponse_ForBatchHandlerWithSingleOutput_WithParti
 		}
 		return NewValueBatchHandleResult[int, string](output, failures), nil
 	}
-	handler := NewBatchHandler_1(handleFunc)
+	handler := NewBatchHandler_1("myHandler", handleFunc)
 
 	// Act
 	result, err := handler.Handle(t.Context(), in)
@@ -324,7 +324,7 @@ func TestHandle_ReturnsCorrectResponse_ForHandlerWithMultipleOutputs_WithNoError
 			return NewValueHandleResult(0, false), NewValueHandleResult(strconv.Itoa(i), true), nil
 		}
 	}
-	handler := NewHandler_2(handleFunc)
+	handler := NewHandler_2("myHandler", handleFunc)
 
 	// Act
 	result1, err1 := handler.Handle(t.Context(), in1)
@@ -369,7 +369,7 @@ func TestHandle_ReturnsCorrectResponse_ForHandlerWithMultipleOutputs_WithError(t
 			return nil, nil, expectedErr2
 		}
 	}
-	handler := NewHandler_2(handleFunc)
+	handler := NewHandler_2("myHandler", handleFunc)
 
 	// Act
 	result1, err1 := handler.Handle(t.Context(), in1)
@@ -412,7 +412,7 @@ func TestHandle_ReturnsCorrectResponse_ForBatchHandlerWithMultipleOutputs_WithNo
 
 		return NewValueBatchHandleResult[int](result1, nil), NewValueBatchHandleResult[int](result2, nil), nil
 	}
-	handler := NewBatchHandler_2(handleFunc)
+	handler := NewBatchHandler_2("myHandler", handleFunc)
 
 	// Act
 	result1, err1 := handler.Handle(t.Context(), in1)
@@ -459,7 +459,7 @@ func TestHandle_ReturnsCorrectResponse_ForBatchHandlerWithMultipleOutputs_WithAl
 
 		return NewValueBatchHandleResult[int, int](nil, failures1), NewValueBatchHandleResult[int, string](nil, failures2), nil
 	}
-	handler := NewBatchHandler_2(handleFunc)
+	handler := NewBatchHandler_2("myHandler", handleFunc)
 
 	// Act
 	result1, err1 := handler.Handle(t.Context(), in1)
@@ -516,7 +516,7 @@ func TestHandle_ReturnsCorrectResponse_ForBatchHandlerWithMultipleOutputs_WithPa
 
 		return NewValueBatchHandleResult(success1, failures1), NewValueBatchHandleResult(success2, failures2), nil
 	}
-	handler := NewBatchHandler_2(handleFunc)
+	handler := NewBatchHandler_2("myHandler", handleFunc)
 
 	// Act
 	result1, err1 := handler.Handle(t.Context(), in1)
@@ -578,7 +578,7 @@ func testValue[Tin any, Tout any](t *testing.T, values map[reflect.Type]any) {
 		// Don't assert function equality - it can't be done
 		h.assertInputValue = false
 	}
-	handler := NewHandler_1[Tin, Tout](h.handleTestInput)
+	handler := NewHandler_1[Tin, Tout]("myHandler", h.handleTestInput)
 
 	// Act
 	output, _ := handler.Handle(t.Context(), []any{input})

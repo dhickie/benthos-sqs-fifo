@@ -14,6 +14,8 @@ import (
 // TODO - add validation when building
 // TODO - replace public facing types with interfaces
 // TODO - all the comments
+// TODO - review variable naming for clarity
+// TODO - termination of app
 
 func App(name string) *AppBuilder {
 	return &AppBuilder{
@@ -45,11 +47,18 @@ func EndHandler[Tin any](name string) *EndHandlerBuilder[Tin] {
 	}
 }
 
+func Component(name string) *ComponentBuilder {
+	return &ComponentBuilder{
+		n: name,
+	}
+}
+
 type NilType struct{}
 
 type AppBuilder struct {
 	n string
 	f []*flowBuilder
+	c []*ComponentBuilder
 }
 
 func (a *AppBuilder) WithFlow[Tinit any](flow *FlowBuilder[Tinit, NilType]) *AppBuilder {
@@ -57,18 +66,67 @@ func (a *AppBuilder) WithFlow[Tinit any](flow *FlowBuilder[Tinit, NilType]) *App
 	return a
 }
 
+func (a *AppBuilder) WithComponents(componentBuilders ...*ComponentBuilder) *AppBuilder {
+	a.c = componentBuilders
+	return a
+}
+
 func (a *AppBuilder) Build() *BuiltApp {
-	builtFlows := make(map[string]*flow)
-	inputMap := make(map[string]*flow)
+	builtCouplings := make(map[string][]*HandlerCoupling)
+	handlerMap := make(map[string]*HandlerCoupling)
+	inputMap := make(map[string][]*HandlerCoupling)
 	inProg := util.NewSet[string]()
+
+	// Build all the couplings between input pipes, output pipes and handlers for all flows
 	for _, v := range a.f {
-		built := v.build(&inputMap, inProg)
-		builtFlows[built.n] = built
+		couplings := v.buildCouplings(&inputMap, inProg)
+		builtCouplings[v.id] = couplings
+
+		for _, c := range couplings {
+			handlerMap[c.handler.name] = c
+		}
+	}
+
+	// Build components where multiple handlers have been grouped together
+	components := make([]*component, 0)
+	for _, v := range a.c {
+		couplings := make([]*HandlerCoupling, 0, len(v.h))
+		for _, c := range v.h {
+			coupling, ok := handlerMap[c]
+			if !ok {
+				err := fmt.Sprintf("Unable to find handler %v for component %v", c, v.n)
+				panic(err)
+			}
+			couplings = append(couplings, coupling)
+			delete(handlerMap, c)
+		}
+
+		component := NewComponent(context.TODO(), couplings, v.maxC) // TODO add actual context
+		components = append(components, component)
+	}
+
+	// Build a single component per remaining handler
+	for _, v := range handlerMap {
+		component := NewComponent(context.TODO(), []*HandlerCoupling{v}, 1) // TODO review default concurrency
+		components = append(components, component)
+	}
+
+	// Build the flow objects
+	flows := make(map[string]*flow)
+	for _, v := range a.f {
+		inputPipe := builtCouplings[v.id][0].inputPipe
+		flow := &flow{
+			n: v.n,
+			t: v.inT,
+			p: inputPipe,
+		}
+		flows[v.n] = flow
 	}
 
 	return &BuiltApp{
-		name:  a.n,
-		flows: builtFlows,
+		name:       a.n,
+		flows:      flows,
+		components: components,
 	}
 }
 
@@ -103,7 +161,8 @@ func (fb *FlowBuilder[Tinit, Tnext]) toNextBuilder[Tnextnext any]() *FlowBuilder
 	}
 }
 
-func (fb *flowBuilder) build(flowMap *map[string]*flow, inProg *util.Set[string]) *flow {
+// Only builds the association between input pipes, handlers and output pipes - building components is done further up the stack
+func (fb *flowBuilder) buildCouplings(flowMap *map[string][]*HandlerCoupling, inProg *util.Set[string]) []*HandlerCoupling {
 	if f, ok := (*flowMap)[fb.id]; ok {
 		// The flow's already been built, just return it
 		return f
@@ -117,15 +176,14 @@ func (fb *flowBuilder) build(flowMap *map[string]*flow, inProg *util.Set[string]
 	}
 
 	couplings := make([]*HandlerCoupling, 0)
-	components := make([]*Component, 0)
 
 	// Create all the input pipes and associate them with their handlers
 	for _, v := range fb.h {
 		var errPipe *Pipe
 		if v.eFb != nil {
-			errPipe = v.eFb.build(flowMap, inProg).p
+			errPipe = v.eFb.buildCouplings(flowMap, inProg)[0].inputPipe
 		}
-		retryPolicy := NewRetryPolicy(errPipe, v.maxA, time.Second) // TODO replace with actual time period
+		retryPolicy := NewRetryPolicy(errPipe, v.maxA, v.retryPeriod)
 
 		coupling := &HandlerCoupling{
 			handler:     v.build(),
@@ -138,10 +196,10 @@ func (fb *flowBuilder) build(flowMap *map[string]*flow, inProg *util.Set[string]
 	// If the flow is completed by another flow, build that flow as well
 	var nextFlowPipe *Pipe
 	if fb.fb != nil {
-		nextFlowPipe = fb.fb.build(flowMap, inProg).p
+		nextFlowPipe = fb.fb.buildCouplings(flowMap, inProg)[0].inputPipe
 	}
 
-	// Associate input pipes as the previous handler's output & create a component (TODO one handler per component for now)
+	// Associate input pipes as the previous handler's output
 	for i, v := range couplings {
 		if i == len(fb.h)-1 { // Final coupling
 			if nextFlowPipe != nil {
@@ -155,17 +213,11 @@ func (fb *flowBuilder) build(flowMap *map[string]*flow, inProg *util.Set[string]
 				couplings[i+1].inputPipe,
 			}
 		}
-
-		components = append(components, NewComponent(context.TODO(), []*HandlerCoupling{v}, 1)) // TODO - review default concurrency, add context
 	}
 
+	(*flowMap)[fb.id] = couplings
 	inProg.Remove(fb.id)
-	return &flow{
-		n: fb.n,
-		t: fb.inT,
-		p: couplings[0].inputPipe,
-		c: components,
-	}
+	return couplings
 }
 
 type completedHandlerBuilder struct {
@@ -230,7 +282,7 @@ func (h *HandlerBuilder[Tin, Tout]) WithHandleFunc(f func(context.Context, Tin) 
 		retryPeriod: h.retryPeriod,
 		eFb:         h.eFb,
 		build: func() *handler {
-			return NewHandler_1(f)
+			return NewHandler_1(h.n, f)
 		},
 	}
 }
@@ -277,7 +329,7 @@ func (h *BatchHandlerBuilder[Tin, Tout]) WithHandleFunc(f func(context.Context, 
 		retryPeriod: h.retryPeriod,
 		eFb:         h.eFb,
 		build: func() *handler {
-			return NewBatchHandler_1(f)
+			return NewBatchHandler_1(h.n, f)
 		},
 	}
 }
@@ -332,7 +384,7 @@ func (h *EndHandlerBuilder[Tin]) WithHandleFunc(f func(context.Context, Tin) err
 		retryPeriod: h.retryPeriod,
 		eFb:         h.eFb,
 		build: func() *handler {
-			return NewHandler_0(f)
+			return NewHandler_0(h.n, f)
 		},
 	}
 }
@@ -379,14 +431,31 @@ func (h *BatchEndHandlerBuilder[Tin]) WithHandleFunc(f func(context.Context, []T
 		retryPeriod: h.retryPeriod,
 		eFb:         h.eFb,
 		build: func() *handler {
-			return NewBatchHandler_0(f)
+			return NewBatchHandler_0(h.n, f)
 		},
 	}
 }
 
+type ComponentBuilder struct {
+	n    string
+	h    []string
+	maxC int
+}
+
+func (c *ComponentBuilder) WithHandlers(handlerNames ...string) *ComponentBuilder {
+	c.h = handlerNames
+	return c
+}
+
+func (c *ComponentBuilder) WithConcurrency(maxConcurrency int) *ComponentBuilder {
+	c.maxC = maxConcurrency
+	return c
+}
+
 type BuiltApp struct {
-	name  string
-	flows map[string]*flow
+	name       string
+	flows      map[string]*flow
+	components []*component
 }
 
 func (a *BuiltApp) GetFlow[T any](name string) (*BuiltFlow[T], error) {
@@ -405,7 +474,6 @@ type flow struct {
 	t reflect.Type
 	n string
 	p *Pipe
-	c []*Component
 }
 
 func (f *flow) trigger(ctx context.Context, data ...any) error {

@@ -14,7 +14,7 @@ type BatchHandleFunc_{{.NumOut}}[Tin any{{range .GenIndexes}}, Tout{{.}} any{{en
 {{end}}
 
 // Functions that convert a provided handler function into a type agnostic internal handler function that accepts any type
-func NewHandler_0[Tin any](handleFunc HandleFunc_0[Tin]) *handler {
+func NewHandler_0[Tin any](name string, handleFunc HandleFunc_0[Tin]) *handler {
 	// Build a function that converts the user provided typed handler into a type agnostic handler the framework can use
 	f := func(ctx context.Context, in []any) ([][]InternalHandleResult, error) {
 		err := handleFunc(ctx, in[0].(Tin))
@@ -32,11 +32,12 @@ func NewHandler_0[Tin any](handleFunc HandleFunc_0[Tin]) *handler {
 
 	return &handler{
 		id:         uuid.New().String(),
+		name: 		name,
 		handleFunc: f,
 	}
 }
 
-func NewBatchHandler_0[Tin any](handleFunc BatchHandleFunc_0[Tin]) *handler {
+func NewBatchHandler_0[Tin any](name string, handleFunc BatchHandleFunc_0[Tin]) *handler {
 	// Build a function that converts the user provided typed handler into a type agnostic handler the framework can use
 	f := func(ctx context.Context, in []any) ([][]InternalHandleResult, error) {
 		inConv := make([]Tin, len(in))
@@ -64,11 +65,12 @@ func NewBatchHandler_0[Tin any](handleFunc BatchHandleFunc_0[Tin]) *handler {
 
 	return &handler{
 		id:         uuid.New().String(),
+		name:		name,
 		handleFunc: f,
 	}
 }
 {{range .}}
-func NewHandler_{{.NumOut}}[Tin any{{range .GenIndexes}}, Tout{{.}} any{{end}}](handleFunc HandleFunc_{{.NumOut}}[Tin{{range .GenIndexes}}, Tout{{.}}{{end}}]) *handler {
+func NewHandler_{{.NumOut}}[Tin any{{range .GenIndexes}}, Tout{{.}} any{{end}}](name string, handleFunc HandleFunc_{{.NumOut}}[Tin{{range .GenIndexes}}, Tout{{.}}{{end}}]) *handler {
 	// Build a function that converts the user provided typed handler into a type agnostic handler the framework can use
 	f := func(ctx context.Context, in []any) ([][]InternalHandleResult, error) {
 		r1{{range .OutIndexes}}, r{{.}}{{end}}, err := handleFunc(ctx, in[0].(Tin))
@@ -100,11 +102,12 @@ func NewHandler_{{.NumOut}}[Tin any{{range .GenIndexes}}, Tout{{.}} any{{end}}](
 
 	return &handler{
 		id:         uuid.New().String(),
+		name:		name,
 		handleFunc: f,
 	}
 }
 
-func NewBatchHandler_{{.NumOut}}[Tin any{{range .GenIndexes}}, Tout{{.}} any{{end}}](handleFunc BatchHandleFunc_{{.NumOut}}[Tin{{range .GenIndexes}}, Tout{{.}}{{end}}]) *handler {
+func NewBatchHandler_{{.NumOut}}[Tin any{{range .GenIndexes}}, Tout{{.}} any{{end}}](name string, handleFunc BatchHandleFunc_{{.NumOut}}[Tin{{range .GenIndexes}}, Tout{{.}}{{end}}]) *handler {
 	// Build a function that converts the user provided typed handler into a type agnostic handler the framework can use
 	f := func(ctx context.Context, in []any) ([][]InternalHandleResult, error) {
 		inConv := make([]Tin, len(in))
@@ -143,6 +146,7 @@ func NewBatchHandler_{{.NumOut}}[Tin any{{range .GenIndexes}}, Tout{{.}} any{{en
 
 	return &handler{
 		id:         uuid.New().String(),
+		name:		name,
 		handleFunc: f,
 	}
 }

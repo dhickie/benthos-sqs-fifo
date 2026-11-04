@@ -9,8 +9,6 @@ import (
 	"time"
 	"uuid"
 
-	"dhickie/benthos-sqs-fifo/src/input/internal/util"
-
 	"github.com/stretchr/testify/assert"
 )
 
@@ -123,64 +121,17 @@ func TestFluentApi_CanCreateRetriedHandler_WhenMixedWithBatchConfig(t *testing.T
 	assert.NotNil(t, h.eFb)
 }
 
-func TestFluentApi_CanCreateSimpleFlow(t *testing.T) {
+func TestFluentApi_CanCreateApp_WithBatchedFlow(t *testing.T) {
 	// Arrange
-	inputMap := make(map[string]*flow)
+	aName := uuid.New().String()
 	fName := uuid.New().String()
 	hName1 := uuid.New().String()
 	hName2 := uuid.New().String()
-	in := 123
-	expectedOut := "321"
-
-	var actualOut string
-	mu := &sync.Mutex{}
-	cond := sync.NewCond(mu)
-	mu.Lock()
-	defer mu.Unlock()
-
-	f := Flow[int](fName).
-		WithHandler(
-			Handler[int, string](hName1).
-				WithHandleFunc(itoa),
-		).
-		WithHandler(
-			EndHandler[string](hName2).
-				WithHandleFunc(func(c context.Context, i string) error {
-					mu.Lock()
-					defer mu.Unlock()
-
-					actualOut = reverse(i)
-					cond.Signal()
-
-					return nil
-				}),
-		)
-	built := (*flowBuilder)(f).build(&inputMap, util.NewSet[string]())
-
-	// Act
-	err := built.p.Send(t.Context(), in)
-	cond.Wait()
-
-	// Assert
-	assert.NoError(t, err)
-	assert.Equal(t, expectedOut, actualOut)
-	assert.Equal(t, fName, f.n)
-}
-
-func TestFluentApi_CanCreateBatchedFlow(t *testing.T) {
-	// Arrange
-	inputMap := make(map[string]*flow)
-	fName := uuid.New().String()
-	hName1 := uuid.New().String()
-	hName2 := uuid.New().String()
-	in := []any{123, 456, 789}
+	in := []int{123, 456, 789}
 	expectedOut := []string{"321", "654", "987"}
 	actualOut := make([]string, 3)
 
-	mu := &sync.Mutex{}
-	cond := sync.NewCond(mu)
-	mu.Lock()
-	defer mu.Unlock()
+	finishedChan := make(chan struct{}, 1)
 
 	f := Flow[int](fName).
 		WithHandler(
@@ -192,22 +143,25 @@ func TestFluentApi_CanCreateBatchedFlow(t *testing.T) {
 			EndHandler[string](hName2).
 				WithBatching(3, time.Second).
 				WithHandleFunc(func(c context.Context, in []string) (*BatchHandleResult[string], error) {
-					mu.Lock()
-					defer mu.Unlock()
-
 					for i := range in {
 						actualOut[i] = reverse(in[i])
 					}
-					cond.Signal()
+					finishedChan <- struct{}{}
 
 					return NewBatchHandleResult[string](nil), nil
 				}),
 		)
-	built := (*flowBuilder)(f).build(&inputMap, util.NewSet[string]())
+	a := App(aName).
+		WithFlow(f).
+		Build()
+	bF, err := a.GetFlow[int](fName)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	// Act
-	err := built.p.Send(t.Context(), in...)
-	cond.Wait()
+	bF.Trigger(t.Context(), in...)
+	<-finishedChan
 
 	// Assert
 	assert.NoError(t, err)
@@ -215,7 +169,7 @@ func TestFluentApi_CanCreateBatchedFlow(t *testing.T) {
 	assert.Equal(t, fName, f.n)
 }
 
-func TestFluentApi_CanCreateSimpleApp(t *testing.T) {
+func TestFluentApi_CanCreateApp_WithSimpleFlow(t *testing.T) {
 	// Arrange
 	aName := uuid.New().String()
 	fName := uuid.New().String()

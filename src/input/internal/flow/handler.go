@@ -8,6 +8,7 @@ import (
 
 type handler struct {
 	id         string
+	name       string
 	handleFunc func(context.Context, []any) ([][]InternalHandleResult, error)
 }
 

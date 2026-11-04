@@ -31,7 +31,7 @@ type HandleFunc_10[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 an
 type BatchHandleFunc_10[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 any, Tout6 any, Tout7 any, Tout8 any, Tout9 any, Tout10 any] func(context.Context, []Tin) (*ValueBatchHandleResult[Tin, Tout1], *ValueBatchHandleResult[Tin, Tout2], *ValueBatchHandleResult[Tin, Tout3], *ValueBatchHandleResult[Tin, Tout4], *ValueBatchHandleResult[Tin, Tout5], *ValueBatchHandleResult[Tin, Tout6], *ValueBatchHandleResult[Tin, Tout7], *ValueBatchHandleResult[Tin, Tout8], *ValueBatchHandleResult[Tin, Tout9], *ValueBatchHandleResult[Tin, Tout10], error)
 
 // Functions that convert a provided handler function into a type agnostic internal handler function that accepts any type
-func NewHandler_0[Tin any](handleFunc HandleFunc_0[Tin]) *handler {
+func NewHandler_0[Tin any](name string, handleFunc HandleFunc_0[Tin]) *handler {
 	// Build a function that converts the user provided typed handler into a type agnostic handler the framework can use
 	f := func(ctx context.Context, in []any) ([][]InternalHandleResult, error) {
 		err := handleFunc(ctx, in[0].(Tin))
@@ -49,11 +49,12 @@ func NewHandler_0[Tin any](handleFunc HandleFunc_0[Tin]) *handler {
 
 	return &handler{
 		id:         uuid.New().String(),
+		name:       name,
 		handleFunc: f,
 	}
 }
 
-func NewBatchHandler_0[Tin any](handleFunc BatchHandleFunc_0[Tin]) *handler {
+func NewBatchHandler_0[Tin any](name string, handleFunc BatchHandleFunc_0[Tin]) *handler {
 	// Build a function that converts the user provided typed handler into a type agnostic handler the framework can use
 	f := func(ctx context.Context, in []any) ([][]InternalHandleResult, error) {
 		inConv := make([]Tin, len(in))
@@ -81,11 +82,12 @@ func NewBatchHandler_0[Tin any](handleFunc BatchHandleFunc_0[Tin]) *handler {
 
 	return &handler{
 		id:         uuid.New().String(),
+		name:       name,
 		handleFunc: f,
 	}
 }
 
-func NewHandler_1[Tin any, Tout1 any](handleFunc HandleFunc_1[Tin, Tout1]) *handler {
+func NewHandler_1[Tin any, Tout1 any](name string, handleFunc HandleFunc_1[Tin, Tout1]) *handler {
 	// Build a function that converts the user provided typed handler into a type agnostic handler the framework can use
 	f := func(ctx context.Context, in []any) ([][]InternalHandleResult, error) {
 		r1, err := handleFunc(ctx, in[0].(Tin))
@@ -117,11 +119,12 @@ func NewHandler_1[Tin any, Tout1 any](handleFunc HandleFunc_1[Tin, Tout1]) *hand
 
 	return &handler{
 		id:         uuid.New().String(),
+		name:       name,
 		handleFunc: f,
 	}
 }
 
-func NewBatchHandler_1[Tin any, Tout1 any](handleFunc BatchHandleFunc_1[Tin, Tout1]) *handler {
+func NewBatchHandler_1[Tin any, Tout1 any](name string, handleFunc BatchHandleFunc_1[Tin, Tout1]) *handler {
 	// Build a function that converts the user provided typed handler into a type agnostic handler the framework can use
 	f := func(ctx context.Context, in []any) ([][]InternalHandleResult, error) {
 		inConv := make([]Tin, len(in))
@@ -160,11 +163,12 @@ func NewBatchHandler_1[Tin any, Tout1 any](handleFunc BatchHandleFunc_1[Tin, Tou
 
 	return &handler{
 		id:         uuid.New().String(),
+		name:       name,
 		handleFunc: f,
 	}
 }
 
-func NewHandler_2[Tin any, Tout1 any, Tout2 any](handleFunc HandleFunc_2[Tin, Tout1, Tout2]) *handler {
+func NewHandler_2[Tin any, Tout1 any, Tout2 any](name string, handleFunc HandleFunc_2[Tin, Tout1, Tout2]) *handler {
 	// Build a function that converts the user provided typed handler into a type agnostic handler the framework can use
 	f := func(ctx context.Context, in []any) ([][]InternalHandleResult, error) {
 		r1, r2, err := handleFunc(ctx, in[0].(Tin))
@@ -217,11 +221,12 @@ func NewHandler_2[Tin any, Tout1 any, Tout2 any](handleFunc HandleFunc_2[Tin, To
 
 	return &handler{
 		id:         uuid.New().String(),
+		name:       name,
 		handleFunc: f,
 	}
 }
 
-func NewBatchHandler_2[Tin any, Tout1 any, Tout2 any](handleFunc BatchHandleFunc_2[Tin, Tout1, Tout2]) *handler {
+func NewBatchHandler_2[Tin any, Tout1 any, Tout2 any](name string, handleFunc BatchHandleFunc_2[Tin, Tout1, Tout2]) *handler {
 	// Build a function that converts the user provided typed handler into a type agnostic handler the framework can use
 	f := func(ctx context.Context, in []any) ([][]InternalHandleResult, error) {
 		inConv := make([]Tin, len(in))
@@ -278,11 +283,12 @@ func NewBatchHandler_2[Tin any, Tout1 any, Tout2 any](handleFunc BatchHandleFunc
 
 	return &handler{
 		id:         uuid.New().String(),
+		name:       name,
 		handleFunc: f,
 	}
 }
 
-func NewHandler_3[Tin any, Tout1 any, Tout2 any, Tout3 any](handleFunc HandleFunc_3[Tin, Tout1, Tout2, Tout3]) *handler {
+func NewHandler_3[Tin any, Tout1 any, Tout2 any, Tout3 any](name string, handleFunc HandleFunc_3[Tin, Tout1, Tout2, Tout3]) *handler {
 	// Build a function that converts the user provided typed handler into a type agnostic handler the framework can use
 	f := func(ctx context.Context, in []any) ([][]InternalHandleResult, error) {
 		r1, r2, r3, err := handleFunc(ctx, in[0].(Tin))
@@ -356,11 +362,12 @@ func NewHandler_3[Tin any, Tout1 any, Tout2 any, Tout3 any](handleFunc HandleFun
 
 	return &handler{
 		id:         uuid.New().String(),
+		name:       name,
 		handleFunc: f,
 	}
 }
 
-func NewBatchHandler_3[Tin any, Tout1 any, Tout2 any, Tout3 any](handleFunc BatchHandleFunc_3[Tin, Tout1, Tout2, Tout3]) *handler {
+func NewBatchHandler_3[Tin any, Tout1 any, Tout2 any, Tout3 any](name string, handleFunc BatchHandleFunc_3[Tin, Tout1, Tout2, Tout3]) *handler {
 	// Build a function that converts the user provided typed handler into a type agnostic handler the framework can use
 	f := func(ctx context.Context, in []any) ([][]InternalHandleResult, error) {
 		inConv := make([]Tin, len(in))
@@ -435,11 +442,12 @@ func NewBatchHandler_3[Tin any, Tout1 any, Tout2 any, Tout3 any](handleFunc Batc
 
 	return &handler{
 		id:         uuid.New().String(),
+		name:       name,
 		handleFunc: f,
 	}
 }
 
-func NewHandler_4[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any](handleFunc HandleFunc_4[Tin, Tout1, Tout2, Tout3, Tout4]) *handler {
+func NewHandler_4[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any](name string, handleFunc HandleFunc_4[Tin, Tout1, Tout2, Tout3, Tout4]) *handler {
 	// Build a function that converts the user provided typed handler into a type agnostic handler the framework can use
 	f := func(ctx context.Context, in []any) ([][]InternalHandleResult, error) {
 		r1, r2, r3, r4, err := handleFunc(ctx, in[0].(Tin))
@@ -534,11 +542,12 @@ func NewHandler_4[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any](handleFun
 
 	return &handler{
 		id:         uuid.New().String(),
+		name:       name,
 		handleFunc: f,
 	}
 }
 
-func NewBatchHandler_4[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any](handleFunc BatchHandleFunc_4[Tin, Tout1, Tout2, Tout3, Tout4]) *handler {
+func NewBatchHandler_4[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any](name string, handleFunc BatchHandleFunc_4[Tin, Tout1, Tout2, Tout3, Tout4]) *handler {
 	// Build a function that converts the user provided typed handler into a type agnostic handler the framework can use
 	f := func(ctx context.Context, in []any) ([][]InternalHandleResult, error) {
 		inConv := make([]Tin, len(in))
@@ -631,11 +640,12 @@ func NewBatchHandler_4[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any](hand
 
 	return &handler{
 		id:         uuid.New().String(),
+		name:       name,
 		handleFunc: f,
 	}
 }
 
-func NewHandler_5[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 any](handleFunc HandleFunc_5[Tin, Tout1, Tout2, Tout3, Tout4, Tout5]) *handler {
+func NewHandler_5[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 any](name string, handleFunc HandleFunc_5[Tin, Tout1, Tout2, Tout3, Tout4, Tout5]) *handler {
 	// Build a function that converts the user provided typed handler into a type agnostic handler the framework can use
 	f := func(ctx context.Context, in []any) ([][]InternalHandleResult, error) {
 		r1, r2, r3, r4, r5, err := handleFunc(ctx, in[0].(Tin))
@@ -751,11 +761,12 @@ func NewHandler_5[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 any
 
 	return &handler{
 		id:         uuid.New().String(),
+		name:       name,
 		handleFunc: f,
 	}
 }
 
-func NewBatchHandler_5[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 any](handleFunc BatchHandleFunc_5[Tin, Tout1, Tout2, Tout3, Tout4, Tout5]) *handler {
+func NewBatchHandler_5[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 any](name string, handleFunc BatchHandleFunc_5[Tin, Tout1, Tout2, Tout3, Tout4, Tout5]) *handler {
 	// Build a function that converts the user provided typed handler into a type agnostic handler the framework can use
 	f := func(ctx context.Context, in []any) ([][]InternalHandleResult, error) {
 		inConv := make([]Tin, len(in))
@@ -866,11 +877,12 @@ func NewBatchHandler_5[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout
 
 	return &handler{
 		id:         uuid.New().String(),
+		name:       name,
 		handleFunc: f,
 	}
 }
 
-func NewHandler_6[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 any, Tout6 any](handleFunc HandleFunc_6[Tin, Tout1, Tout2, Tout3, Tout4, Tout5, Tout6]) *handler {
+func NewHandler_6[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 any, Tout6 any](name string, handleFunc HandleFunc_6[Tin, Tout1, Tout2, Tout3, Tout4, Tout5, Tout6]) *handler {
 	// Build a function that converts the user provided typed handler into a type agnostic handler the framework can use
 	f := func(ctx context.Context, in []any) ([][]InternalHandleResult, error) {
 		r1, r2, r3, r4, r5, r6, err := handleFunc(ctx, in[0].(Tin))
@@ -1007,11 +1019,12 @@ func NewHandler_6[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 any
 
 	return &handler{
 		id:         uuid.New().String(),
+		name:       name,
 		handleFunc: f,
 	}
 }
 
-func NewBatchHandler_6[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 any, Tout6 any](handleFunc BatchHandleFunc_6[Tin, Tout1, Tout2, Tout3, Tout4, Tout5, Tout6]) *handler {
+func NewBatchHandler_6[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 any, Tout6 any](name string, handleFunc BatchHandleFunc_6[Tin, Tout1, Tout2, Tout3, Tout4, Tout5, Tout6]) *handler {
 	// Build a function that converts the user provided typed handler into a type agnostic handler the framework can use
 	f := func(ctx context.Context, in []any) ([][]InternalHandleResult, error) {
 		inConv := make([]Tin, len(in))
@@ -1140,11 +1153,12 @@ func NewBatchHandler_6[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout
 
 	return &handler{
 		id:         uuid.New().String(),
+		name:       name,
 		handleFunc: f,
 	}
 }
 
-func NewHandler_7[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 any, Tout6 any, Tout7 any](handleFunc HandleFunc_7[Tin, Tout1, Tout2, Tout3, Tout4, Tout5, Tout6, Tout7]) *handler {
+func NewHandler_7[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 any, Tout6 any, Tout7 any](name string, handleFunc HandleFunc_7[Tin, Tout1, Tout2, Tout3, Tout4, Tout5, Tout6, Tout7]) *handler {
 	// Build a function that converts the user provided typed handler into a type agnostic handler the framework can use
 	f := func(ctx context.Context, in []any) ([][]InternalHandleResult, error) {
 		r1, r2, r3, r4, r5, r6, r7, err := handleFunc(ctx, in[0].(Tin))
@@ -1302,11 +1316,12 @@ func NewHandler_7[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 any
 
 	return &handler{
 		id:         uuid.New().String(),
+		name:       name,
 		handleFunc: f,
 	}
 }
 
-func NewBatchHandler_7[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 any, Tout6 any, Tout7 any](handleFunc BatchHandleFunc_7[Tin, Tout1, Tout2, Tout3, Tout4, Tout5, Tout6, Tout7]) *handler {
+func NewBatchHandler_7[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 any, Tout6 any, Tout7 any](name string, handleFunc BatchHandleFunc_7[Tin, Tout1, Tout2, Tout3, Tout4, Tout5, Tout6, Tout7]) *handler {
 	// Build a function that converts the user provided typed handler into a type agnostic handler the framework can use
 	f := func(ctx context.Context, in []any) ([][]InternalHandleResult, error) {
 		inConv := make([]Tin, len(in))
@@ -1453,11 +1468,12 @@ func NewBatchHandler_7[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout
 
 	return &handler{
 		id:         uuid.New().String(),
+		name:       name,
 		handleFunc: f,
 	}
 }
 
-func NewHandler_8[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 any, Tout6 any, Tout7 any, Tout8 any](handleFunc HandleFunc_8[Tin, Tout1, Tout2, Tout3, Tout4, Tout5, Tout6, Tout7, Tout8]) *handler {
+func NewHandler_8[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 any, Tout6 any, Tout7 any, Tout8 any](name string, handleFunc HandleFunc_8[Tin, Tout1, Tout2, Tout3, Tout4, Tout5, Tout6, Tout7, Tout8]) *handler {
 	// Build a function that converts the user provided typed handler into a type agnostic handler the framework can use
 	f := func(ctx context.Context, in []any) ([][]InternalHandleResult, error) {
 		r1, r2, r3, r4, r5, r6, r7, r8, err := handleFunc(ctx, in[0].(Tin))
@@ -1636,11 +1652,12 @@ func NewHandler_8[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 any
 
 	return &handler{
 		id:         uuid.New().String(),
+		name:       name,
 		handleFunc: f,
 	}
 }
 
-func NewBatchHandler_8[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 any, Tout6 any, Tout7 any, Tout8 any](handleFunc BatchHandleFunc_8[Tin, Tout1, Tout2, Tout3, Tout4, Tout5, Tout6, Tout7, Tout8]) *handler {
+func NewBatchHandler_8[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 any, Tout6 any, Tout7 any, Tout8 any](name string, handleFunc BatchHandleFunc_8[Tin, Tout1, Tout2, Tout3, Tout4, Tout5, Tout6, Tout7, Tout8]) *handler {
 	// Build a function that converts the user provided typed handler into a type agnostic handler the framework can use
 	f := func(ctx context.Context, in []any) ([][]InternalHandleResult, error) {
 		inConv := make([]Tin, len(in))
@@ -1805,11 +1822,12 @@ func NewBatchHandler_8[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout
 
 	return &handler{
 		id:         uuid.New().String(),
+		name:       name,
 		handleFunc: f,
 	}
 }
 
-func NewHandler_9[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 any, Tout6 any, Tout7 any, Tout8 any, Tout9 any](handleFunc HandleFunc_9[Tin, Tout1, Tout2, Tout3, Tout4, Tout5, Tout6, Tout7, Tout8, Tout9]) *handler {
+func NewHandler_9[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 any, Tout6 any, Tout7 any, Tout8 any, Tout9 any](name string, handleFunc HandleFunc_9[Tin, Tout1, Tout2, Tout3, Tout4, Tout5, Tout6, Tout7, Tout8, Tout9]) *handler {
 	// Build a function that converts the user provided typed handler into a type agnostic handler the framework can use
 	f := func(ctx context.Context, in []any) ([][]InternalHandleResult, error) {
 		r1, r2, r3, r4, r5, r6, r7, r8, r9, err := handleFunc(ctx, in[0].(Tin))
@@ -2009,11 +2027,12 @@ func NewHandler_9[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 any
 
 	return &handler{
 		id:         uuid.New().String(),
+		name:       name,
 		handleFunc: f,
 	}
 }
 
-func NewBatchHandler_9[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 any, Tout6 any, Tout7 any, Tout8 any, Tout9 any](handleFunc BatchHandleFunc_9[Tin, Tout1, Tout2, Tout3, Tout4, Tout5, Tout6, Tout7, Tout8, Tout9]) *handler {
+func NewBatchHandler_9[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 any, Tout6 any, Tout7 any, Tout8 any, Tout9 any](name string, handleFunc BatchHandleFunc_9[Tin, Tout1, Tout2, Tout3, Tout4, Tout5, Tout6, Tout7, Tout8, Tout9]) *handler {
 	// Build a function that converts the user provided typed handler into a type agnostic handler the framework can use
 	f := func(ctx context.Context, in []any) ([][]InternalHandleResult, error) {
 		inConv := make([]Tin, len(in))
@@ -2196,11 +2215,12 @@ func NewBatchHandler_9[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout
 
 	return &handler{
 		id:         uuid.New().String(),
+		name:       name,
 		handleFunc: f,
 	}
 }
 
-func NewHandler_10[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 any, Tout6 any, Tout7 any, Tout8 any, Tout9 any, Tout10 any](handleFunc HandleFunc_10[Tin, Tout1, Tout2, Tout3, Tout4, Tout5, Tout6, Tout7, Tout8, Tout9, Tout10]) *handler {
+func NewHandler_10[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 any, Tout6 any, Tout7 any, Tout8 any, Tout9 any, Tout10 any](name string, handleFunc HandleFunc_10[Tin, Tout1, Tout2, Tout3, Tout4, Tout5, Tout6, Tout7, Tout8, Tout9, Tout10]) *handler {
 	// Build a function that converts the user provided typed handler into a type agnostic handler the framework can use
 	f := func(ctx context.Context, in []any) ([][]InternalHandleResult, error) {
 		r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, err := handleFunc(ctx, in[0].(Tin))
@@ -2421,11 +2441,12 @@ func NewHandler_10[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 an
 
 	return &handler{
 		id:         uuid.New().String(),
+		name:       name,
 		handleFunc: f,
 	}
 }
 
-func NewBatchHandler_10[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 any, Tout6 any, Tout7 any, Tout8 any, Tout9 any, Tout10 any](handleFunc BatchHandleFunc_10[Tin, Tout1, Tout2, Tout3, Tout4, Tout5, Tout6, Tout7, Tout8, Tout9, Tout10]) *handler {
+func NewBatchHandler_10[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tout5 any, Tout6 any, Tout7 any, Tout8 any, Tout9 any, Tout10 any](name string, handleFunc BatchHandleFunc_10[Tin, Tout1, Tout2, Tout3, Tout4, Tout5, Tout6, Tout7, Tout8, Tout9, Tout10]) *handler {
 	// Build a function that converts the user provided typed handler into a type agnostic handler the framework can use
 	f := func(ctx context.Context, in []any) ([][]InternalHandleResult, error) {
 		inConv := make([]Tin, len(in))
@@ -2626,6 +2647,7 @@ func NewBatchHandler_10[Tin any, Tout1 any, Tout2 any, Tout3 any, Tout4 any, Tou
 
 	return &handler{
 		id:         uuid.New().String(),
+		name:       name,
 		handleFunc: f,
 	}
 }
