@@ -1,27 +1,3 @@
-// With handlers grouped into components
-app := flow.App("myApp")
-    .WithFlows(
-        flow.Flow[int]("myFlow").
-            WithHandler(
-                flow.Handler[int]("handler1").
-                    WithHandleFunc(f)
-            ).
-            WithHandler(
-                flow.Handler[string]("handler2").
-                    WithHandleFunc(f)
-            ).
-            WithHandler(
-                flow.Handler[string]("handler2").
-                    WithHandleFunc(f)
-            )
-    ).
-    WithComponents(
-        flow.Component("myComponent")
-            .WithHandlers("handler1", "handler3")
-            .WithConcurrency(10)
-    ).
-    Build()
-
 // With splitting flows
 fork1Flow := flow.Flow("fork1").
     WithHandler(
