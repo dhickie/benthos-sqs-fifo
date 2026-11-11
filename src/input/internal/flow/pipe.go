@@ -39,13 +39,16 @@ type Pipe struct {
 	bp   *BatchPolicy  // The batch policy that governs when batches are propagated to receivers
 	size *atomic.Int32 // The number of messages waiting to be received in the pipe
 
-	input  chan []any // The input channel for incoming messages
-	output chan []any // The output channel for outgoing batches of messages
+	input  chan []any       // The input channel for incoming messages
+	output chan *handlerJob // The output channel for outgoing jobs
+
+	flowName  string   // The name of the flow that the outgoing handler is part of
+	nextFlows []string // The names of the possible flows to which the outgoing handler can send messages
 
 	ticker *time.Ticker // The ticker that governs the pushing of batches according to the batch policy
 
-	messages []any   // Collection of pending un-batched messages
-	batches  [][]any // Pending batches that haven't yet been received
+	messages []*message   // Collection of pending un-batched messages
+	batches  [][]*message // Pending batches that haven't yet been received
 
 	closeInitChan         chan struct{}      // Channel that is sent to when pipe closure is being initiated
 	stopInputChan         chan struct{}      // Channel that is sent to when the input loop should stop
@@ -66,7 +69,7 @@ type Pipe struct {
 
 // NewPipe returns a pointer to a new pipe that can send and receive messages of the specified type, and applies
 // the provided batching policy to any sent messages before propagating messages to receivers.
-func NewPipe(name string, bp *BatchPolicy, logger *slog.Logger) *Pipe {
+func NewPipe(name string, bp *BatchPolicy, logger *slog.Logger, flowName string, nextFlows []string) *Pipe {
 	// Apply a default batch policy if one isn't provided
 	if bp == nil {
 		bp = NewBatchPolicy(defaultBatchSize, time.Duration(defaultBatchPeriodSeconds)*time.Second)
@@ -85,10 +88,12 @@ func NewPipe(name string, bp *BatchPolicy, logger *slog.Logger) *Pipe {
 		cancel:                cancel,
 		bp:                    bp,
 		input:                 make(chan []any),
-		output:                make(chan []any),
-		messages:              make([]any, 0),
+		output:                make(chan *handlerJob),
+		flowName:              flowName,
+		nextFlows:             nextFlows,
+		messages:              make([]*message, 0),
 		ticker:                time.NewTicker(bp.Period),
-		batches:               make([][]any, 0),
+		batches:               make([][]*message, 0),
 		batchLock:             bLock,
 		batchCond:             util.NewContextCond(bLock),
 		closeInitChan:         make(chan struct{}, 1),
@@ -137,7 +142,7 @@ func (c *Pipe) SendChan() chan<- []any {
 // Receive receives the next batch of messages from the pipe, blocking until one is available.
 // Returns an error if the pipe is already closed, or is forcefully closed while waiting for messages to be available.
 // If the provided context is cancelled, any wait for a new batch is abandoned and an error is returned.
-func (c *Pipe) Receive(ctx context.Context) ([]any, error) {
+func (c *Pipe) Receive(ctx context.Context) (*handlerJob, error) {
 	select {
 	case <-c.ctx.Done():
 		c.logger.Debug("Pipe closed while waiting for batch", logPropPipeName, c.name)
@@ -157,7 +162,7 @@ func (c *Pipe) Receive(ctx context.Context) ([]any, error) {
 // ReceiveChan returns a channel that can be used to receive batches of messages from the pipe, for example if
 // needed for use with a select statement. If the pipe is closed, this channel will be closed when there are
 // no more messages remaining.
-func (c *Pipe) ReceiveChan() <-chan []any {
+func (c *Pipe) ReceiveChan() <-chan *handlerJob {
 	return c.output
 }
 
@@ -236,7 +241,16 @@ func (c *Pipe) inputLoop() {
 			if ok {
 				c.logger.Debug("Input loop: received new messages", logPropPipeName, c.name, logPropNumMsgs, len(m))
 				c.size.Add(int32(len(m)))
-				c.messages = append(c.messages, m...)
+
+				msgs := make([]*message, len(m))
+				for i, v := range m {
+					msgs[i] = &message{
+						id:    uuid.NewString(),
+						value: v,
+					}
+				}
+				c.messages = append(c.messages, msgs...)
+
 				if len(c.messages) >= c.bp.Number {
 					c.ticker.Reset(c.bp.Period)
 					c.propagateBatch(false)
@@ -282,7 +296,7 @@ func (c *Pipe) outputLoop() {
 		c.outputStoppedChan <- struct{}{}
 		close(c.output)
 	}
-	nextFunc := func() ([]any, bool, error) { // Returns true if there are no more messages to serve
+	nextFunc := func() (*handlerJob, bool, error) { // Returns true if there are no more messages to serve
 		c.batchLock.Lock()
 		defer c.batchLock.Unlock()
 
@@ -307,7 +321,15 @@ func (c *Pipe) outputLoop() {
 		}
 		next := c.batches[0]
 		c.batches = c.batches[1:]
-		return next, false, nil
+		job := &handlerJob{
+			context: handlerContext{
+				Logger:      c.logger,
+				currentFlow: c.flowName,
+				nextFlows:   c.nextFlows,
+			},
+			msgs: next,
+		}
+		return job, false, nil
 	}
 
 	for {
@@ -328,9 +350,9 @@ func (c *Pipe) outputLoop() {
 				c.logger.Debug("Output loop: received stop, batches remaining", logPropPipeName, c.name, logPropNumBatches, len(c.batches))
 				closing = true
 			case c.output <- nextBatch:
-				c.logger.Debug("Output loop: batch received", logPropPipeName, c.name, logPropNumMsgs, len(nextBatch))
+				c.logger.Debug("Output loop: batch received", logPropPipeName, c.name, logPropNumMsgs, len(nextBatch.msgs))
 				batchSent = true
-				c.size.Add(int32(len(nextBatch) * -1))
+				c.size.Add(int32(len(nextBatch.msgs) * -1))
 				if closing && c.size.Load() == 0 {
 					c.logger.Debug("Output loop: closure complete", logPropPipeName, c.name)
 					stopFunc()

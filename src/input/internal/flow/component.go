@@ -3,17 +3,18 @@ package flow
 import (
 	"context"
 	"dhickie/benthos-sqs-fifo/src/input/internal/util"
+	"log/slog"
 	"sync"
 	"time"
 )
 
 type component struct {
-	inputMap  map[string]*handler        // Map of input pipe IDs to handlers
-	outputMap map[string][]*Pipe         // Map of handler IDs to output pipes
-	retryMap  map[string]*RetryPolicy    // Map of handler IDs to their retry policies
-	inputs    []*Pipe                    // All the input pipes
-	rChan     []*<-chan []any            // All of the receive channels for incoming pipes
-	rChanMap  map[*<-chan []any]*handler // Map of receive channels to their corresponding handlers
+	inputMap  map[string]*handler              // Map of input pipe IDs to handlers
+	outputMap map[string]map[string]*Pipe      // Map of handler IDs to output pipes
+	retryMap  map[string]*RetryPolicy          // Map of handler IDs to their retry policies
+	inputs    []*Pipe                          // All the input pipes
+	rChan     []*<-chan *handlerJob            // All of the receive channels for incoming pipes
+	rChanMap  map[*<-chan *handlerJob]*handler // Map of receive channels to their corresponding handlers
 
 	ctx     context.Context // Lifetime context
 	wg      sync.WaitGroup
@@ -21,6 +22,8 @@ type component struct {
 
 	workerPool *WorkerPool
 	workWgMap  map[*handler]*util.ContextWaitGroup // For keeping track of work currently being carried out by the worker pool
+
+	logger *slog.Logger
 }
 
 type RetryPolicy struct {
@@ -40,34 +43,39 @@ func NewRetryPolicy(errPipe *Pipe, maxAttempts int, interval time.Duration) *Ret
 type HandlerCoupling struct {
 	handler     *handler
 	inputPipe   *Pipe
-	outputPipe  []*Pipe
+	outputPipes map[string]*Pipe
 	retryPolicy *RetryPolicy
 }
 
-func NewHandlerCoupling(h *handler, in *Pipe, out []*Pipe, retryPolicy *RetryPolicy) *HandlerCoupling {
+func NewHandlerCoupling(h *handler, in *Pipe, out map[string]*Pipe, retryPolicy *RetryPolicy) *HandlerCoupling {
 	return &HandlerCoupling{
 		handler:     h,
 		inputPipe:   in,
-		outputPipe:  out,
+		outputPipes: out,
 		retryPolicy: retryPolicy,
 	}
 }
 
-func NewComponent(ctx context.Context, couplings []*HandlerCoupling, maxConcurrency int) *component {
+type handlerJob struct {
+	context handlerContext
+	msgs    []*message
+}
+
+func NewComponent(ctx context.Context, logger *slog.Logger, couplings []*HandlerCoupling, maxConcurrency int) *component {
 	inputs := make([]*Pipe, 0, len(couplings))
 	inputMap := make(map[string]*handler, len(couplings))
-	outputMap := make(map[string][]*Pipe, len(couplings))
+	outputMap := make(map[string]map[string]*Pipe, len(couplings))
 	retryMap := make(map[string]*RetryPolicy)
-	rChan := make([]*<-chan []any, len(couplings))
-	rChanMap := make(map[*<-chan []any]*handler, len(couplings))
+	rChan := make([]*<-chan *handlerJob, len(couplings))
+	rChanMap := make(map[*<-chan *handlerJob]*handler, len(couplings))
 	workWgMap := make(map[*handler]*util.ContextWaitGroup, maxConcurrency)
 
-	pool := NewWorkerPool(ctx, maxConcurrency)
+	pool := NewWorkerPool(ctx, logger, maxConcurrency)
 
 	for i, c := range couplings {
 		inputs = append(inputs, c.inputPipe)
 		inputMap[c.inputPipe.id] = c.handler
-		outputMap[c.handler.id] = c.outputPipe
+		outputMap[c.handler.id] = c.outputPipes
 		ch := c.inputPipe.ReceiveChan()
 		rChan[i] = &ch
 		rChanMap[&ch] = c.handler
@@ -87,6 +95,7 @@ func NewComponent(ctx context.Context, couplings []*HandlerCoupling, maxConcurre
 		workerPool: pool,
 		workWgMap:  workWgMap,
 		retryMap:   retryMap,
+		logger:     logger,
 	}
 
 	c.wg.Go(c.processLoop)
@@ -109,15 +118,15 @@ func (c *component) stopMonitor() {
 func (c *component) processLoop() {
 	var i int
 	var err error
-	var v []any
+	var job *handlerJob
 	var ok bool
 	var h *handler
-	var out []*Pipe
+	var out map[string]*Pipe
 	var retryPolicy *RetryPolicy
 	var wg *util.ContextWaitGroup
 
 	for {
-		if i, err = util.Select(c.ctx, c.rChan, &v, &ok); err != nil {
+		if i, err = Select(c.ctx, c.rChan, &job, &ok); err != nil {
 			return
 		}
 
@@ -127,9 +136,9 @@ func (c *component) processLoop() {
 		retryPolicy = c.retryMap[h.id]
 
 		if ok {
-			// Message received - schedule the work
+			// Message(s) received - schedule the work
 			_ = wg.Add(1)
-			if err = c.workerPool.Do(wg, h, v, out, retryPolicy); err != nil {
+			if err = c.workerPool.Do(wg, h, job, out, retryPolicy); err != nil {
 				// Context cancelled - kill the loop
 				return
 			}

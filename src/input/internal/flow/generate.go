@@ -6,34 +6,27 @@ import (
 	"dhickie/benthos-sqs-fifo/src/input/internal/util"
 )
 
-const maxOutputTypes int = 10
+const maxChannels = 100
 
 type genData struct {
-	NumOut     int
-	GenIndexes []int
-	OutIndexes []int
+	Size    int
+	Indices []int
 }
 
 func main() {
 	// Generate the input data for the template
-	data := make([]genData, maxOutputTypes)
-	for i := range maxOutputTypes {
-		genIndexes := make([]int, i+1)
-		outIndexes := make([]int, i)
-
-		for j := range genIndexes {
-			genIndexes[j] = j + 1
-		}
-		for j := range outIndexes {
-			outIndexes[j] = j + 2
+	data := make([]genData, maxChannels)
+	for i := range maxChannels {
+		indices := make([]int, i+1)
+		for j := range indices {
+			indices[j] = j
 		}
 
 		data[i] = genData{
-			NumOut:     i + 1,
-			GenIndexes: genIndexes,
-			OutIndexes: outIndexes,
+			Size:    i + 1,
+			Indices: indices,
 		}
 	}
 
-	util.GenerateSource("handler_template.tmpl", "handler_generated.go", data, true)
+	util.GenerateSource("select_template.tmpl", "select_generated.go", data, true)
 }

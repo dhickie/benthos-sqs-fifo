@@ -4,6 +4,7 @@ import (
 	"context"
 	"dhickie/benthos-sqs-fifo/src/input/internal/test/wait"
 	"dhickie/benthos-sqs-fifo/src/input/internal/util"
+	"log/slog"
 	"sync"
 )
 
@@ -14,9 +15,11 @@ type WorkerPool struct {
 	ctx     context.Context
 	wg      *sync.WaitGroup
 	stopped chan struct{}
+
+	logger *slog.Logger
 }
 
-func NewWorkerPool(ctx context.Context, numWorkers int) *WorkerPool {
+func NewWorkerPool(ctx context.Context, logger *slog.Logger, numWorkers int) *WorkerPool {
 	workers := make([]*Worker, numWorkers)
 	input := make(chan *WorkItem)
 	wg := &sync.WaitGroup{}
@@ -30,83 +33,76 @@ func NewWorkerPool(ctx context.Context, numWorkers int) *WorkerPool {
 		ctx:      ctx,
 		wg:       wg,
 		stopped:  make(chan struct{}),
+		logger:   logger,
 	}
 	go wp.stoppedMonitor()
 
 	return wp
 }
 
-func (p *WorkerPool) Do(wg *util.ContextWaitGroup, h *handler, w []any, o []*Pipe, retryPolicy *RetryPolicy) error {
+func (p *WorkerPool) Do(wg *util.ContextWaitGroup, h *handler, job *handlerJob, o map[string]*Pipe, retryPolicy *RetryPolicy) error {
 	f := func() error {
 		numAttempts := 0
-		var err error
-		var r [][]InternalHandleResult
 
 		// Try until we succeed or hit the maximum number of attempts
 		for {
 			numAttempts++
-			r, err = h.Handle(p.ctx, w)
-			if err == nil {
-				// Send output messages to output pipes that the handler tells us are OK to send, and keep track of anything that needs to be retried
-				retryMsgs := make([]any, 0)
-				for i, v := range r {
-					msgs := make([]any, 0, len(v))
-					for _, q := range v {
-						if q.ok && q.err == nil {
-							msgs = append(msgs, q.output)
-						} else if q.err != nil {
-							retryMsgs = append(retryMsgs, q.input)
+
+			hCtx := job.context
+			r := h.handle(p.ctx, hCtx, job.msgs)
+			errors := make([]*handlerResult, 0, len(job.msgs))
+
+			// Work through the results, sending successes on to subsequent handlers as appropriate
+			for _, v := range r {
+				if v.Error == nil {
+					// Send the results to the correct pipes for that flow (in the case of split handlers)
+					for _, w := range v.Results {
+						if pipe, ok := o[w.FlowName]; !ok {
+							// TODO log an error
+						} else {
+							pipe.Send(p.ctx, w)
 						}
 					}
+				} else if p.ctx.Err() != nil { // Was the context cancelled?
+					return p.ctx.Err()
+				} else {
+					errors = append(errors, v)
+				}
+			}
 
-					// Only try to send to the output channel if there is one defined
-					if len(msgs) > 0 && o != nil && len(o) > i {
-						o[i].SendChan() <- msgs
-					}
+			if retryPolicy != nil {
+				msgMap := make(map[string]*message)
+				for _, v := range job.msgs {
+					msgMap[v.id] = v
 				}
 
-				if len(retryMsgs) > 0 {
-					// TODO at the moment we assume that each output from the handler will uniquely deal with one input message.
-					// If this isn't the case, then this could result in duplicate handles. We need to wrap the messages in a message object
-					// with a unique ID, so that we can a) idempotently handle messages inside handlers and b) not put the same message through
-					// a retry multiple times from different failures on different outputs
-					w = retryMsgs
-					if retry, err := shouldRetry(p.ctx, retryPolicy, numAttempts); err != nil {
+				errorMsgs := make([]*message, len(errors))
+				for i, v := range errors {
+					errorMsgs[i] = msgMap[v.Id]
+				}
+
+				if retryPolicy.maxAttempts == 0 || numAttempts < retryPolicy.maxAttempts {
+					// Retry the failures
+					job.msgs = errorMsgs
+
+					if err := wait.For(p.ctx, retryPolicy.interval); err != nil {
+						return err // Return the error from the context if it was cancelled while waiting
+					}
+					continue
+				} else if retryPolicy.errPipe != nil {
+					// Send the messages to the error pipe
+					if err := retryPolicy.errPipe.Send(p.ctx, errorMsgs...); err != nil {
 						return err
-					} else if retry {
-						continue
 					}
-
-					// We're out of retries, is there an error pipe to send to?
-					if retryPolicy != nil && retryPolicy.errPipe != nil {
-						retryPolicy.errPipe.SendChan() <- w
-					}
+				} else {
+					// TODO log an error here - failed handle but no error handler
 				}
-
-				return nil
-			}
-
-			// Was the context cancelled?
-			if p.ctx.Err() != nil {
-				return p.ctx.Err()
-			}
-
-			// The handler returned an error, do we have a retry policy that's within the max number of attempts?
-			if retry, err := shouldRetry(p.ctx, retryPolicy, numAttempts); err != nil {
-				return err
-			} else if retry {
-				continue
-			}
-
-			// We're out of retries, is there an error pipe to send to?
-			if retryPolicy != nil && retryPolicy.errPipe != nil {
-				retryPolicy.errPipe.SendChan() <- w
 			}
 
 			return nil
 		}
 	}
-	wi := NewWorkItem(f, o, wg)
+	wi := NewWorkItem(f, wg)
 
 	select {
 	case <-p.ctx.Done():
@@ -176,15 +172,13 @@ func (w *Worker) run() {
 }
 
 type WorkItem struct {
-	f       func() error
-	outputs []*Pipe
-	wg      *util.ContextWaitGroup
+	f  func() error
+	wg *util.ContextWaitGroup
 }
 
-func NewWorkItem(f func() error, outputs []*Pipe, wg *util.ContextWaitGroup) *WorkItem {
+func NewWorkItem(f func() error, wg *util.ContextWaitGroup) *WorkItem {
 	return &WorkItem{
-		f:       f,
-		outputs: outputs,
-		wg:      wg,
+		f:  f,
+		wg: wg,
 	}
 }
