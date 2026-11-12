@@ -30,9 +30,12 @@ func newEndHandler[Tin any](name string, f func(context.Context, EndHandlerConte
 		id:   uuid.New().String(),
 		name: name,
 		handleFunc: func(ctx context.Context, hCtx handlerContext, msgs []*message) []*handlerResult {
-			result := f(ctx, (EndHandlerContext[Tin])(hCtx), (*Message[Tin])(msgs[0]))
-			return []*handlerResult{
-				(*handlerResult)(result),
+			if result := f(ctx, (EndHandlerContext[Tin])(hCtx), (*Message[Tin])(msgs[0])); result == nil {
+				return make([]*handlerResult, 0)
+			} else {
+				return []*handlerResult{
+					(*handlerResult)(result),
+				}
 			}
 		},
 	}
@@ -47,12 +50,16 @@ func newBatchEndHandler[Tin any](name string, f func(context.Context, EndHandler
 			for i := range len(msgs) {
 				conv[i] = (*Message[Tin])(msgs[i])
 			}
-			result := f(ctx, (EndHandlerContext[Tin])(hCtx), conv)
-			resConv := make([]*handlerResult, len(result))
-			for i := range len(result) {
-				resConv[i] = (*handlerResult)(result[i])
+
+			if result := f(ctx, (EndHandlerContext[Tin])(hCtx), conv); result != nil {
+				resConv := make([]*handlerResult, len(result))
+				for i := range len(result) {
+					resConv[i] = (*handlerResult)(result[i])
+				}
+				return resConv
+			} else {
+				return make([]*handlerResult, 0)
 			}
-			return resConv
 		},
 	}
 }
@@ -62,9 +69,12 @@ func newHandler[Tin, Tout any](name string, f func(context.Context, HandlerConte
 		id:   uuid.New().String(),
 		name: name,
 		handleFunc: func(ctx context.Context, hCtx handlerContext, msgs []*message) []*handlerResult {
-			result := f(ctx, (HandlerContext[Tin, Tout])(hCtx), (*Message[Tin])(msgs[0]))
-			return []*handlerResult{
-				(*handlerResult)(result),
+			if result := f(ctx, (HandlerContext[Tin, Tout])(hCtx), (*Message[Tin])(msgs[0])); result != nil {
+				return []*handlerResult{
+					(*handlerResult)(result),
+				}
+			} else {
+				return make([]*handlerResult, 0)
 			}
 		},
 	}
@@ -79,12 +89,16 @@ func newBatchHandler[Tin, Tout any](name string, f func(context.Context, Handler
 			for i := range len(msgs) {
 				conv[i] = (*Message[Tin])(msgs[i])
 			}
-			result := f(ctx, (HandlerContext[Tin, Tout])(hCtx), conv)
-			resConv := make([]*handlerResult, len(result))
-			for i := range len(result) {
-				resConv[i] = (*handlerResult)(result[i])
+
+			if result := f(ctx, (HandlerContext[Tin, Tout])(hCtx), conv); result != nil {
+				resConv := make([]*handlerResult, len(result))
+				for i := range len(result) {
+					resConv[i] = (*handlerResult)(result[i])
+				}
+				return resConv
+			} else {
+				return make([]*handlerResult, 0)
 			}
-			return resConv
 		},
 	}
 }
@@ -94,9 +108,12 @@ func newSplitHandler[Tin, Tout any](name string, f func(context.Context, SplitHa
 		id:   uuid.New().String(),
 		name: name,
 		handleFunc: func(ctx context.Context, hCtx handlerContext, msgs []*message) []*handlerResult {
-			result := f(ctx, (SplitHandlerContext[Tin])(hCtx), (*Message[Tin])(msgs[0]))
-			return []*handlerResult{
-				(*handlerResult)(result),
+			if result := f(ctx, (SplitHandlerContext[Tin])(hCtx), (*Message[Tin])(msgs[0])); result != nil {
+				return []*handlerResult{
+					(*handlerResult)(result),
+				}
+			} else {
+				return make([]*handlerResult, 0)
 			}
 		},
 	}
@@ -111,12 +128,15 @@ func newBatchSplitHandler[Tin any](name string, f func(context.Context, SplitHan
 			for i := range len(msgs) {
 				conv[i] = (*Message[Tin])(msgs[i])
 			}
-			result := f(ctx, (SplitHandlerContext[Tin])(hCtx), conv)
-			resConv := make([]*handlerResult, len(result))
-			for i := range len(result) {
-				resConv[i] = (*handlerResult)(result[i])
+			if result := f(ctx, (SplitHandlerContext[Tin])(hCtx), conv); result != nil {
+				resConv := make([]*handlerResult, len(result))
+				for i := range len(result) {
+					resConv[i] = (*handlerResult)(result[i])
+				}
+				return resConv
+			} else {
+				return make([]*handlerResult, 0)
 			}
-			return resConv
 		},
 	}
 }

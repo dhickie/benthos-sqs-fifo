@@ -60,7 +60,7 @@ func (p *WorkerPool) Do(wg *util.ContextWaitGroup, h *handler, job *handlerJob, 
 						if pipe, ok := o[w.FlowName]; !ok {
 							// TODO log an error
 						} else {
-							pipe.Send(p.ctx, w)
+							pipe.Send(p.ctx, w.Value)
 						}
 					}
 				} else if p.ctx.Err() != nil { // Was the context cancelled?
@@ -91,7 +91,11 @@ func (p *WorkerPool) Do(wg *util.ContextWaitGroup, h *handler, job *handlerJob, 
 					continue
 				} else if retryPolicy.errPipe != nil {
 					// Send the messages to the error pipe
-					if err := retryPolicy.errPipe.Send(p.ctx, errorMsgs...); err != nil {
+					errorMsgValues := make([]any, len(errorMsgs))
+					for i, v := range errorMsgs {
+						errorMsgValues[i] = v.value
+					}
+					if err := retryPolicy.errPipe.Send(p.ctx, errorMsgValues...); err != nil {
 						return err
 					}
 				} else {
