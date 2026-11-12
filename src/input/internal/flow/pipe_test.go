@@ -36,7 +36,7 @@ func TestSendAndReceive_UseSameTypeForMessage(t *testing.T) {
 
 	// Assert
 	sentType := reflect.TypeOf(m)
-	receivedType := reflect.TypeOf(r[0])
+	receivedType := reflect.TypeOf(r.msgs[0].value)
 	assert.Equal(t, sentType, receivedType)
 }
 
@@ -56,8 +56,8 @@ func TestSendAndReceive_SendsAndReceivesTheSameMessage(t *testing.T) {
 	}
 
 	// Assert
-	assert.Equal(t, 1, len(r))
-	rM := r[0].(*TestMessage)
+	assert.Equal(t, 1, len(r.msgs))
+	rM := r.msgs[0].value.(*TestMessage)
 	assert.Equal(t, m.intValue, rM.intValue)
 	assert.Equal(t, m.int32Value, rM.int32Value)
 	assert.Equal(t, m.strValue, rM.strValue)
@@ -77,7 +77,7 @@ func TestChannels_CanSendAndReceiveMessages(t *testing.T) {
 	rM := <-p.ReceiveChan()
 
 	// Assert
-	assert.Equal(t, 1, len(rM))
+	assert.Equal(t, 1, len(rM.msgs))
 }
 
 func TestReceive_ReceivesBatchedInput(t *testing.T) {
@@ -99,7 +99,7 @@ func TestReceive_ReceivesBatchedInput(t *testing.T) {
 	}
 
 	// Assert
-	assert.Equal(t, bSize, len(r))
+	assert.Equal(t, bSize, len(r.msgs))
 }
 
 func TestReceive_ReceivesUnfilledBatchAfterBatchPeriod(t *testing.T) {
@@ -119,7 +119,7 @@ func TestReceive_ReceivesUnfilledBatchAfterBatchPeriod(t *testing.T) {
 	}
 
 	// Assert
-	assert.Equal(t, 1, len(r))
+	assert.Equal(t, 1, len(r.msgs))
 }
 
 func TestClose_WaitsForPipeToBeEmpty(t *testing.T) {
@@ -135,12 +135,12 @@ func TestClose_WaitsForPipeToBeEmpty(t *testing.T) {
 
 	// Act
 	wg := startCloseRoutine(t.Context(), t, p)
-	rM := make([]any, 0)
+	rM := make([]*message, 0)
 	for range nM {
 		if r, err := p.Receive(t.Context()); err != nil {
 			t.Fatal(err)
 		} else {
-			rM = append(rM, r...)
+			rM = append(rM, r.msgs...)
 		}
 	}
 	wg.Wait()
@@ -175,7 +175,7 @@ func TestPipe_UnderHighLoad(t *testing.T) {
 	bp := NewBatchPolicy(batchSize, batchPeriod)
 	pipes := make([]*Pipe, nPipes)
 	for i := range nPipes {
-		pipes[i] = NewPipe("testpipe", bp, slog.Default())
+		pipes[i] = NewPipe("testpipe", bp, slog.Default(), "", []string{""})
 	}
 
 	// Start publishing & subscribing routines
@@ -207,8 +207,8 @@ func TestPipe_UnderHighLoad(t *testing.T) {
 				receiveErrs[i] = err
 				return
 			} else {
-				for _, v := range batch {
-					m := v.(*TestMessage)
+				for _, v := range batch.msgs {
+					m := v.value.(*TestMessage)
 					latencies[i][received] = float64(time.Since(m.timeValue).Nanoseconds())
 					msgs[received] = m
 					received++
@@ -311,12 +311,12 @@ func startCloseRoutine(ctx context.Context, t *testing.T, ch *Pipe) *sync.WaitGr
 }
 
 func makePipe() *Pipe {
-	return NewPipe("testpipe", nil, nil)
+	return NewPipe("testpipe", nil, nil, "", []string{""})
 }
 
 func makeBatchPipe(batchSize int, period time.Duration) *Pipe {
 	bp := NewBatchPolicy(batchSize, period)
-	return NewPipe("testpipe", bp, nil)
+	return NewPipe("testpipe", bp, nil, "", []string{""})
 }
 
 func buildMessages(n int) []*TestMessage {
