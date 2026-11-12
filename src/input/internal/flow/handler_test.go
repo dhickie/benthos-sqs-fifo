@@ -84,7 +84,7 @@ func TestHandle_ReturnsCorrectResponse_ForHandlerWithZeroOutputs_WithNoError(t *
 	// Arrange
 	in := buildHandlerMessages([]int{1})
 	handleFunc := func(_ context.Context, c EndHandlerContext[int], i *Message[int]) *EndHandlerResult {
-		return &EndHandlerResult{Id: i.id}
+		return nil
 	}
 	handler := newEndHandler("myHandler", handleFunc)
 
@@ -92,10 +92,7 @@ func TestHandle_ReturnsCorrectResponse_ForHandlerWithZeroOutputs_WithNoError(t *
 	result := handler.handle(t.Context(), hCtx, in)
 
 	// Assert
-	assert.Len(t, result, 1)
-	assert.NoError(t, result[0].Error)
-	assert.Len(t, result[0].Results, 0)
-	assert.Equal(t, in[0].id, result[0].Id)
+	assert.Len(t, result, 0)
 }
 
 func TestHandle_ReturnsCorrectResponse_ForHandlerWithZeroOutputs_WithError(t *testing.T) {

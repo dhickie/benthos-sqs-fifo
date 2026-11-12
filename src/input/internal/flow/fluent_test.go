@@ -15,41 +15,39 @@ import (
 
 func TestFluentApi_CanCreateSimpleHandler(t *testing.T) {
 	// Arrange
-	in := []any{1}
+	in := buildHandlerMessages([]int{1})
 	expectedOut := "1"
 	n := uuid.New().String()
-	f := func(_ context.Context, i int) (*ValueHandleResult[string], error) {
-		return NewValueHandleResult(strconv.Itoa(i), true), nil
+	f := func(_ context.Context, c HandlerContext[int, string], i *Message[int]) *HandlerResult[string] {
+		return c.Success(i, strconv.Itoa(i.Value()))
 	}
 	h := Handler[int, string](n).
 		WithHandleFunc(f)
 	built := h.build()
 
 	// Act
-	result, err := built.Handle(t.Context(), in)
+	result := built.handle(t.Context(), hCtx, in)
 
 	// Assert
 	assert.Equal(t, n, h.n)
-	assert.NoError(t, err)
 	assert.Len(t, result, 1)
-	assert.Len(t, result[0], 1)
-	assert.Equal(t, expectedOut, result[0][0].output)
-	assert.Equal(t, true, result[0][0].ok)
-	assert.NoError(t, result[0][0].err)
+	assert.Equal(t, in[0].id, result[0].Id)
+	assert.Equal(t, []ResultValue{{Value: expectedOut, FlowName: hCtx.currentFlow}}, result[0].Results)
+	assert.NoError(t, result[0].Error)
 }
 
 func TestFluentApi_CanCreateBatchHandler(t *testing.T) {
 	// Arrange
-	in := []any{1, 2, 3}
+	in := buildHandlerMessages([]int{1, 2, 3})
 	expectedOut := []string{"1", "2", "3"}
 	n := uuid.New().String()
-	f := func(_ context.Context, i []int) (*ValueBatchHandleResult[int, string], error) {
-		results := make([]string, 0)
+	f := func(_ context.Context, c HandlerContext[int, string], i []*Message[int]) []*HandlerResult[string] {
+		results := make([]*HandlerResult[string], 0)
 		for _, v := range i {
-			results = append(results, strconv.Itoa(v))
+			results = append(results, c.Success(v, strconv.Itoa(v.Value())))
 		}
 
-		return NewValueBatchHandleResult[int](results, nil), nil
+		return results
 	}
 	h := Handler[int, string](n).
 		WithBatching(3, time.Second).
@@ -57,17 +55,15 @@ func TestFluentApi_CanCreateBatchHandler(t *testing.T) {
 	built := h.build()
 
 	// Act
-	result, err := built.Handle(t.Context(), in)
+	result := built.handle(t.Context(), hCtx, in)
 
 	// Assert
 	assert.Equal(t, n, h.n)
-	assert.NoError(t, err)
-	assert.Len(t, result, 1)
-	assert.Len(t, result[0], 3)
+	assert.Len(t, result, 3)
 	for i := range in {
-		assert.Equal(t, expectedOut[i], result[0][i].output)
-		assert.Equal(t, true, result[0][i].ok)
-		assert.NoError(t, result[0][i].err)
+		assert.Equal(t, in[i].id, result[i].Id)
+		assert.Equal(t, []ResultValue{{Value: expectedOut[i], FlowName: hCtx.currentFlow}}, result[i].Results)
+		assert.NoError(t, result[i].Error)
 	}
 }
 
@@ -143,13 +139,13 @@ func TestFluentApi_CanCreateApp_WithBatchedFlow(t *testing.T) {
 		WithHandler(
 			EndHandler[string](hName2).
 				WithBatching(3, time.Second).
-				WithHandleFunc(func(c context.Context, in []string) (*BatchHandleResult[string], error) {
+				WithHandleFunc(func(_ context.Context, c EndHandlerContext[string], in []*Message[string]) []*EndHandlerResult {
 					for i := range in {
-						actualOut[i] = reverse(in[i])
+						actualOut[i] = reverse(in[i].Value())
 					}
 					finishedChan <- struct{}{}
 
-					return NewBatchHandleResult[string](nil), nil
+					return nil
 				}),
 		)
 	a := App(aName).
@@ -195,11 +191,11 @@ func TestFluentApi_CanCreateApp_WithSimpleFlow(t *testing.T) {
 				).
 				WithHandler(
 					EndHandler[string](hName2).
-						WithHandleFunc(func(c context.Context, i string) error {
+						WithHandleFunc(func(_ context.Context, c EndHandlerContext[string], i *Message[string]) *EndHandlerResult {
 							mu.Lock()
 							defer mu.Unlock()
 
-							actualOut = reverse(i)
+							actualOut = reverse(i.Value())
 							cond.Signal()
 
 							return nil
@@ -249,17 +245,17 @@ func TestFluentApi_CanCreateApp_WhichRetriesFailures(t *testing.T) {
 					EndHandler[string](hName2).
 						WithMaxAttempts(2).
 						WithRetryPeriod(time.Microsecond).
-						WithHandleFunc(func(c context.Context, i string) error {
+						WithHandleFunc(func(_ context.Context, c EndHandlerContext[string], i *Message[string]) *EndHandlerResult {
 							mu.Lock()
 							defer mu.Unlock()
 
 							if attemptNo == 0 {
 								attemptNo++
-								return errors.New("uh oh")
+								return c.Error(i, errors.New("uh oh"))
 							}
 							attemptNo++
 
-							actualOut = reverse(i)
+							actualOut = reverse(i.Value())
 							cond.Signal()
 
 							return nil
@@ -299,11 +295,11 @@ func TestFluentApi_CanCreateApp_WhichTriggersErrorFlow(t *testing.T) {
 		).
 		WithHandler(
 			EndHandler[string]("reverse").
-				WithHandleFunc(func(c context.Context, i string) error {
+				WithHandleFunc(func(_ context.Context, c EndHandlerContext[string], i *Message[string]) *EndHandlerResult {
 					mu.Lock()
 					defer mu.Unlock()
 
-					actualOut = reverse(i)
+					actualOut = reverse(i.Value())
 					cond.Signal()
 					return nil
 				}),
@@ -317,8 +313,8 @@ func TestFluentApi_CanCreateApp_WhichTriggersErrorFlow(t *testing.T) {
 						WithMaxAttempts(1).
 						WithRetryPeriod(time.Microsecond).
 						WithErrorFlow(errFlow).
-						WithHandleFunc(func(_ context.Context, i int) error {
-							return errors.New("uh oh")
+						WithHandleFunc(func(_ context.Context, c EndHandlerContext[int], i *Message[int]) *EndHandlerResult {
+							return c.Error(i, errors.New("uh oh"))
 						}),
 				),
 		).
@@ -356,8 +352,8 @@ func TestFluentApi_CanCreateApp_WithFlowThatTriggersOtherFlow(t *testing.T) {
 	endFlow := Flow[string]("reverseFlow").
 		WithHandler(
 			EndHandler[string]("reverseHandler").
-				WithHandleFunc(func(_ context.Context, i string) error {
-					outputChan <- reverse(i)
+				WithHandleFunc(func(_ context.Context, c EndHandlerContext[string], i *Message[string]) *EndHandlerResult {
+					outputChan <- reverse(i.Value())
 					return nil
 				}),
 		)
@@ -400,7 +396,7 @@ func TestFluentApi_CanCreateApp_WithHandlersGroupedIntoComponents(t *testing.T) 
 		).
 		WithHandler(
 			EndHandler[string]("handler2").
-				WithHandleFunc(func(_ context.Context, i string) error {
+				WithHandleFunc(func(_ context.Context, c EndHandlerContext[string], i *Message[string]) *EndHandlerResult {
 					f1Started <- struct{}{}
 					<-f1Wait
 					handler2Finish = time.Now()
@@ -415,7 +411,7 @@ func TestFluentApi_CanCreateApp_WithHandlersGroupedIntoComponents(t *testing.T) 
 		).
 		WithHandler(
 			EndHandler[string]("handler4").
-				WithHandleFunc(func(_ context.Context, i string) error {
+				WithHandleFunc(func(_ context.Context, c EndHandlerContext[string], i *Message[string]) *EndHandlerResult {
 					handler4Finish = time.Now()
 					f2Finish <- struct{}{}
 					return nil
@@ -465,7 +461,7 @@ func TestFluentApi_Panics_IfComponentReferencesNonExistentHandler(t *testing.T) 
 			Flow[string]("myFlow").
 				WithHandler(
 					EndHandler[string]("myHandler").
-						WithHandleFunc(func(_ context.Context, i string) error {
+						WithHandleFunc(func(_ context.Context, c EndHandlerContext[string], i *Message[string]) *EndHandlerResult {
 							return nil
 						}),
 				),
@@ -493,7 +489,7 @@ func TestFluentApi_ReturnsErrorIfFlowDoesntExist(t *testing.T) {
 			Flow[string](fName).
 				WithHandler(
 					EndHandler[string](hName).
-						WithHandleFunc(func(c context.Context, i string) error {
+						WithHandleFunc(func(_ context.Context, c EndHandlerContext[string], i *Message[string]) *EndHandlerResult {
 							return nil
 						}),
 				),
@@ -518,7 +514,7 @@ func TestFluentApi_ReturnsErrorIfFlowHasDifferentTriggerType(t *testing.T) {
 			Flow[string](fName).
 				WithHandler(
 					EndHandler[string](hName).
-						WithHandleFunc(func(c context.Context, i string) error {
+						WithHandleFunc(func(_ context.Context, c EndHandlerContext[string], i *Message[string]) *EndHandlerResult {
 							return nil
 						}),
 				),
@@ -532,17 +528,17 @@ func TestFluentApi_ReturnsErrorIfFlowHasDifferentTriggerType(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func itoa(_ context.Context, i int) (*ValueHandleResult[string], error) {
-	return NewValueHandleResult(strconv.Itoa(i), true), nil
+func itoa(_ context.Context, c HandlerContext[int, string], i *Message[int]) *HandlerResult[string] {
+	return c.Success(i, strconv.Itoa(i.Value()))
 }
 
-func batchItoa(_ context.Context, i []int) (*ValueBatchHandleResult[int, string], error) {
-	results := make([]string, 0)
+func batchItoa(_ context.Context, c HandlerContext[int, string], i []*Message[int]) []*HandlerResult[string] {
+	results := make([]*HandlerResult[string], 0)
 	for _, v := range i {
-		results = append(results, strconv.Itoa(v))
+		results = append(results, c.Success(v, strconv.Itoa(v.Value())))
 	}
 
-	return NewValueBatchHandleResult[int](results, nil), nil
+	return results
 }
 
 func reverse(i string) string {
@@ -553,8 +549,8 @@ func reverse(i string) string {
 	return string(r)
 }
 
-func nullHandler[Tin any](name string) func(context.Context, Tin) error {
-	return func(_ context.Context, _ Tin) error {
+func nullHandler[Tin any](name string) EndHandleFunc[Tin] {
+	return func(_ context.Context, c EndHandlerContext[Tin], i *Message[Tin]) *EndHandlerResult {
 		return nil
 	}
 }

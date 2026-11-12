@@ -102,7 +102,7 @@ func TestComponents_CanHaveNoOutput(t *testing.T) {
 		defer mu.Unlock()
 
 		cond.Signal()
-		return &EndHandlerResult{Id: i.id}
+		return nil
 	})
 
 	// Act
