@@ -3,6 +3,7 @@ package flow
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"math"
 	"reflect"
 	"strconv"
@@ -11,6 +12,13 @@ import (
 
 	"github.com/stretchr/testify/assert"
 )
+
+var hCtx = handlerContext{
+	Logger: slog.Default(),
+
+	currentFlow: "",
+	nextFlows:   []string{""},
+}
 
 func TestHandle_PassesValuesCorrectly_ForMinNumericalValues(t *testing.T) {
 	testNumericalExtremes(t, minNumericalValues)
@@ -34,29 +42,39 @@ func TestHandle_PassesValuesCorrectly_ForNonNumericalValues(t *testing.T) {
 	testValue[chan func(string) *testStruct, bool](t, v)
 }
 
+func buildHandlerMessages[T any](values []T) []*message {
+	msgs := make([]*message, len(values))
+	for i, v := range values {
+		msgs[i] = &message{
+			id:    uuid.New().String(),
+			value: v,
+		}
+	}
+	return msgs
+}
+
 func TestHandle_PassesMultipleValuesCorrectly(t *testing.T) {
 	// Arrange
-	in := []any{
-		1, 2, 3, 4, 5,
-	}
+	in := buildHandlerMessages([]int{1, 2, 3, 4, 5})
 	expectedOut := []string{
 		"1", "2", "3", "4", "5",
 	}
-	handleFunc := func(_ context.Context, i []int) (*ValueBatchHandleResult[int, string], error) {
-		out := make([]string, len(i))
+	handleFunc := func(_ context.Context, c HandlerContext[int, string], i []*Message[int]) []*HandlerResult[string] {
+		out := make([]*HandlerResult[string], len(i))
 		for i, v := range i {
-			out[i] = strconv.Itoa(v)
+			r := strconv.Itoa(v.Value())
+			out[i] = c.Success(v, r)
 		}
-		return NewValueBatchHandleResult[int, string](out, nil), nil
+		return out
 	}
-	handler := NewBatchHandler_1("myHandler", handleFunc)
+	handler := newBatchHandler("myHandler", handleFunc)
 
 	// Act
-	result, _ := handler.Handle(t.Context(), in)
+	result := handler.handle(t.Context(), hCtx, in)
 
 	// Assert
-	for i, v := range result[0] {
-		conv, ok := v.output.(string)
+	for i, v := range result {
+		conv, ok := v.Results[0].Value.(string)
 		assert.True(t, ok)
 		assert.Equal(t, expectedOut[i], conv)
 	}
@@ -64,491 +82,432 @@ func TestHandle_PassesMultipleValuesCorrectly(t *testing.T) {
 
 func TestHandle_ReturnsCorrectResponse_ForHandlerWithZeroOutputs_WithNoError(t *testing.T) {
 	// Arrange
-	in := []any{1}
-	handleFunc := func(_ context.Context, i int) error {
-		return nil
+	in := buildHandlerMessages([]int{1})
+	handleFunc := func(_ context.Context, c EndHandlerContext[int], i *Message[int]) *EndHandlerResult {
+		return &EndHandlerResult{Id: i.id}
 	}
-	handler := NewHandler_0("myHandler", handleFunc)
+	handler := newEndHandler("myHandler", handleFunc)
 
 	// Act
-	result, err := handler.Handle(t.Context(), in)
+	result := handler.handle(t.Context(), hCtx, in)
 
 	// Assert
-	assert.NoError(t, err)
-	assert.Equal(t, 1, len(result))
-	assert.Equal(t, 1, len(result[0]))
-	assert.Equal(t, false, result[0][0].ok)
-	assert.Equal(t, 1, result[0][0].input)
-	assert.Nil(t, result[0][0].output)
-	assert.Nil(t, result[0][0].err)
+	assert.Len(t, result, 1)
+	assert.NoError(t, result[0].Error)
+	assert.Len(t, result[0].Results, 0)
+	assert.Equal(t, in[0].id, result[0].Id)
 }
 
 func TestHandle_ReturnsCorrectResponse_ForHandlerWithZeroOutputs_WithError(t *testing.T) {
 	// Arrange
-	in := []any{1}
+	in := buildHandlerMessages([]int{1})
 	expectedErr := errors.New("test error")
-	handleFunc := func(_ context.Context, i int) error {
-		return expectedErr
+	handleFunc := func(_ context.Context, c EndHandlerContext[int], i *Message[int]) *EndHandlerResult {
+		return c.Error(i, expectedErr)
 	}
-	handler := NewHandler_0("myHandler", handleFunc)
+	handler := newEndHandler("myHandler", handleFunc)
 
 	// Act
-	result, err := handler.Handle(t.Context(), in)
+	result := handler.handle(t.Context(), hCtx, in)
 
 	// Assert
-	assert.Error(t, err)
-	assert.Equal(t, expectedErr, err)
-	assert.Equal(t, 1, len(result))
-	assert.Equal(t, 1, len(result[0]))
-	assert.Equal(t, expectedErr, result[0][0].err)
-	assert.Equal(t, in[0], result[0][0].input)
+	assert.Len(t, result, 1)
+	assert.Error(t, result[0].Error)
+	assert.Equal(t, expectedErr, result[0].Error)
+	assert.Len(t, result[0].Results, 0)
 }
 
 func TestHandle_ReturnsCorrectResponse_ForBatchHandlerWithZeroOutputs_WithNoErrors(t *testing.T) {
 	// Arrange
-	in := []any{1, 2, 3, 4, 5}
-	handleFunc := func(_ context.Context, i []int) (*BatchHandleResult[int], error) {
-		return NewBatchHandleResult[int](nil), nil
+	in := buildHandlerMessages([]int{1, 2, 3, 4, 5})
+	handleFunc := func(_ context.Context, c EndHandlerContext[int], i []*Message[int]) []*EndHandlerResult {
+		return nil
 	}
-	handler := NewBatchHandler_0("myHandler", handleFunc)
+	handler := newBatchEndHandler("myHandler", handleFunc)
 
 	// Act
-	result, err := handler.Handle(t.Context(), in)
+	result := handler.handle(t.Context(), hCtx, in)
 
 	// Assert
-	assert.NoError(t, err)
-	assert.Equal(t, 1, len(result))
-	assert.Equal(t, 0, len(result[0]))
+	assert.Len(t, result, 0)
 }
 
 func TestHandle_ReturnsCorrectResponse_ForBatchHandlerWithZeroOutputs_WithAllErrors(t *testing.T) {
 	// Arrange
-	in := []any{1, 2, 3, 4, 5}
+	in := buildHandlerMessages([]int{1, 2, 3, 4, 5})
 	expectedErr := errors.New("test error")
-	handleFunc := func(_ context.Context, i []int) (*BatchHandleResult[int], error) {
-		failures := make([]*BatchFailure[int], len(i))
+	handleFunc := func(_ context.Context, c EndHandlerContext[int], i []*Message[int]) []*EndHandlerResult {
+		failures := make([]*EndHandlerResult, len(i))
 		for i, v := range i {
-			failures[i] = NewBatchFailure(v, expectedErr)
+			failures[i] = c.Error(v, expectedErr)
 		}
-		return NewBatchHandleResult(failures), nil
+		return failures
 	}
-	handler := NewBatchHandler_0("myHandler", handleFunc)
+	handler := newBatchEndHandler("myHandler", handleFunc)
 
 	// Act
-	result, err := handler.Handle(t.Context(), in)
+	result := handler.handle(t.Context(), hCtx, in)
 
 	// Assert
-	assert.NoError(t, err)
-	assert.Equal(t, 1, len(result))
-	assert.Equal(t, 5, len(result[0]))
+	assert.Len(t, result, 5)
 
 	for i, v := range in {
-		assert.Equal(t, v, result[0][i].input)
-		assert.Equal(t, expectedErr, result[0][i].err)
+		assert.Equal(t, v.id, result[i].Id)
+		assert.Equal(t, expectedErr, result[i].Error)
+		assert.Empty(t, result[i].Results)
 	}
 }
 
 func TestHandle_ReturnsCorrectResponse_ForBatchHandlerWithZeroOutputs_WithPartialErrors(t *testing.T) {
 	// Arrange
-	in := []any{1, 2, 3, 4}
+	in := buildHandlerMessages([]int{1, 2, 3, 4})
 	expectedErr := errors.New("test error")
-	handleFunc := func(_ context.Context, i []int) (*BatchHandleResult[int], error) {
-		failures := make([]*BatchFailure[int], 0)
+	handleFunc := func(_ context.Context, c EndHandlerContext[int], i []*Message[int]) []*EndHandlerResult {
+		failures := make([]*EndHandlerResult, 0)
 		for _, v := range i {
-			if v <= 2 {
-				failures = append(failures, NewBatchFailure(v, expectedErr))
+			if v.Value() <= 2 {
+				failures = append(failures, c.Error(v, expectedErr))
 			}
 		}
-		return NewBatchHandleResult(failures), nil
+		return failures
 	}
-	handler := NewBatchHandler_0("myHandler", handleFunc)
+	handler := newBatchEndHandler("myHandler", handleFunc)
 
 	// Act
-	result, err := handler.Handle(t.Context(), in)
+	result := handler.handle(t.Context(), hCtx, in)
 
 	// Assert
-	assert.NoError(t, err)
-	assert.Equal(t, 1, len(result))
-	assert.Equal(t, 2, len(result[0]))
+	assert.Len(t, result, 2)
 
 	for i := range 2 {
-		assert.Equal(t, in[i], result[0][i].input)
-		assert.Equal(t, expectedErr, result[0][i].err)
+		assert.Equal(t, in[i].id, result[i].Id)
+		assert.Equal(t, expectedErr, result[i].Error)
+		assert.Empty(t, result[i].Results)
 	}
 }
 
 func TestHandle_ReturnsCorrectResponse_ForHandlerWithSingleOutput_WithNoError(t *testing.T) {
 	// Arrange
-	in := []any{1}
+	in := buildHandlerMessages([]int{1})
 	expectedOut := "1"
-	handleFunc := func(_ context.Context, i int) (*ValueHandleResult[string], error) {
-		return NewValueHandleResult(strconv.Itoa(i), true), nil
+	handleFunc := func(_ context.Context, c HandlerContext[int, string], i *Message[int]) *HandlerResult[string] {
+		return c.Success(i, strconv.Itoa(i.Value()))
 	}
-	handler := NewHandler_1("myHandler", handleFunc)
+	handler := newHandler("myHandler", handleFunc)
 
 	// Act
-	result, err := handler.Handle(t.Context(), in)
+	result := handler.handle(t.Context(), hCtx, in)
 
 	// Assert
-	assert.NoError(t, err)
-	assert.Equal(t, 1, len(result))
-	assert.Equal(t, 1, len(result[0]))
-	assert.Equal(t, true, result[0][0].ok)
-	assert.Equal(t, 1, result[0][0].input)
-	assert.Equal(t, expectedOut, result[0][0].output)
-	assert.Nil(t, result[0][0].err)
+	assert.Len(t, result, 1)
+	assert.Equal(t, in[0].id, result[0].Id)
+	assert.Equal(t, []ResultValue{{Value: expectedOut, FlowName: hCtx.currentFlow}}, result[0].Results)
+	assert.NoError(t, result[0].Error)
 }
 
 func TestHandle_ReturnsCorrectResponse_ForHandlerWithSingleOutput_WithError(t *testing.T) {
 	// Arrange
-	in := []any{1}
+	in := buildHandlerMessages([]int{1})
 	expectedErr := errors.New("test error")
-	handleFunc := func(_ context.Context, i int) (*ValueHandleResult[string], error) {
-		return nil, expectedErr
+	handleFunc := func(_ context.Context, c HandlerContext[int, string], i *Message[int]) *HandlerResult[string] {
+		return c.Error(i, expectedErr)
 	}
-	handler := NewHandler_1("myHandler", handleFunc)
+	handler := newHandler("myHandler", handleFunc)
 
 	// Act
-	result, err := handler.Handle(t.Context(), in)
+	result := handler.handle(t.Context(), hCtx, in)
 
 	// Assert
-	assert.Error(t, err)
-	assert.Equal(t, 1, len(result))
-	assert.Equal(t, 1, len(result[0]))
-	assert.Equal(t, in[0], result[0][0].input)
-	assert.Equal(t, expectedErr, result[0][0].err)
+	assert.Len(t, result, 1)
+	assert.Equal(t, in[0].id, result[0].Id)
+	assert.Equal(t, expectedErr, result[0].Error)
+	assert.Equal(t, []ResultValue{{Value: nil, FlowName: hCtx.currentFlow}}, result[0].Results)
 }
 
 func TestHandle_ReturnsCorrectResponse_ForBatchHandlerWithSingleOutput_WithNoErrors(t *testing.T) {
 	// Arrange
-	in := []any{1, 2, 3, 4, 5}
+	in := buildHandlerMessages([]int{1, 2, 3, 4, 5})
 	expectedOut := []string{"1", "2", "3", "4", "5"}
-	handleFunc := func(_ context.Context, i []int) (*ValueBatchHandleResult[int, string], error) {
-		result := make([]string, len(i))
+	handleFunc := func(_ context.Context, c HandlerContext[int, string], i []*Message[int]) []*HandlerResult[string] {
+		result := make([]*HandlerResult[string], len(i))
 		for i, v := range i {
-			result[i] = strconv.Itoa(v)
+			result[i] = c.Success(v, strconv.Itoa(v.Value()))
 		}
-		return NewValueBatchHandleResult[int](result, nil), nil
+		return result
 	}
-	handler := NewBatchHandler_1("myHandler", handleFunc)
+	handler := newBatchHandler("myHandler", handleFunc)
 
 	// Act
-	result, err := handler.Handle(t.Context(), in)
+	result := handler.handle(t.Context(), hCtx, in)
 
 	// Assert
-	assert.NoError(t, err)
-	assert.Equal(t, 1, len(result))
-	assert.Equal(t, 5, len(result[0]))
-	for i, v := range result[0] {
-		assert.Equal(t, expectedOut[i], v.output)
-		assert.Equal(t, true, v.ok)
-		assert.Nil(t, v.err)
-		assert.Nil(t, v.input)
+	assert.Len(t, result, 5)
+	for i, v := range result {
+		assert.Equal(t, in[i].id, v.Id)
+		assert.Equal(t, []ResultValue{{Value: expectedOut[i], FlowName: hCtx.currentFlow}}, v.Results)
+		assert.NoError(t, v.Error)
 	}
 }
 
 func TestHandle_ReturnsCorrectResponse_ForBatchHandlerWithSingleOutput_WithAllErrors(t *testing.T) {
 	// Arrange
-	in := []any{1, 2, 3, 4, 5}
+	in := buildHandlerMessages([]int{1, 2, 3, 4, 5})
 	expectedErr := errors.New("test error")
-	handleFunc := func(_ context.Context, i []int) (*ValueBatchHandleResult[int, string], error) {
-		failures := make([]*BatchFailure[int], len(i))
+	handleFunc := func(_ context.Context, c HandlerContext[int, string], i []*Message[int]) []*HandlerResult[string] {
+		failures := make([]*HandlerResult[string], len(i))
 		for i, v := range i {
-			failures[i] = NewBatchFailure(v, expectedErr)
+			failures[i] = c.Error(v, expectedErr)
 		}
-		return NewValueBatchHandleResult[int, string](nil, failures), nil
+		return failures
 	}
-	handler := NewBatchHandler_1("myHandler", handleFunc)
+	handler := newBatchHandler("myHandler", handleFunc)
 
 	// Act
-	result, err := handler.Handle(t.Context(), in)
+	result := handler.handle(t.Context(), hCtx, in)
 
 	// Assert
-	assert.NoError(t, err)
-	assert.Equal(t, 1, len(result))
-	assert.Equal(t, 5, len(result[0]))
-	for i, v := range result[0] {
-		assert.Equal(t, expectedErr, v.err)
-		assert.Equal(t, in[i], v.input)
+	assert.Len(t, result, 5)
+	for i, v := range result {
+		assert.Equal(t, expectedErr, v.Error)
+		assert.Equal(t, in[i].id, v.Id)
+		assert.Equal(t, []ResultValue{{Value: nil, FlowName: hCtx.currentFlow}}, v.Results)
 	}
 }
 
 func TestHandle_ReturnsCorrectResponse_ForBatchHandlerWithSingleOutput_WithPartialErrors(t *testing.T) {
 	// Arrange
-	in := []any{1, 2, 3, 4}
+	in := buildHandlerMessages([]int{1, 2, 3, 4})
 	expectedErr := errors.New("test error")
 	expectedOut := []string{"3", "4"}
-	handleFunc := func(_ context.Context, i []int) (*ValueBatchHandleResult[int, string], error) {
-		failures := make([]*BatchFailure[int], 0)
-		output := make([]string, 0)
-		for _, v := range i {
-			if v <= 2 {
-				failures = append(failures, NewBatchFailure(v, expectedErr))
+	handleFunc := func(_ context.Context, c HandlerContext[int, string], i []*Message[int]) []*HandlerResult[string] {
+		result := make([]*HandlerResult[string], len(i))
+		for i, v := range i {
+			if v.Value() <= 2 {
+				result[i] = c.Error(v, expectedErr)
 			} else {
-				output = append(output, strconv.Itoa(v))
+				result[i] = c.Success(v, strconv.Itoa(v.Value()))
 			}
 		}
-		return NewValueBatchHandleResult[int, string](output, failures), nil
+		return result
 	}
-	handler := NewBatchHandler_1("myHandler", handleFunc)
+	handler := newBatchHandler("myHandler", handleFunc)
 
 	// Act
-	result, err := handler.Handle(t.Context(), in)
+	result := handler.handle(t.Context(), hCtx, in)
 
 	// Assert
-	assert.NoError(t, err)
-	assert.Equal(t, 1, len(result))
-	assert.Equal(t, 4, len(result[0]))
-	// Successes are added first, errors are added second
+	assert.Len(t, result, 4)
 	for i := range 2 {
-		assert.Nil(t, result[0][i].err)
-		assert.Equal(t, true, result[0][i].ok)
-		assert.Equal(t, expectedOut[i], result[0][i].output)
+		assert.Equal(t, in[i].id, result[i].Id)
+		assert.Equal(t, expectedErr, result[i].Error)
+		assert.Equal(t, []ResultValue{{Value: nil, FlowName: hCtx.currentFlow}}, result[i].Results)
 	}
 	for i := range 2 {
-		assert.Equal(t, expectedErr, result[0][i+2].err)
-		assert.Equal(t, in[i], result[0][i+2].input)
+		assert.Equal(t, in[i+2].id, result[i+2].Id)
+		assert.NoError(t, result[i+2].Error)
+		assert.Equal(t, []ResultValue{{Value: expectedOut[i], FlowName: hCtx.currentFlow}}, result[i+2].Results)
 	}
 }
 
 func TestHandle_ReturnsCorrectResponse_ForHandlerWithMultipleOutputs_WithNoError(t *testing.T) {
 	// Arrange
-	in1 := []any{1}
-	in2 := []any{2}
+	in1 := buildHandlerMessages([]int{1})
+	in2 := buildHandlerMessages([]int{2})
 	expectedOut1 := 1
 	expectedOut2 := "2"
-	handleFunc := func(_ context.Context, i int) (*ValueHandleResult[int], *ValueHandleResult[string], error) {
-		if i == 1 {
-			return NewValueHandleResult(i, true), NewValueHandleResult("", false), nil
+	handleFunc := func(_ context.Context, c SplitHandlerContext[int], i *Message[int]) *SplitHandlerResult {
+		if i.Value() == 1 {
+			return c.Success(i, i.Value(), "integers")
 		} else {
-			return NewValueHandleResult(0, false), NewValueHandleResult(strconv.Itoa(i), true), nil
+			return c.Success(i, strconv.Itoa(i.Value()), "strings")
 		}
 	}
-	handler := NewHandler_2("myHandler", handleFunc)
+	handler := newSplitHandler[int, any]("myHandler", handleFunc)
 
 	// Act
-	result1, err1 := handler.Handle(t.Context(), in1)
-	result2, err2 := handler.Handle(t.Context(), in2)
+	result1 := handler.handle(t.Context(), hCtx, in1)
+	result2 := handler.handle(t.Context(), hCtx, in2)
 
 	// Assert
-	assert.NoError(t, err1)
-	assert.Equal(t, 2, len(result1))
-	assert.Equal(t, 1, len(result1[0]))
-	assert.Equal(t, 1, len(result1[1]))
-	assert.Equal(t, true, result1[0][0].ok)
-	assert.Equal(t, false, result1[1][0].ok)
-	assert.Equal(t, in1[0], result1[0][0].input)
-	assert.Equal(t, in1[0], result1[1][0].input)
-	assert.Equal(t, expectedOut1, result1[0][0].output)
-	assert.Nil(t, result1[0][0].err)
-	assert.Nil(t, result1[1][0].err)
+	assert.Len(t, result1, 1)
+	assert.Equal(t, in1[0].id, result1[0].Id)
+	assert.NoError(t, result1[0].Error)
+	assert.Equal(t, []ResultValue{{Value: expectedOut1, FlowName: "integers"}}, result1[0].Results)
 
-	assert.NoError(t, err2)
-	assert.Equal(t, 2, len(result2))
-	assert.Equal(t, 1, len(result2[0]))
-	assert.Equal(t, 1, len(result2[1]))
-	assert.Equal(t, false, result2[0][0].ok)
-	assert.Equal(t, true, result2[1][0].ok)
-	assert.Equal(t, in2[0], result2[0][0].input)
-	assert.Equal(t, in2[0], result2[1][0].input)
-	assert.Equal(t, expectedOut2, result2[1][0].output)
-	assert.Nil(t, result2[0][0].err)
-	assert.Nil(t, result2[1][0].err)
+	assert.Len(t, result2, 1)
+	assert.Equal(t, in2[0].id, result2[0].Id)
+	assert.NoError(t, result2[0].Error)
+	assert.Equal(t, []ResultValue{{Value: expectedOut2, FlowName: "strings"}}, result2[0].Results)
 }
 
 func TestHandle_ReturnsCorrectResponse_ForHandlerWithMultipleOutputs_WithError(t *testing.T) {
 	// Arrange
-	in1 := []any{1}
-	in2 := []any{2}
+	in1 := buildHandlerMessages([]int{1})
+	in2 := buildHandlerMessages([]int{2})
 	expectedErr1 := errors.New("test error 1")
 	expectedErr2 := errors.New("test error 2")
-	handleFunc := func(_ context.Context, i int) (*ValueHandleResult[int], *ValueHandleResult[string], error) {
-		if i == 1 {
-			return nil, nil, expectedErr1
+	handleFunc := func(_ context.Context, c SplitHandlerContext[int], i *Message[int]) *SplitHandlerResult {
+		if i.Value() == 1 {
+			return c.Error(i, expectedErr1)
 		} else {
-			return nil, nil, expectedErr2
+			return c.Error(i, expectedErr2)
 		}
 	}
-	handler := NewHandler_2("myHandler", handleFunc)
+	handler := newSplitHandler[int, any]("myHandler", handleFunc)
 
 	// Act
-	result1, err1 := handler.Handle(t.Context(), in1)
-	result2, err2 := handler.Handle(t.Context(), in2)
+	result1 := handler.handle(t.Context(), hCtx, in1)
+	result2 := handler.handle(t.Context(), hCtx, in2)
 
 	// Assert
-	assert.Error(t, err1)
-	assert.Equal(t, 2, len(result1))
-	assert.Equal(t, 1, len(result1[0]))
-	assert.Equal(t, expectedErr1, result1[0][0].err)
-	assert.Equal(t, expectedErr1, result1[1][0].err)
-	assert.Equal(t, in1[0], result1[0][0].input)
-	assert.Equal(t, in1[0], result1[1][0].input)
+	assert.Len(t, result1, 1)
+	assert.Equal(t, expectedErr1, result1[0].Error)
+	assert.Equal(t, in1[0].id, result1[0].Id)
+	assert.Empty(t, result1[0].Results)
 
-	assert.Error(t, err2)
-	assert.Equal(t, 2, len(result2))
-	assert.Equal(t, 1, len(result2[0]))
-	assert.Equal(t, expectedErr2, result2[0][0].err)
-	assert.Equal(t, expectedErr2, result2[1][0].err)
-	assert.Equal(t, in2[0], result2[0][0].input)
-	assert.Equal(t, in2[0], result2[1][0].input)
+	assert.Len(t, result2, 1)
+	assert.Equal(t, expectedErr2, result2[0].Error)
+	assert.Equal(t, in2[0].id, result2[0].Id)
+	assert.Empty(t, result2[0].Results)
 }
 
 func TestHandle_ReturnsCorrectResponse_ForBatchHandlerWithMultipleOutputs_WithNoError(t *testing.T) {
 	// Arrange
-	in1 := []any{1, 2, 3, 4, 5}
-	in2 := []any{6, 7, 8, 9, 10}
+	in1 := buildHandlerMessages([]int{1, 2, 3, 4, 5})
+	in2 := buildHandlerMessages([]int{6, 7, 8, 9, 10})
 	expectedOut1 := []int{1, 2, 3, 4, 5}
 	expectedOut2 := []string{"6", "7", "8", "9", "10"}
-	handleFunc := func(_ context.Context, i []int) (*ValueBatchHandleResult[int, int], *ValueBatchHandleResult[int, string], error) {
-		result1 := make([]int, 0, len(i))
-		result2 := make([]string, 0, len(i))
-		for _, v := range i {
-			if v <= 5 {
-				result1 = append(result1, v)
+	handleFunc := func(_ context.Context, c SplitHandlerContext[int], i []*Message[int]) []*SplitHandlerResult {
+		result := make([]*SplitHandlerResult, len(i))
+		for i, v := range i {
+			if v.Value() <= 5 {
+				result[i] = c.Success(v, v.Value(), "integers")
 			} else {
-				result2 = append(result2, strconv.Itoa(v))
+				result[i] = c.Success(v, strconv.Itoa(v.Value()), "strings")
 			}
 		}
 
-		return NewValueBatchHandleResult[int](result1, nil), NewValueBatchHandleResult[int](result2, nil), nil
+		return result
 	}
-	handler := NewBatchHandler_2("myHandler", handleFunc)
+	handler := newBatchSplitHandler("myHandler", handleFunc)
 
 	// Act
-	result1, err1 := handler.Handle(t.Context(), in1)
-	result2, err2 := handler.Handle(t.Context(), in2)
+	result1 := handler.handle(t.Context(), hCtx, in1)
+	result2 := handler.handle(t.Context(), hCtx, in2)
 
 	// Assert
-	assert.NoError(t, err1)
-	assert.Equal(t, 2, len(result1))
-	assert.Equal(t, 5, len(result1[0]))
-	assert.Equal(t, 0, len(result1[1]))
+	assert.Len(t, result1, 5)
 	for i := range in1 {
-		assert.Equal(t, true, result1[0][i].ok)
-		assert.Equal(t, expectedOut1[i], result1[0][i].output)
-		assert.Nil(t, result1[0][i].err)
+		assert.Equal(t, in1[i].id, result1[i].Id)
+		assert.Equal(t, []ResultValue{{Value: expectedOut1[i], FlowName: "integers"}}, result1[i].Results)
+		assert.NoError(t, result1[i].Error)
 	}
 
-	assert.NoError(t, err2)
-	assert.Equal(t, 2, len(result2))
-	assert.Equal(t, 0, len(result2[0]))
-	assert.Equal(t, 5, len(result2[1]))
+	assert.Len(t, result2, 5)
 	for i := range in2 {
-		assert.Equal(t, true, result2[1][i].ok)
-		assert.Equal(t, expectedOut2[i], result2[1][i].output)
-		assert.Nil(t, result2[1][i].err)
+		assert.Equal(t, in2[i].id, result2[i].Id)
+		assert.Equal(t, []ResultValue{{Value: expectedOut2[i], FlowName: "strings"}}, result2[i].Results)
+		assert.NoError(t, result2[i].Error)
 	}
 }
 
 func TestHandle_ReturnsCorrectResponse_ForBatchHandlerWithMultipleOutputs_WithAllErrors(t *testing.T) {
 	// Arrange
-	in1 := []any{1, 2, 3, 4, 5}
-	in2 := []any{6, 7, 8, 9, 10}
+	in1 := buildHandlerMessages([]int{1, 2, 3, 4, 5})
+	in2 := buildHandlerMessages([]int{6, 7, 8, 9, 10})
 	expectedErr1 := errors.New("test error 1")
 	expectedErr2 := errors.New("test error 2")
-	handleFunc := func(_ context.Context, i []int) (*ValueBatchHandleResult[int, int], *ValueBatchHandleResult[int, string], error) {
-		failures1 := make([]*BatchFailure[int], 0)
-		failures2 := make([]*BatchFailure[int], 0)
-		for _, v := range i {
-			if v <= 5 {
-				failures1 = append(failures1, NewBatchFailure(v, expectedErr1))
+	handleFunc := func(_ context.Context, c SplitHandlerContext[int], i []*Message[int]) []*SplitHandlerResult {
+		result := make([]*SplitHandlerResult, len(i))
+		for i, v := range i {
+			if v.Value() <= 5 {
+				result[i] = c.Error(v, expectedErr1)
 			} else {
-				failures2 = append(failures2, NewBatchFailure(v, expectedErr2))
+				result[i] = c.Error(v, expectedErr2)
 			}
 		}
 
-		return NewValueBatchHandleResult[int, int](nil, failures1), NewValueBatchHandleResult[int, string](nil, failures2), nil
+		return result
 	}
-	handler := NewBatchHandler_2("myHandler", handleFunc)
+	handler := newBatchSplitHandler("myHandler", handleFunc)
 
 	// Act
-	result1, err1 := handler.Handle(t.Context(), in1)
-	result2, err2 := handler.Handle(t.Context(), in2)
+	result1 := handler.handle(t.Context(), hCtx, in1)
+	result2 := handler.handle(t.Context(), hCtx, in2)
 
 	// Assert
-	assert.NoError(t, err1)
-	assert.Equal(t, 2, len(result1))
-	assert.Equal(t, 5, len(result1[0]))
-	assert.Equal(t, 0, len(result1[1]))
+	assert.Len(t, result1, 5)
 	for i := range in1 {
-		assert.Equal(t, expectedErr1, result1[0][i].err)
-		assert.Equal(t, in1[i], result1[0][i].input)
+		assert.Equal(t, expectedErr1, result1[i].Error)
+		assert.Equal(t, in1[i].id, result1[i].Id)
+		assert.Empty(t, result1[i].Results)
 	}
 
-	assert.NoError(t, err2)
-	assert.Equal(t, 2, len(result2))
-	assert.Equal(t, 0, len(result2[0]))
-	assert.Equal(t, 5, len(result2[1]))
+	assert.Len(t, result2, 5)
 	for i := range in2 {
-		assert.Equal(t, expectedErr2, result2[1][i].err)
-		assert.Equal(t, in2[i], result2[1][i].input)
+		assert.Equal(t, expectedErr2, result2[i].Error)
+		assert.Equal(t, in2[i].id, result2[i].Id)
+		assert.Empty(t, result2[i].Results)
 	}
 }
 
 func TestHandle_ReturnsCorrectResponse_ForBatchHandlerWithMultipleOutputs_WithPartialErrors(t *testing.T) {
 	// Arrange
-	in1 := []any{1, 2, 3, 4}
-	in2 := []any{6, 7, 8, 9}
+	in1 := buildHandlerMessages([]int{1, 2, 3, 4})
+	in2 := buildHandlerMessages([]int{6, 7, 8, 9})
 	expectedErr1 := errors.New("test error 1")
 	expectedOut1 := []int{3, 4}
 	expectedErr2 := errors.New("test error 2")
 	expectedOut2 := []string{"8", "9"}
-	handleFunc := func(_ context.Context, i []int) (*ValueBatchHandleResult[int, int], *ValueBatchHandleResult[int, string], error) {
-		failures1 := make([]*BatchFailure[int], 0)
-		success1 := make([]int, 0)
-		failures2 := make([]*BatchFailure[int], 0)
-		success2 := make([]string, 0)
-		for _, v := range i {
-			if v <= 4 {
-				if v <= 2 {
-					failures1 = append(failures1, NewBatchFailure(v, expectedErr1))
+	handleFunc := func(_ context.Context, c SplitHandlerContext[int], i []*Message[int]) []*SplitHandlerResult {
+		result := make([]*SplitHandlerResult, len(i))
+		for i, v := range i {
+			if v.Value() <= 4 {
+				if v.Value() <= 2 {
+					result[i] = c.Error(v, expectedErr1)
 				} else {
-					success1 = append(success1, v)
+					result[i] = c.Success(v, v.Value(), "integers")
 				}
 			} else {
-				if v <= 7 {
-					failures2 = append(failures2, NewBatchFailure(v, expectedErr2))
+				if v.Value() <= 7 {
+					result[i] = c.Error(v, expectedErr2)
 				} else {
-					success2 = append(success2, strconv.Itoa(v))
+					result[i] = c.Success(v, strconv.Itoa(v.Value()), "strings")
 				}
 			}
 		}
 
-		return NewValueBatchHandleResult(success1, failures1), NewValueBatchHandleResult(success2, failures2), nil
+		return result
 	}
-	handler := NewBatchHandler_2("myHandler", handleFunc)
+	handler := newBatchSplitHandler("myHandler", handleFunc)
 
 	// Act
-	result1, err1 := handler.Handle(t.Context(), in1)
-	result2, err2 := handler.Handle(t.Context(), in2)
+	result1 := handler.handle(t.Context(), hCtx, in1)
+	result2 := handler.handle(t.Context(), hCtx, in2)
 
 	// Assert
-	assert.NoError(t, err1)
-	assert.Equal(t, 2, len(result1))
-	assert.Equal(t, 4, len(result1[0]))
-	assert.Equal(t, 0, len(result1[1]))
+	assert.Len(t, result1, 4)
 	for i := range 2 {
-		assert.Equal(t, true, result1[0][i].ok)
-		assert.Equal(t, expectedOut1[i], result1[0][i].output)
-		assert.Nil(t, result1[0][i].err)
+		assert.Equal(t, in1[i].id, result1[i].Id)
+		assert.Equal(t, expectedErr1, result1[i].Error)
+		assert.Empty(t, result1[i].Results)
 	}
 	for i := range 2 {
-		assert.Equal(t, in1[i], result1[0][i+2].input)
-		assert.Equal(t, expectedErr1, result1[0][i+2].err)
+		assert.Equal(t, in1[i+2].id, result1[i+2].Id)
+		assert.NoError(t, result1[i+2].Error)
+		assert.Equal(t, []ResultValue{{Value: expectedOut1[i], FlowName: "integers"}}, result1[i+2].Results)
 	}
 
-	assert.NoError(t, err2)
-	assert.Equal(t, 2, len(result2))
-	assert.Equal(t, 0, len(result2[0]))
-	assert.Equal(t, 4, len(result2[1]))
+	assert.Len(t, result2, 4)
 	for i := range 2 {
-		assert.Equal(t, true, result2[1][i].ok)
-		assert.Equal(t, expectedOut2[i], result2[1][i].output)
-		assert.Nil(t, result2[1][i].err)
+		assert.Equal(t, in2[i].id, result2[i].Id)
+		assert.Equal(t, expectedErr2, result2[i].Error)
+		assert.Empty(t, result2[i].Results)
 	}
 	for i := range 2 {
-		assert.Equal(t, in2[i], result2[1][i+2].input)
-		assert.Equal(t, expectedErr2, result2[1][i+2].err)
+		assert.Equal(t, in2[i+2].id, result2[i+2].Id)
+		assert.NoError(t, result2[i+2].Error)
+		assert.Equal(t, []ResultValue{{Value: expectedOut2[i], FlowName: "strings"}}, result2[i+2].Results)
 	}
 }
 
@@ -578,13 +537,19 @@ func testValue[Tin any, Tout any](t *testing.T, values map[reflect.Type]any) {
 		// Don't assert function equality - it can't be done
 		h.assertInputValue = false
 	}
-	handler := NewHandler_1[Tin, Tout]("myHandler", h.handleTestInput)
+	handler := newHandler("myHandler", h.handleTestInput)
+	in := buildHandlerMessages([]Tin{input})
 
 	// Act
-	output, _ := handler.Handle(t.Context(), []any{input})
+	output := handler.handle(t.Context(), hCtx, in)
 
 	// Assert
-	oConv, ok := output[0][0].output.(Tout)
+	assert.Len(t, output, 1)
+	assert.Equal(t, in[0].id, output[0].Id)
+	assert.NoError(t, output[0].Error)
+	assert.Len(t, output[0].Results, 1)
+	assert.Equal(t, hCtx.currentFlow, output[0].Results[0].FlowName)
+	oConv, ok := output[0].Results[0].Value.(Tout)
 	assert.True(t, ok)
 	if reflect.TypeFor[Tout]().Kind() != reflect.Func {
 		assert.True(t, reflect.DeepEqual(expectedOutput, oConv))
@@ -608,13 +573,13 @@ func newTestHandler[Tin any, Tout any](t *testing.T, values map[reflect.Type]any
 	}
 }
 
-func (h *testHandler[Tin, Tout]) handleTestInput(_ context.Context, in Tin) (*ValueHandleResult[Tout], error) {
-	assert.Equal(h.t, reflect.TypeOf(h.expectedInput), reflect.TypeOf(in))
+func (h *testHandler[Tin, Tout]) handleTestInput(_ context.Context, c HandlerContext[Tin, Tout], in *Message[Tin]) *HandlerResult[Tout] {
+	assert.Equal(h.t, reflect.TypeOf(h.expectedInput), reflect.TypeOf(in.Value()))
 	if h.assertInputValue {
-		assert.Equal(h.t, h.expectedInput, in)
+		assert.Equal(h.t, h.expectedInput, in.Value())
 	}
 
-	return NewValueHandleResult(h.values[reflect.TypeFor[Tout]()].(Tout), true), nil
+	return c.Success(in, h.values[reflect.TypeFor[Tout]()].(Tout))
 }
 
 // ------------------------------------------------------------------------------------------------------------------ //

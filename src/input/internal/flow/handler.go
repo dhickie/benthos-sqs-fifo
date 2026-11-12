@@ -25,7 +25,7 @@ type BatchHandleFunc[Tin, Tout any] func(context.Context, HandlerContext[Tin, To
 type SplitHandleFunc[Tin any] func(context.Context, SplitHandlerContext[Tin], *Message[Tin]) *SplitHandlerResult
 type BatchSplitHandleFunc[Tin any] func(context.Context, SplitHandlerContext[Tin], []*Message[Tin]) []*SplitHandlerResult
 
-func newEndHandler[Tin any](name string, f EndHandleFunc[Tin]) *handler {
+func newEndHandler[Tin any](name string, f func(context.Context, EndHandlerContext[Tin], *Message[Tin]) *EndHandlerResult) *handler {
 	return &handler{
 		id:   uuid.New().String(),
 		name: name,
@@ -38,7 +38,7 @@ func newEndHandler[Tin any](name string, f EndHandleFunc[Tin]) *handler {
 	}
 }
 
-func newBatchEndHandler[Tin any](name string, f BatchEndHandleFunc[Tin]) *handler {
+func newBatchEndHandler[Tin any](name string, f func(context.Context, EndHandlerContext[Tin], []*Message[Tin]) []*EndHandlerResult) *handler {
 	return &handler{
 		id:   uuid.New().String(),
 		name: name,
@@ -57,7 +57,7 @@ func newBatchEndHandler[Tin any](name string, f BatchEndHandleFunc[Tin]) *handle
 	}
 }
 
-func newHandler[Tin, Tout any](name string, f HandleFunc[Tin, Tout]) *handler {
+func newHandler[Tin, Tout any](name string, f func(context.Context, HandlerContext[Tin, Tout], *Message[Tin]) *HandlerResult[Tout]) *handler {
 	return &handler{
 		id:   uuid.New().String(),
 		name: name,
@@ -70,7 +70,7 @@ func newHandler[Tin, Tout any](name string, f HandleFunc[Tin, Tout]) *handler {
 	}
 }
 
-func newBatchHandler[Tin, Tout any](name string, f BatchHandleFunc[Tin, Tout]) *handler {
+func newBatchHandler[Tin, Tout any](name string, f func(context.Context, HandlerContext[Tin, Tout], []*Message[Tin]) []*HandlerResult[Tout]) *handler {
 	return &handler{
 		id:   uuid.New().String(),
 		name: name,
@@ -89,7 +89,7 @@ func newBatchHandler[Tin, Tout any](name string, f BatchHandleFunc[Tin, Tout]) *
 	}
 }
 
-func newSplitHandler[Tin, Tout any](name string, f SplitHandleFunc[Tin]) *handler {
+func newSplitHandler[Tin, Tout any](name string, f func(context.Context, SplitHandlerContext[Tin], *Message[Tin]) *SplitHandlerResult) *handler {
 	return &handler{
 		id:   uuid.New().String(),
 		name: name,
@@ -102,7 +102,7 @@ func newSplitHandler[Tin, Tout any](name string, f SplitHandleFunc[Tin]) *handle
 	}
 }
 
-func newBatchSplitHandler[Tin any](name string, f BatchSplitHandleFunc[Tin]) *handler {
+func newBatchSplitHandler[Tin any](name string, f func(context.Context, SplitHandlerContext[Tin], []*Message[Tin]) []*SplitHandlerResult) *handler {
 	return &handler{
 		id:   uuid.New().String(),
 		name: name,

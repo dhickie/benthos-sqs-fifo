@@ -284,7 +284,7 @@ func (h *HandlerBuilder[Tin, Tout]) WithErrorFlow(errFlow *FlowBuilder[Tin, NilT
 	return h
 }
 
-func (h *HandlerBuilder[Tin, Tout]) WithHandleFunc(f HandleFunc[Tin, Tout]) *CompletedHandlerBuilder[Tin, Tout] {
+func (h *HandlerBuilder[Tin, Tout]) WithHandleFunc(f func(context.Context, HandlerContext[Tin, Tout], *Message[Tin]) *HandlerResult[Tout]) *CompletedHandlerBuilder[Tin, Tout] {
 	return &CompletedHandlerBuilder[Tin, Tout]{
 		n:           h.n,
 		bp:          nil,
@@ -330,7 +330,7 @@ func (h *BatchHandlerBuilder[Tin, Tout]) WithErrorFlow(errFlow *FlowBuilder[Tin,
 	return h
 }
 
-func (h *BatchHandlerBuilder[Tin, Tout]) WithHandleFunc(f BatchHandleFunc[Tin, Tout]) *CompletedHandlerBuilder[Tin, Tout] {
+func (h *BatchHandlerBuilder[Tin, Tout]) WithHandleFunc(f func(context.Context, HandlerContext[Tin, Tout], []*Message[Tin]) []*HandlerResult[Tout]) *CompletedHandlerBuilder[Tin, Tout] {
 	return &CompletedHandlerBuilder[Tin, Tout]{
 		n:           h.n,
 		bp:          NewBatchPolicy(h.bs, h.bp),
@@ -385,7 +385,7 @@ func (h *EndHandlerBuilder[Tin]) WithErrorFlow(errFlow *FlowBuilder[Tin, NilType
 	return h
 }
 
-func (h *EndHandlerBuilder[Tin]) WithHandleFunc(f EndHandleFunc[Tin]) *CompletedHandlerBuilder[Tin, NilType] {
+func (h *EndHandlerBuilder[Tin]) WithHandleFunc(f func(context.Context, EndHandlerContext[Tin], *Message[Tin]) *EndHandlerResult) *CompletedHandlerBuilder[Tin, NilType] {
 	return &CompletedHandlerBuilder[Tin, NilType]{
 		n:           h.n,
 		bp:          nil,
@@ -431,7 +431,7 @@ func (h *BatchEndHandlerBuilder[Tin]) WithErrorFlow(errFlow *FlowBuilder[Tin, Ni
 	return h
 }
 
-func (h *BatchEndHandlerBuilder[Tin]) WithHandleFunc(f BatchEndHandleFunc[Tin]) *CompletedHandlerBuilder[Tin, NilType] {
+func (h *BatchEndHandlerBuilder[Tin]) WithHandleFunc(f func(context.Context, EndHandlerContext[Tin], []*Message[Tin]) []*EndHandlerResult) *CompletedHandlerBuilder[Tin, NilType] {
 	return &CompletedHandlerBuilder[Tin, NilType]{
 		n:           h.n,
 		bp:          NewBatchPolicy(h.bs, h.bp),
