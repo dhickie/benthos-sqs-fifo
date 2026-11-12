@@ -28,8 +28,8 @@ func TestComponent_CanReceiveAndCarryOutWork(t *testing.T) {
 	result, _ := outP.Receive(t.Context())
 
 	// Assert
-	for i, v := range result {
-		vStr, ok := v.(string)
+	for i, v := range result.msgs {
+		vStr, ok := v.value.(string)
 		if !ok {
 			t.Fatal("Result type was not a string")
 		}
@@ -49,8 +49,8 @@ func TestComponents_CanBeChainedTogether(t *testing.T) {
 	result, _ := outP.Receive(t.Context())
 
 	// Assert
-	for i, v := range result {
-		vStr, ok := v.(string)
+	for i, v := range result.msgs {
+		vStr, ok := v.value.(string)
 		if !ok {
 			t.Fatal("Result type was not a string")
 		}
@@ -74,16 +74,16 @@ func TestComponents_CanContainMultipleHandlers(t *testing.T) {
 	result2, _ := outPipes[1].Receive(t.Context())
 
 	// Assert
-	for i, v := range result1 {
-		vStr, ok := v.(string)
+	for i, v := range result1.msgs {
+		vStr, ok := v.value.(string)
 		if !ok {
 			t.Fatal("Result type was not a string")
 		}
 
 		assert.Equal(t, expOut1[i], vStr)
 	}
-	for i, v := range result2 {
-		vStr, ok := v.(string)
+	for i, v := range result2.msgs {
+		vStr, ok := v.value.(string)
 		if !ok {
 			t.Fatal("Result type was not a string")
 		}
@@ -97,12 +97,12 @@ func TestComponents_CanHaveNoOutput(t *testing.T) {
 	in := 1
 	mu := &sync.Mutex{}
 	cond := sync.NewCond(mu)
-	c, inP := createZeroOutputComponent(t.Context(), func(ctx context.Context, i int) error {
+	c, inP := createZeroOutputComponent(t.Context(), func(ctx context.Context, c EndHandlerContext[int], i *Message[int]) *EndHandlerResult {
 		mu.Lock()
 		defer mu.Unlock()
 
 		cond.Signal()
-		return nil
+		return &EndHandlerResult{Id: i.id}
 	})
 
 	// Act
@@ -120,15 +120,15 @@ func TestComponent_CanHaveOptionalOutputs(t *testing.T) {
 	// Arrange
 	in := []int{1, 2}
 	expectedOut := "2"
-	_, inP, outP := createComponent(t.Context(), func(_ context.Context, in []int) (*ValueBatchHandleResult[int, string], error) {
-		results := make([]string, 0)
+	_, inP, outP := createComponent(t.Context(), func(_ context.Context, c HandlerContext[int, string], in []*Message[int]) []*HandlerResult[string] {
+		results := make([]*HandlerResult[string], 0)
 		for _, v := range in {
-			if v == 2 {
-				results = append(results, strconv.Itoa(v))
+			if v.Value() == 2 {
+				results = append(results, c.Success(v, strconv.Itoa(v.Value())))
 			}
 		}
 
-		return NewValueBatchHandleResult[int](results, nil), nil
+		return results
 	})
 	defer close(inP.SendChan())
 
@@ -138,8 +138,8 @@ func TestComponent_CanHaveOptionalOutputs(t *testing.T) {
 
 	// Assert
 	assert.NoError(t, err)
-	assert.Len(t, out, 1)
-	assert.Equal(t, expectedOut, out[0])
+	assert.Len(t, out.msgs, 1)
+	assert.Equal(t, expectedOut, out.msgs[0].value)
 }
 
 func TestComponent_CanHaveMultipleOutputs(t *testing.T) {
@@ -147,18 +147,17 @@ func TestComponent_CanHaveMultipleOutputs(t *testing.T) {
 	in := []int{1, 2}
 	expectedOut1 := "1"
 	expectedOut2 := "2"
-	f := func(_ context.Context, in []int) (*ValueBatchHandleResult[int, string], *ValueBatchHandleResult[int, string], error) {
-		out1 := make([]string, 0)
-		out2 := make([]string, 0)
-		for _, v := range in {
-			if v == 1 {
-				out1 = append(out1, strconv.Itoa(v))
+	f := func(_ context.Context, c SplitHandlerContext[int], in []*Message[int]) []*SplitHandlerResult {
+		out := make([]*SplitHandlerResult, len(in))
+		for i, v := range in {
+			if v.Value() == 1 {
+				out[i] = c.Success(v, strconv.Itoa(v.Value()), "first")
 			} else {
-				out2 = append(out2, strconv.Itoa(v))
+				out[i] = c.Success(v, strconv.Itoa(v.Value()), "second")
 			}
 		}
 
-		return NewValueBatchHandleResult[int](out1, nil), NewValueBatchHandleResult[int](out2, nil), nil
+		return out
 	}
 	_, inP, outP1, outP2 := createMultiOutputComponent(t.Context(), f)
 	defer close(inP.SendChan())
@@ -171,10 +170,10 @@ func TestComponent_CanHaveMultipleOutputs(t *testing.T) {
 	// Assert
 	assert.NoError(t, err1)
 	assert.NoError(t, err2)
-	assert.Len(t, out1, 1)
-	assert.Len(t, out2, 1)
-	assert.Equal(t, expectedOut1, out1[0])
-	assert.Equal(t, expectedOut2, out2[0])
+	assert.Len(t, out1.msgs, 1)
+	assert.Len(t, out2.msgs, 1)
+	assert.Equal(t, expectedOut1, out1.msgs[0].value)
+	assert.Equal(t, expectedOut2, out2.msgs[0].value)
 }
 
 func TestComponent_Stops_AndClosesOutputPipe_WhenInputPipeHasClosed(t *testing.T) {
@@ -221,8 +220,8 @@ func TestComponent_WaitsToStop_UntilAllInputPipesAreClosed(t *testing.T) {
 	close(inP[1].SendChan())
 
 	// Assert
-	for i, v := range result {
-		vStr, ok := v.(string)
+	for i, v := range result.msgs {
+		vStr, ok := v.value.(string)
 		if !ok {
 			t.Fatal("Result type was not a string")
 		}
@@ -260,8 +259,8 @@ func TestComponent_WaitsForWorkToFinish_BeforeStopping(t *testing.T) {
 func TestComponent_SendsToErrorPipe_AfterFailure(t *testing.T) {
 	// Arrange
 	input := []int{123}
-	f := func(_ context.Context, i []int) (*ValueBatchHandleResult[int, string], error) {
-		return nil, errors.New("test error")
+	f := func(_ context.Context, c HandlerContext[int, string], i []*Message[int]) []*HandlerResult[string] {
+		return []*HandlerResult[string]{c.Error(i[0], errors.New("test error"))}
 	}
 	_, inP, _, errorP := createErrorComponent(t.Context(), f, 1, 1)
 	defer close(inP.SendChan())
@@ -272,8 +271,8 @@ func TestComponent_SendsToErrorPipe_AfterFailure(t *testing.T) {
 
 	// Assert
 	assert.NoError(t, err)
-	assert.Len(t, result, 1)
-	assert.Equal(t, input[0], result[0].(int))
+	assert.Len(t, result.msgs, 1)
+	assert.Equal(t, input[0], result.msgs[0].value)
 }
 
 func TestComponent_RetriesHandler_UpToMaxAttempts(t *testing.T) {
@@ -281,9 +280,9 @@ func TestComponent_RetriesHandler_UpToMaxAttempts(t *testing.T) {
 	input := []int{123}
 	attempts := 0
 	maxAttempts := 2
-	f := func(_ context.Context, i []int) (*ValueBatchHandleResult[int, string], error) {
+	f := func(_ context.Context, c HandlerContext[int, string], i []*Message[int]) []*HandlerResult[string] {
 		attempts++
-		return nil, errors.New("test error")
+		return []*HandlerResult[string]{c.Error(i[0], errors.New("test error"))}
 	}
 	_, inP, _, errorP := createErrorComponent(t.Context(), f, maxAttempts, 1)
 	defer close(inP.SendChan())
@@ -301,9 +300,9 @@ func TestComponent_IgnoresErrors_IfNoErrorPipeIsDefined(t *testing.T) {
 	input := []int{123}
 	attempts := 0
 	maxAttempts := 2
-	f := func(_ context.Context, i []int) (*ValueBatchHandleResult[int, string], error) {
+	f := func(_ context.Context, c HandlerContext[int, string], i []*Message[int]) []*HandlerResult[string] {
 		attempts++
-		return nil, errors.New("test error")
+		return []*HandlerResult[string]{c.Error(i[0], errors.New("test error"))}
 	}
 	c, inP := createErrorComponentWithNoErrorPipe(t.Context(), f, maxAttempts)
 
@@ -323,24 +322,23 @@ func TestComponent_OnlyRetriesFailedMessagesFromBatch(t *testing.T) {
 	attempts2 := 0
 	maxAttempts := 2
 	expectedOut := []string{"1", "2"}
-	f := func(_ context.Context, in []int) (*ValueBatchHandleResult[int, string], error) {
-		success := make([]string, 0)
-		failure := make([]*BatchFailure[int], 0)
-		for _, v := range in {
-			if v == 1 {
+	f := func(_ context.Context, c HandlerContext[int, string], in []*Message[int]) []*HandlerResult[string] {
+		result := make([]*HandlerResult[string], len(in))
+		for i, v := range in {
+			if v.Value() == 1 {
 				attempts1++
-				success = append(success, strconv.Itoa(v))
+				result[i] = c.Success(v, strconv.Itoa(v.Value()))
 			} else {
 				attempts2++
 				if attempts2 == 2 {
-					success = append(success, strconv.Itoa(v))
+					result[i] = c.Success(v, strconv.Itoa(v.Value()))
 				} else {
-					failure = append(failure, NewBatchFailure(v, errors.New("oh no")))
+					result[i] = c.Error(v, errors.New("oh no"))
 				}
 			}
 		}
 
-		return NewValueBatchHandleResult(success, failure), nil
+		return result
 	}
 	_, inP, outP, _ := createErrorComponent(t.Context(), f, maxAttempts, 2)
 
@@ -350,117 +348,117 @@ func TestComponent_OnlyRetriesFailedMessagesFromBatch(t *testing.T) {
 
 	// Assert
 	assert.NoError(t, err)
-	assert.Len(t, out, 2)
+	assert.Len(t, out.msgs, 2)
 	assert.Equal(t, attempts1, 1)
 	assert.Equal(t, attempts2, 2)
-	for i, v := range out {
-		assert.Equal(t, expectedOut[i], v)
+	for i, v := range out.msgs {
+		assert.Equal(t, expectedOut[i], v.value)
 	}
 }
 
-func itoaBatch(_ context.Context, i []int) (*ValueBatchHandleResult[int, string], error) {
-	o := make([]string, len(i))
+func itoaBatch(_ context.Context, c HandlerContext[int, string], i []*Message[int]) []*HandlerResult[string] {
+	o := make([]*HandlerResult[string], len(i))
 	for i, v := range i {
-		o[i] = strconv.Itoa(v)
+		o[i] = c.Success(v, strconv.Itoa(v.Value()))
 	}
-	return NewValueBatchHandleResult[int](o, nil), nil
+	return o
 }
 
-func reverseBatch(_ context.Context, str []string) (*ValueBatchHandleResult[string, string], error) {
-	o := make([]string, len(str))
+func reverseBatch(_ context.Context, c HandlerContext[string, string], str []*Message[string]) []*HandlerResult[string] {
+	o := make([]*HandlerResult[string], len(str))
 	for i, v := range str {
-		r := []rune(v)
+		r := []rune(v.Value())
 		for x, y := 0, len(r)-1; x < y; x, y = x+1, y-1 {
 			r[x], r[y] = r[y], r[x]
 		}
-		o[i] = string(r)
+		o[i] = c.Success(v, string(r))
 	}
 
-	return NewValueBatchHandleResult[string](o, nil), nil
+	return o
 }
 
-func bigWorkFactory(started *util.SyncValue[bool], cont *util.SyncValue[bool]) func(context.Context, []int) (*ValueBatchHandleResult[int, string], error) {
-	return func(ctx context.Context, input []int) (*ValueBatchHandleResult[int, string], error) {
+func bigWorkFactory(started *util.SyncValue[bool], cont *util.SyncValue[bool]) BatchHandleFunc[int, string] {
+	return func(ctx context.Context, c HandlerContext[int, string], input []*Message[int]) []*HandlerResult[string] {
 		started.Set(true)
 		cont.WaitForValue(ctx, true)
-		return itoaBatch(ctx, input)
+		return itoaBatch(ctx, c, input)
 	}
 }
 
-func createComponent(ctx context.Context, handleFunc func(context.Context, []int) (*ValueBatchHandleResult[int, string], error)) (*component, *Pipe, *Pipe) {
+func createComponent(ctx context.Context, handleFunc BatchHandleFunc[int, string]) (*component, *Pipe, *Pipe) {
 	bp := NewBatchPolicy(5, time.Second)
-	inP := NewPipe("input", bp, l)
-	outP := NewPipe("output", bp, l)
-	handler := NewBatchHandler_1("", handleFunc)
-	coupling := NewHandlerCoupling(handler, inP, []*Pipe{outP}, nil)
+	inP := NewPipe("input", bp, l, "", []string{""})
+	outP := NewPipe("output", bp, l, "", []string{""})
+	handler := newBatchHandler("", handleFunc)
+	coupling := NewHandlerCoupling(handler, inP, map[string]*Pipe{"": outP}, nil)
 
-	return NewComponent(ctx, []*HandlerCoupling{coupling}, 1), inP, outP
+	return NewComponent(ctx, l, []*HandlerCoupling{coupling}, 1), inP, outP
 }
 
-func createComponentChain(ctx context.Context, f1 func(context.Context, []int) (*ValueBatchHandleResult[int, string], error), f2 func(context.Context, []string) (*ValueBatchHandleResult[string, string], error)) ([]*component, *Pipe, *Pipe) {
-	p1 := NewPipe("input", bp, l)
-	p2 := NewPipe("intermediate", bp, l)
-	p3 := NewPipe("output", bp, l)
-	handler1 := NewBatchHandler_1("", f1)
-	handler2 := NewBatchHandler_1("", f2)
-	couplings1 := []*HandlerCoupling{NewHandlerCoupling(handler1, p1, []*Pipe{p2}, nil)}
-	couplings2 := []*HandlerCoupling{NewHandlerCoupling(handler2, p2, []*Pipe{p3}, nil)}
-	c1 := NewComponent(ctx, couplings1, 1)
-	c2 := NewComponent(ctx, couplings2, 1)
+func createComponentChain(ctx context.Context, f1 BatchHandleFunc[int, string], f2 BatchHandleFunc[string, string]) ([]*component, *Pipe, *Pipe) {
+	p1 := NewPipe("input", bp, l, "", []string{""})
+	p2 := NewPipe("intermediate", bp, l, "", []string{""})
+	p3 := NewPipe("output", bp, l, "", []string{""})
+	handler1 := newBatchHandler("", f1)
+	handler2 := newBatchHandler("", f2)
+	couplings1 := []*HandlerCoupling{NewHandlerCoupling(handler1, p1, map[string]*Pipe{"": p2}, nil)}
+	couplings2 := []*HandlerCoupling{NewHandlerCoupling(handler2, p2, map[string]*Pipe{"": p3}, nil)}
+	c1 := NewComponent(ctx, l, couplings1, 1)
+	c2 := NewComponent(ctx, l, couplings2, 1)
 
 	return []*component{c1, c2}, p1, p3
 }
 
-func createMultiHandlerComponent(ctx context.Context, f1 func(context.Context, []int) (*ValueBatchHandleResult[int, string], error), f2 func(context.Context, []string) (*ValueBatchHandleResult[string, string], error)) (*component, []*Pipe, []*Pipe) {
-	inP1 := NewPipe("input1", bp, l)
-	inP2 := NewPipe("input2", bp, l)
-	outP1 := NewPipe("output1", bp, l)
-	outP2 := NewPipe("output2", bp, l)
-	handler1 := NewBatchHandler_1("", f1)
-	handler2 := NewBatchHandler_1("", f2)
+func createMultiHandlerComponent(ctx context.Context, f1 BatchHandleFunc[int, string], f2 BatchHandleFunc[string, string]) (*component, []*Pipe, []*Pipe) {
+	inP1 := NewPipe("input1", bp, l, "", []string{""})
+	inP2 := NewPipe("input2", bp, l, "", []string{""})
+	outP1 := NewPipe("output1", bp, l, "", []string{""})
+	outP2 := NewPipe("output2", bp, l, "", []string{""})
+	handler1 := newBatchHandler("", f1)
+	handler2 := newBatchHandler("", f2)
 	couplings := []*HandlerCoupling{
-		NewHandlerCoupling(handler1, inP1, []*Pipe{outP1}, nil),
-		NewHandlerCoupling(handler2, inP2, []*Pipe{outP2}, nil),
+		NewHandlerCoupling(handler1, inP1, map[string]*Pipe{"": outP1}, nil),
+		NewHandlerCoupling(handler2, inP2, map[string]*Pipe{"": outP2}, nil),
 	}
-	c := NewComponent(ctx, couplings, 1)
+	c := NewComponent(ctx, l, couplings, 1)
 	return c, []*Pipe{inP1, inP2}, []*Pipe{outP1, outP2}
 }
 
-func createErrorComponent(ctx context.Context, f func(context.Context, []int) (*ValueBatchHandleResult[int, string], error), maxAttempts int, batchSize int) (*component, *Pipe, *Pipe, *Pipe) {
+func createErrorComponent(ctx context.Context, f BatchHandleFunc[int, string], maxAttempts int, batchSize int) (*component, *Pipe, *Pipe, *Pipe) {
 	bp := NewBatchPolicy(batchSize, time.Minute)
-	inP := NewPipe("input", bp, l)
-	outP := NewPipe("output", bp, l)
-	errorP := NewPipe("error", bp, l)
+	inP := NewPipe("input", bp, l, "", []string{""})
+	outP := NewPipe("output", bp, l, "", []string{""})
+	errorP := NewPipe("error", bp, l, "", []string{""})
 	retryPolicy := NewRetryPolicy(errorP, maxAttempts, time.Microsecond)
-	handler := NewBatchHandler_1("", f)
-	coupling := NewHandlerCoupling(handler, inP, []*Pipe{outP}, retryPolicy)
-	return NewComponent(ctx, []*HandlerCoupling{coupling}, 1), inP, outP, errorP
+	handler := newBatchHandler("", f)
+	coupling := NewHandlerCoupling(handler, inP, map[string]*Pipe{"": outP}, retryPolicy)
+	return NewComponent(ctx, l, []*HandlerCoupling{coupling}, 1), inP, outP, errorP
 }
 
-func createErrorComponentWithNoErrorPipe(ctx context.Context, f func(context.Context, []int) (*ValueBatchHandleResult[int, string], error), maxAttempts int) (*component, *Pipe) {
-	inP := NewPipe("input", bp, l)
-	outP := NewPipe("output", bp, l)
+func createErrorComponentWithNoErrorPipe(ctx context.Context, f BatchHandleFunc[int, string], maxAttempts int) (*component, *Pipe) {
+	inP := NewPipe("input", bp, l, "", []string{""})
+	outP := NewPipe("output", bp, l, "", []string{""})
 	retryPolicy := NewRetryPolicy(nil, maxAttempts, time.Microsecond)
-	handler := NewBatchHandler_1("", f)
-	coupling := NewHandlerCoupling(handler, inP, []*Pipe{outP}, retryPolicy)
-	return NewComponent(ctx, []*HandlerCoupling{coupling}, 1), inP
+	handler := newBatchHandler("", f)
+	coupling := NewHandlerCoupling(handler, inP, map[string]*Pipe{"": outP}, retryPolicy)
+	return NewComponent(ctx, l, []*HandlerCoupling{coupling}, 1), inP
 }
 
-func createZeroOutputComponent(ctx context.Context, f func(context.Context, int) error) (*component, *Pipe) {
+func createZeroOutputComponent(ctx context.Context, f EndHandleFunc[int]) (*component, *Pipe) {
 	bp := NewBatchPolicy(5, time.Second)
-	inP := NewPipe("input", bp, l)
-	handler := NewHandler_0("", f)
+	inP := NewPipe("input", bp, l, "", []string{""})
+	handler := newEndHandler("", f)
 	coupling := NewHandlerCoupling(handler, inP, nil, nil)
 
-	return NewComponent(ctx, []*HandlerCoupling{coupling}, 1), inP
+	return NewComponent(ctx, l, []*HandlerCoupling{coupling}, 1), inP
 }
 
-func createMultiOutputComponent(ctx context.Context, f func(context.Context, []int) (*ValueBatchHandleResult[int, string], *ValueBatchHandleResult[int, string], error)) (*component, *Pipe, *Pipe, *Pipe) {
-	inP := NewPipe("input", bp, l)
-	outP1 := NewPipe("output1", bp, l)
-	outP2 := NewPipe("output2", bp, l)
-	handler := NewBatchHandler_2("", f)
-	coupling := NewHandlerCoupling(handler, inP, []*Pipe{outP1, outP2}, nil)
+func createMultiOutputComponent(ctx context.Context, f BatchSplitHandleFunc[int]) (*component, *Pipe, *Pipe, *Pipe) {
+	inP := NewPipe("input", bp, l, "", []string{""})
+	outP1 := NewPipe("output1", bp, l, "", []string{""})
+	outP2 := NewPipe("output2", bp, l, "", []string{""})
+	handler := newBatchSplitHandler("", f)
+	coupling := NewHandlerCoupling(handler, inP, map[string]*Pipe{"first": outP1, "second": outP2}, nil)
 
-	return NewComponent(ctx, []*HandlerCoupling{coupling}, 1), inP, outP1, outP2
+	return NewComponent(ctx, l, []*HandlerCoupling{coupling}, 1), inP, outP1, outP2
 }
