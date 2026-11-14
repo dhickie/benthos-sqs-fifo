@@ -8,7 +8,6 @@ import (
 	"log/slog"
 	"reflect"
 	"time"
-	"uuid"
 )
 
 // TODO - review all default values
@@ -27,7 +26,6 @@ func App(name string) *AppBuilder {
 
 func Flow[Tinit any](name string) *FlowBuilder[Tinit, Tinit] {
 	return &FlowBuilder[Tinit, Tinit]{
-		id:  uuid.New().String(),
 		n:   name,
 		inT: reflect.TypeFor[Tinit](),
 		h:   make([]*completedHandlerBuilder, 0),
@@ -79,9 +77,8 @@ func (a *AppBuilder) WithLogger(logger *slog.Logger) *AppBuilder {
 }
 
 func (a *AppBuilder) Build() *BuiltApp {
-	builtCouplings := make(map[string][]*HandlerCoupling)
-	handlerMap := make(map[string]*HandlerCoupling)
-	inputMap := make(map[string][]*HandlerCoupling)
+	handlerMap := make(map[string]*HandlerCoupling) // Map of handler names to couplings
+	flowMap := make(map[string][]*HandlerCoupling)  // Map of flow names to coupling collections
 	inProg := util.NewSet[string]()
 
 	if a.l == nil {
@@ -90,12 +87,7 @@ func (a *AppBuilder) Build() *BuiltApp {
 
 	// Build all the couplings between input pipes, output pipes and handlers for all flows
 	for _, v := range a.f {
-		couplings := v.buildCouplings(a.l, &inputMap, inProg)
-		builtCouplings[v.id] = couplings
-
-		for _, c := range couplings {
-			handlerMap[c.handler.name] = c
-		}
+		v.buildCouplings(a.l, &flowMap, &handlerMap, inProg)
 	}
 
 	// Build components where multiple handlers have been grouped together
@@ -125,7 +117,7 @@ func (a *AppBuilder) Build() *BuiltApp {
 	// Build the flow objects
 	flows := make(map[string]*flow)
 	for _, v := range a.f {
-		inputPipe := builtCouplings[v.id][0].inputPipe
+		inputPipe := flowMap[v.n][0].inputPipe
 		flow := &flow{
 			n: v.n,
 			t: v.inT,
@@ -142,7 +134,6 @@ func (a *AppBuilder) Build() *BuiltApp {
 }
 
 type flowBuilder struct {
-	id  string
 	n   string
 	inT reflect.Type
 	h   []*completedHandlerBuilder
@@ -164,7 +155,6 @@ func (fb *FlowBuilder[Tinit, Tnext]) WithFlow(endingFb *FlowBuilder[Tnext, NilTy
 
 func (fb *FlowBuilder[Tinit, Tnext]) toNextBuilder[Tnextnext any]() *FlowBuilder[Tinit, Tnextnext] {
 	return &FlowBuilder[Tinit, Tnextnext]{
-		id:  fb.id,
 		n:   fb.n,
 		inT: fb.inT,
 		h:   fb.h,
@@ -173,14 +163,14 @@ func (fb *FlowBuilder[Tinit, Tnext]) toNextBuilder[Tnextnext any]() *FlowBuilder
 }
 
 // Only builds the association between input pipes, handlers and output pipes - building components is done further up the stack
-func (fb *flowBuilder) buildCouplings(logger *slog.Logger, flowMap *map[string][]*HandlerCoupling, inProg *util.Set[string]) []*HandlerCoupling {
-	if f, ok := (*flowMap)[fb.id]; ok {
+func (fb *flowBuilder) buildCouplings(logger *slog.Logger, flowMap *map[string][]*HandlerCoupling, handlerMap *map[string]*HandlerCoupling, inProg *util.Set[string]) []*HandlerCoupling {
+	if f, ok := (*flowMap)[fb.n]; ok {
 		// The flow's already been built, just return it
 		return f
 	}
 
 	// Add this flow to the set of flows currently being built
-	if !inProg.Add(fb.id) {
+	if !inProg.Add(fb.n) {
 		// Circular reference
 		err := fmt.Sprintf("Unable to build flow %v - circular reference", fb.n)
 		panic(err)
@@ -192,22 +182,23 @@ func (fb *flowBuilder) buildCouplings(logger *slog.Logger, flowMap *map[string][
 	for _, v := range fb.h {
 		var errPipe *Pipe
 		if v.eFb != nil {
-			errPipe = v.eFb.buildCouplings(logger, flowMap, inProg)[0].inputPipe
+			errPipe = v.eFb.buildCouplings(logger, flowMap, handlerMap, inProg)[0].inputPipe
 		}
 		retryPolicy := NewRetryPolicy(errPipe, v.maxA, v.retryPeriod)
 
 		coupling := &HandlerCoupling{
 			handler:     v.build(),
-			inputPipe:   NewPipe(fmt.Sprintf("%v_input", fb.n), v.bp, logger, fb.n, []string{}), // The following flow names are added later
+			inputPipe:   NewPipe(fmt.Sprintf("%v_input", v.n), v.bp, logger, fb.n, []string{}), // The following flow names are added later
 			retryPolicy: retryPolicy,
 		}
+		(*handlerMap)[coupling.handler.name] = coupling
 		couplings = append(couplings, coupling)
 	}
 
 	// If the flow is completed by another flow, build that flow as well
 	var nextFlowPipe *Pipe
 	if fb.fb != nil {
-		nextFlowPipe = fb.fb.buildCouplings(logger, flowMap, inProg)[0].inputPipe
+		nextFlowPipe = fb.fb.buildCouplings(logger, flowMap, handlerMap, inProg)[0].inputPipe
 	}
 
 	// Associate input pipes as the previous handler's output
@@ -226,8 +217,8 @@ func (fb *flowBuilder) buildCouplings(logger *slog.Logger, flowMap *map[string][
 		}
 	}
 
-	(*flowMap)[fb.id] = couplings
-	inProg.Remove(fb.id)
+	(*flowMap)[fb.n] = couplings
+	inProg.Remove(fb.n)
 	return couplings
 }
 

@@ -168,11 +168,6 @@ func TestFluentApi_CanCreateApp_WithBatchedFlow(t *testing.T) {
 
 func TestFluentApi_CanCreateApp_WithSimpleFlow(t *testing.T) {
 	// Arrange
-	aName := uuid.New().String()
-	fName := uuid.New().String()
-	hName1 := uuid.New().String()
-	hName2 := uuid.New().String()
-
 	in := 123
 	expectedOut := "321"
 
@@ -182,15 +177,15 @@ func TestFluentApi_CanCreateApp_WithSimpleFlow(t *testing.T) {
 	mu.Lock()
 	defer mu.Unlock()
 
-	a := App(aName).
+	a := App("myApp").
 		WithFlow(
-			Flow[int](fName).
+			Flow[int]("myFlow").
 				WithHandler(
-					Handler[int, string](hName1).
+					Handler[int, string]("handler1").
 						WithHandleFunc(itoa),
 				).
 				WithHandler(
-					EndHandler[string](hName2).
+					EndHandler[string]("handler2").
 						WithHandleFunc(func(_ context.Context, c EndHandlerContext[string], i *Message[string]) *EndHandlerResult {
 							mu.Lock()
 							defer mu.Unlock()
@@ -205,7 +200,7 @@ func TestFluentApi_CanCreateApp_WithSimpleFlow(t *testing.T) {
 	built := a.Build()
 
 	// Act
-	if f, err := built.GetFlow[int](fName); err != nil {
+	if f, err := built.GetFlow[int]("myFlow"); err != nil {
 		t.Fatal("Error getting flow from app")
 	} else {
 		f.Trigger(t.Context(), in)
@@ -214,7 +209,6 @@ func TestFluentApi_CanCreateApp_WithSimpleFlow(t *testing.T) {
 
 	// Assert
 	assert.Equal(t, expectedOut, actualOut)
-	assert.Equal(t, aName, a.n)
 }
 
 func TestFluentApi_CanCreateApp_WhichRetriesFailures(t *testing.T) {

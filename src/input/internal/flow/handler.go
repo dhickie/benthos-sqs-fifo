@@ -199,18 +199,16 @@ func (c *HandlerContext[Tin, Tout]) Success(m *Message[Tin], value Tout) *Handle
 		Id:    m.id,
 		Error: nil,
 		Results: []ResultValue{
-			{Value: value, FlowName: c.currentFlow},
+			{Value: value, FlowName: c.nextFlows[0]},
 		},
 	}
 }
 
 func (c *HandlerContext[Tin, Tout]) Error(m *Message[Tin], err error) *HandlerResult[Tout] {
 	return &HandlerResult[Tout]{
-		Id:    m.id,
-		Error: err,
-		Results: []ResultValue{
-			{Value: nil, FlowName: c.currentFlow},
-		},
+		Id:      m.id,
+		Error:   err,
+		Results: []ResultValue{},
 	}
 }
 

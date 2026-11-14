@@ -70,6 +70,10 @@ func (p *WorkerPool) Do(wg *util.ContextWaitGroup, h *handler, job *handlerJob, 
 				}
 			}
 
+			if len(errors) == 0 {
+				return nil
+			}
+
 			if retryPolicy != nil {
 				msgMap := make(map[string]*message)
 				for _, v := range job.msgs {
@@ -114,20 +118,6 @@ func (p *WorkerPool) Do(wg *util.ContextWaitGroup, h *handler, job *handlerJob, 
 	case p.workChan <- wi:
 		return nil
 	}
-}
-
-func shouldRetry(ctx context.Context, policy *RetryPolicy, numAttempts int) (bool, error) {
-	retry := policy != nil && (policy.maxAttempts == 0 || numAttempts < policy.maxAttempts)
-
-	if retry {
-		if wErr := wait.For(ctx, policy.interval); wErr != nil {
-			return false, ctx.Err()
-		}
-
-		return true, nil
-	}
-
-	return false, nil
 }
 
 func (p *WorkerPool) stoppedMonitor() {
