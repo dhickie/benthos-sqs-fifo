@@ -165,6 +165,29 @@ func TestClose_ForceClosesPipeIfContextIsCancelled(t *testing.T) {
 	wg.Wait()
 }
 
+func TestPipe_BatchesMessagesIntoHandlerJobWithCorrectContext(t *testing.T) {
+	// Arrange
+	input := []int{1, 2}
+	currentFlow := "myFlow"
+	nextFlows := []string{"myFlow", "myOtherFlow"}
+	logger := slog.Default()
+	batchPolicy := NewBatchPolicy(2, time.Minute)
+	pipe := NewPipe("testPipe", batchPolicy, logger, currentFlow, nextFlows)
+
+	// Act
+	pipe.Send(t.Context(), input...)
+	job, err := pipe.Receive(t.Context())
+
+	// Assert
+	assert.NoError(t, err)
+	assert.Equal(t, logger, job.context.Logger)
+	assert.Equal(t, currentFlow, job.context.currentFlow)
+	assert.Equal(t, nextFlows, job.context.nextFlows)
+	assert.Len(t, job.msgs, 2)
+	assert.Equal(t, input[0], job.msgs[0].value)
+	assert.Equal(t, input[1], job.msgs[1].value)
+}
+
 func TestPipe_UnderHighLoad(t *testing.T) {
 	const nPipes = 100
 	const nMsgsPerPipe = 10000
