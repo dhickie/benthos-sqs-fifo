@@ -218,7 +218,7 @@ func TestHandle_ReturnsCorrectResponse_ForHandlerWithSingleOutput_WithError(t *t
 	assert.Len(t, result, 1)
 	assert.Equal(t, in[0].id, result[0].Id)
 	assert.Equal(t, expectedErr, result[0].Error)
-	assert.Equal(t, []ResultValue{{Value: nil, FlowName: hCtx.currentFlow}}, result[0].Results)
+	assert.Len(t, result[0].Results, 0)
 }
 
 func TestHandle_ReturnsCorrectResponse_ForBatchHandlerWithSingleOutput_WithNoErrors(t *testing.T) {
@@ -267,7 +267,7 @@ func TestHandle_ReturnsCorrectResponse_ForBatchHandlerWithSingleOutput_WithAllEr
 	for i, v := range result {
 		assert.Equal(t, expectedErr, v.Error)
 		assert.Equal(t, in[i].id, v.Id)
-		assert.Equal(t, []ResultValue{{Value: nil, FlowName: hCtx.currentFlow}}, v.Results)
+		assert.Len(t, v.Results, 0)
 	}
 }
 
@@ -297,7 +297,7 @@ func TestHandle_ReturnsCorrectResponse_ForBatchHandlerWithSingleOutput_WithParti
 	for i := range 2 {
 		assert.Equal(t, in[i].id, result[i].Id)
 		assert.Equal(t, expectedErr, result[i].Error)
-		assert.Equal(t, []ResultValue{{Value: nil, FlowName: hCtx.currentFlow}}, result[i].Results)
+		assert.Len(t, result[i].Results, 0)
 	}
 	for i := range 2 {
 		assert.Equal(t, in[i+2].id, result[i+2].Id)
