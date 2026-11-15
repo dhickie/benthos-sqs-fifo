@@ -448,6 +448,66 @@ func TestFluentApi_CanCreateApp_WithHandlersGroupedIntoComponents(t *testing.T) 
 	assert.Greater(t, handler4Finish, handler2Finish) // Assert handler 4 didn't fire while handler 2 was waiting
 }
 
+func TestFluentApi_CanCreateApp_WithSplitFlow(t *testing.T) {
+	// Arrange
+	input := []int{1, 2}
+	expectedItoaOutput := "2"
+	expectedAddOutput := 2
+	itoaChan := make(chan string, 1)
+	addChan := make(chan int, 1)
+
+	branch1 := Flow[int]("itoaBranch").
+		WithHandler(
+			EndHandler[int]("itoaHandler").
+				WithHandleFunc(func(_ context.Context, c EndHandlerContext[int], m *Message[int]) *EndHandlerResult {
+					itoaChan <- strconv.Itoa(m.Value())
+					return nil
+				},
+				),
+		)
+	branch2 := Flow[int]("addBranch").
+		WithHandler(
+			EndHandler[int]("addHandler").
+				WithHandleFunc(func(_ context.Context, c EndHandlerContext[int], m *Message[int]) *EndHandlerResult {
+					addChan <- m.Value() + 1
+					return nil
+				},
+				),
+		)
+	f := Flow[int]("flow1").
+		WithHandler(
+			SplitHandler[int]("splitHandler").
+				WithFlow(branch1).
+				WithFlow(branch2).
+				WithHandleFunc(func(_ context.Context, c SplitHandlerContext[int], m *Message[int]) *SplitHandlerResult {
+					results := make([]ResultValue, 0)
+					if m.Value() > 1 {
+						results = append(results, c.ResultValue(m.Value(), "itoaBranch"))
+					} else {
+						results = append(results, c.ResultValue(m.Value(), "addBranch"))
+					}
+
+					return c.Split(m, results)
+				}),
+		)
+	app := App("splitApp").
+		WithFlow(f).
+		Build()
+	flow, err := app.GetFlow[int]("flow1")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Act
+	flow.Trigger(t.Context(), input...)
+	itoaOutput := <-itoaChan
+	addOutput := <-addChan
+
+	// Assert
+	assert.Equal(t, expectedItoaOutput, itoaOutput)
+	assert.Equal(t, expectedAddOutput, addOutput)
+}
+
 func TestFluentApi_Panics_IfComponentReferencesNonExistentHandler(t *testing.T) {
 	// Arrange
 	a := App("myApp").

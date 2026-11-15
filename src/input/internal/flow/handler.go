@@ -253,7 +253,7 @@ func (c *SplitHandlerContext[Tin]) FanOut[Tout any](m *Message[Tin], value Tout,
 	return result
 }
 
-func (c *SplitHandlerContext[Tin]) Split[Tout any](m *Message[Tin], values []ResultValue) *SplitHandlerResult {
+func (c *SplitHandlerContext[Tin]) Split(m *Message[Tin], values []ResultValue) *SplitHandlerResult {
 	return &SplitHandlerResult{
 		Id:      m.id,
 		Error:   nil,
