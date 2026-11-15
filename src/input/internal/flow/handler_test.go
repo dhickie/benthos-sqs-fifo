@@ -319,7 +319,7 @@ func TestHandle_ReturnsCorrectResponse_ForHandlerWithMultipleOutputs_WithNoError
 			return c.Success(i, strconv.Itoa(i.Value()), "strings")
 		}
 	}
-	handler := newSplitHandler[int, any]("myHandler", handleFunc)
+	handler := newSplitHandler[int]("myHandler", handleFunc)
 
 	// Act
 	result1 := handler.handle(t.Context(), hCtx, in1)
@@ -350,7 +350,7 @@ func TestHandle_ReturnsCorrectResponse_ForHandlerWithMultipleOutputs_WithError(t
 			return c.Error(i, expectedErr2)
 		}
 	}
-	handler := newSplitHandler[int, any]("myHandler", handleFunc)
+	handler := newSplitHandler[int]("myHandler", handleFunc)
 
 	// Act
 	result1 := handler.handle(t.Context(), hCtx, in1)

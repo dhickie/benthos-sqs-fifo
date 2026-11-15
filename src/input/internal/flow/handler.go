@@ -103,7 +103,7 @@ func newBatchHandler[Tin, Tout any](name string, f func(context.Context, Handler
 	}
 }
 
-func newSplitHandler[Tin, Tout any](name string, f func(context.Context, SplitHandlerContext[Tin], *Message[Tin]) *SplitHandlerResult) *handler {
+func newSplitHandler[Tin any](name string, f func(context.Context, SplitHandlerContext[Tin], *Message[Tin]) *SplitHandlerResult) *handler {
 	return &handler{
 		id:   uuid.New().String(),
 		name: name,

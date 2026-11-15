@@ -14,9 +14,14 @@ app := flow.App("myApp").
     WithFlows(
         flow.Flow("myFlow").
             WithHandler(
-                flow.Handler[int]("handler1").
+                flow.Handler[int, string]("handler1").
                     WithHandleFunc(f)
             ).
-            Split(fork1Flow, fork2Flow) // Cannot call WithHandler or WithFlow after Split
+            WithHandler(
+                flow.SplitHandler[string]("splitter").
+                    WithFlow(fork1Flow).
+                    WithFlow(fork2Flow).
+                    WithHandleFunc(f)
+            ),
     ).
     Build()

@@ -46,6 +46,12 @@ func EndHandler[Tin any](name string) *EndHandlerBuilder[Tin] {
 	}
 }
 
+func SplitHandler[Tin any](name string) *SplitHandlerBuilder[Tin] {
+	return &SplitHandlerBuilder[Tin]{
+		n: name,
+	}
+}
+
 func Component(name string) *ComponentBuilder {
 	return &ComponentBuilder{
 		n: name,
@@ -195,20 +201,28 @@ func (fb *flowBuilder) buildCouplings(logger *slog.Logger, flowMap *map[string][
 		couplings = append(couplings, coupling)
 	}
 
-	// If the flow is completed by another flow, build that flow as well
-	var nextFlowPipe *Pipe
-	if fb.fb != nil {
-		nextFlowPipe = fb.fb.buildCouplings(logger, flowMap, handlerMap, inProg)[0].inputPipe
+	// If the flow is completed by another flow or a split handler, build those flows as well
+	nextFlowPipes := make([]*Pipe, 0)
+	lastHandler := fb.h[len(fb.h)-1]
+	if fb.fb != nil && len(lastHandler.fb) == 0 { // Flow is completed by a different flow
+		nextFlowPipes = append(nextFlowPipes, fb.fb.buildCouplings(logger, flowMap, handlerMap, inProg)[0].inputPipe)
+	} else if fb.fb == nil && len(lastHandler.fb) > 0 { // The flow ends with a split handler
+		for _, v := range lastHandler.fb {
+			nextFlowPipes = append(nextFlowPipes, v.buildCouplings(logger, flowMap, handlerMap, inProg)[0].inputPipe)
+		}
+	} else if fb.fb != nil && len(lastHandler.fb) == 0 { // The flow ends with another flow and a split handler - shouldn't be possible
+		err := fmt.Sprintf("Flow %v cannot be completed by another flow and end with a split handler", fb.n)
+		panic(err)
 	}
 
 	// Associate input pipes as the previous handler's output
 	for i, v := range couplings {
 		v.outputPipes = make(map[string]*Pipe)
 		if i == len(fb.h)-1 { // Final coupling
-			if nextFlowPipe != nil {
-				// Use the input from the following flow, if this flow is completed by another one
-				v.outputPipes[nextFlowPipe.flowName] = nextFlowPipe
-				v.inputPipe.nextFlows = append(v.inputPipe.nextFlows, nextFlowPipe.flowName)
+			// If this flow is followed by other flows, set name of the following flows and use their input pipes as the output pipe for this handler
+			for _, w := range nextFlowPipes {
+				v.outputPipes[w.flowName] = w
+				v.inputPipe.nextFlows = append(v.inputPipe.nextFlows, w.flowName)
 			}
 		} else {
 			nextInput := couplings[i+1].inputPipe
@@ -228,6 +242,7 @@ type completedHandlerBuilder struct {
 	maxA        int
 	retryPeriod time.Duration
 	eFb         *flowBuilder
+	fb          []*flowBuilder
 	build       func() *handler
 }
 
@@ -282,6 +297,7 @@ func (h *HandlerBuilder[Tin, Tout]) WithHandleFunc(f func(context.Context, Handl
 		maxA:        h.maxA,
 		retryPeriod: h.retryPeriod,
 		eFb:         h.eFb,
+		fb:          make([]*flowBuilder, 0),
 		build: func() *handler {
 			return newHandler(h.n, f)
 		},
@@ -328,6 +344,7 @@ func (h *BatchHandlerBuilder[Tin, Tout]) WithHandleFunc(f func(context.Context, 
 		maxA:        h.maxA,
 		retryPeriod: h.retryPeriod,
 		eFb:         h.eFb,
+		fb:          make([]*flowBuilder, 0),
 		build: func() *handler {
 			return newBatchHandler(h.n, f)
 		},
@@ -347,6 +364,7 @@ func (h *EndHandlerBuilder[Tin]) WithBatching(batchSize int, period time.Duratio
 		n:           h.n,
 		maxA:        h.maxA,
 		retryPeriod: h.retryPeriod,
+		eFb:         h.eFb,
 		bs:          batchSize,
 		bp:          period,
 	}
@@ -383,6 +401,7 @@ func (h *EndHandlerBuilder[Tin]) WithHandleFunc(f func(context.Context, EndHandl
 		maxA:        h.maxA,
 		retryPeriod: h.retryPeriod,
 		eFb:         h.eFb,
+		fb:          make([]*flowBuilder, 0),
 		build: func() *handler {
 			return newEndHandler(h.n, f)
 		},
@@ -429,8 +448,125 @@ func (h *BatchEndHandlerBuilder[Tin]) WithHandleFunc(f func(context.Context, End
 		maxA:        h.maxA,
 		retryPeriod: h.retryPeriod,
 		eFb:         h.eFb,
+		fb:          make([]*flowBuilder, 0),
 		build: func() *handler {
 			return newBatchEndHandler(h.n, f)
+		},
+	}
+}
+
+type SplitHandlerBuilder[Tin any] struct {
+	n           string
+	maxA        int
+	retryPeriod time.Duration
+	eFb         *flowBuilder
+	fb          []*flowBuilder
+}
+
+func (h *SplitHandlerBuilder[Tin]) WithBatching(batchSize int, period time.Duration) *BatchSplitHandlerBuilder[Tin] {
+	return &BatchSplitHandlerBuilder[Tin]{
+		n:           h.n,
+		maxA:        h.maxA,
+		retryPeriod: h.retryPeriod,
+		eFb:         h.eFb,
+		fb:          h.fb,
+		bs:          batchSize,
+		bp:          period,
+	}
+}
+
+func (h *SplitHandlerBuilder[Tin]) WithMaxAttempts(maxAttempts int) *SplitHandlerBuilder[Tin] {
+	h.maxA = maxAttempts
+	return h
+}
+
+func (h *SplitHandlerBuilder[Tin]) WithRetryPeriod(period time.Duration) *SplitHandlerBuilder[Tin] {
+	h.retryPeriod = period
+	return h
+}
+
+func (h *SplitHandlerBuilder[Tin]) WithErrorHandler(errHandler *CompletedHandlerBuilder[Tin, NilType]) *SplitHandlerBuilder[Tin] {
+	efb := Flow[Tin](h.n + "_Error").
+		WithHandler(
+			errHandler,
+		)
+	h.eFb = (*flowBuilder)(efb)
+	return h
+}
+
+func (h *SplitHandlerBuilder[Tin]) WithErrorFlow(errFlow *FlowBuilder[Tin, NilType]) *SplitHandlerBuilder[Tin] {
+	h.eFb = (*flowBuilder)(errFlow)
+	return h
+}
+
+func (h *SplitHandlerBuilder[Tin]) WithFlow(flow *FlowBuilder[Tin, NilType]) *SplitHandlerBuilder[Tin] {
+	h.fb = append(h.fb, (*flowBuilder)(flow))
+	return h
+}
+
+func (h *SplitHandlerBuilder[Tin]) WithHandleFunc(f func(context.Context, SplitHandlerContext[Tin], *Message[Tin]) *SplitHandlerResult) *CompletedHandlerBuilder[Tin, NilType] {
+	return &CompletedHandlerBuilder[Tin, NilType]{
+		n:           h.n,
+		bp:          nil,
+		maxA:        h.maxA,
+		retryPeriod: h.retryPeriod,
+		eFb:         h.eFb,
+		fb:          h.fb,
+		build: func() *handler {
+			return newSplitHandler(h.n, f)
+		},
+	}
+}
+
+type BatchSplitHandlerBuilder[Tin any] struct {
+	n           string
+	bs          int
+	bp          time.Duration
+	maxA        int
+	retryPeriod time.Duration
+	eFb         *flowBuilder
+	fb          []*flowBuilder
+}
+
+func (h *BatchSplitHandlerBuilder[Tin]) WithMaxAttempts(maxAttempts int) *BatchSplitHandlerBuilder[Tin] {
+	h.maxA = maxAttempts
+	return h
+}
+
+func (h *BatchSplitHandlerBuilder[Tin]) WithRetryPeriod(period time.Duration) *BatchSplitHandlerBuilder[Tin] {
+	h.retryPeriod = period
+	return h
+}
+
+func (h *BatchSplitHandlerBuilder[Tin]) WithErrorHandler(errHandler *CompletedHandlerBuilder[Tin, NilType]) *BatchSplitHandlerBuilder[Tin] {
+	efb := Flow[Tin](h.n + "_Error").
+		WithHandler(
+			errHandler,
+		)
+	h.eFb = (*flowBuilder)(efb)
+	return h
+}
+
+func (h *BatchSplitHandlerBuilder[Tin]) WithErrorFlow(errFlow *FlowBuilder[Tin, NilType]) *BatchSplitHandlerBuilder[Tin] {
+	h.eFb = (*flowBuilder)(errFlow)
+	return h
+}
+
+func (h *BatchSplitHandlerBuilder[Tin]) WithFlow(flow *FlowBuilder[Tin, NilType]) *BatchSplitHandlerBuilder[Tin] {
+	h.fb = append(h.fb, (*flowBuilder)(flow))
+	return h
+}
+
+func (h *BatchSplitHandlerBuilder[Tin]) WithHandleFunc(f func(context.Context, SplitHandlerContext[Tin], []*Message[Tin]) []*SplitHandlerResult) *CompletedHandlerBuilder[Tin, NilType] {
+	return &CompletedHandlerBuilder[Tin, NilType]{
+		n:           h.n,
+		bp:          NewBatchPolicy(h.bs, h.bp),
+		maxA:        h.maxA,
+		retryPeriod: h.retryPeriod,
+		eFb:         h.eFb,
+		fb:          h.fb,
+		build: func() *handler {
+			return newBatchSplitHandler(h.n, f)
 		},
 	}
 }
