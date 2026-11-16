@@ -87,8 +87,8 @@ func TestFluentApi_CanCreateRetriedHandler(t *testing.T) {
 		WithHandleFunc(itoa)
 
 	// Assert
-	assert.Equal(t, maxA, h.maxA)
-	assert.Equal(t, retryPeriod, h.retryPeriod)
+	assert.Equal(t, maxA, *h.maxA)
+	assert.Equal(t, retryPeriod, *h.retryPeriod)
 	assert.NotNil(t, h.eFb)
 }
 
@@ -113,8 +113,8 @@ func TestFluentApi_CanCreateRetriedHandler_WhenMixedWithBatchConfig(t *testing.T
 		WithHandleFunc(batchItoa)
 
 	// Assert
-	assert.Equal(t, maxA, h.maxA)
-	assert.Equal(t, retryPeriod, h.retryPeriod)
+	assert.Equal(t, maxA, *h.maxA)
+	assert.Equal(t, retryPeriod, *h.retryPeriod)
 	assert.NotNil(t, h.eFb)
 }
 

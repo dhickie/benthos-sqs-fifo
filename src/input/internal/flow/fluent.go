@@ -35,8 +35,8 @@ func Flow[Tinit any](name string) *FlowBuilder[Tinit, Tinit] {
 func Handler[Tin, Tout any](name string) *HandlerBuilder[Tin, Tout] {
 	return &HandlerBuilder[Tin, Tout]{
 		n:           name,
-		maxA:        3,
-		retryPeriod: time.Second,
+		maxA:        nil,
+		retryPeriod: nil,
 	}
 }
 
@@ -82,14 +82,43 @@ func (a *AppBuilder) WithLogger(logger *slog.Logger) *AppBuilder {
 	return a
 }
 
+type defaultValueTracker struct {
+	flows      *util.Set[string]
+	handlers   *util.Set[string]
+	components *util.Set[string]
+}
+
+func newDefaultValueTracker() *defaultValueTracker {
+	return &defaultValueTracker{
+		flows:      util.NewSet[string](),
+		handlers:   util.NewSet[string](),
+		components: util.NewSet[string](),
+	}
+}
+
+func (a *AppBuilder) applyDefaults() {
+	appliedTracker := newDefaultValueTracker()
+
+	for _, v := range a.f {
+		v.applyDefaults(appliedTracker)
+	}
+
+	for _, v := range a.c {
+		v.applyDefaults(appliedTracker)
+	}
+
+	if a.l == nil {
+		a.l = slog.Default()
+	}
+}
+
 func (a *AppBuilder) Build() *BuiltApp {
 	handlerMap := make(map[string]*HandlerCoupling) // Map of handler names to couplings
 	flowMap := make(map[string][]*HandlerCoupling)  // Map of flow names to coupling collections
 	inProg := util.NewSet[string]()
 
-	if a.l == nil {
-		a.l = slog.Default()
-	}
+	// Apply default values for anything we reasonably can if it hasn't been specified by the user
+	a.applyDefaults()
 
 	// Build all the couplings between input pipes, output pipes and handlers for all flows
 	for _, v := range a.f {
@@ -110,7 +139,7 @@ func (a *AppBuilder) Build() *BuiltApp {
 			delete(handlerMap, c)
 		}
 
-		component := NewComponent(context.TODO(), a.l, couplings, v.maxC) // TODO add actual context
+		component := NewComponent(context.TODO(), a.l, couplings, *v.maxC) // TODO add actual context
 		components = append(components, component)
 	}
 
@@ -168,6 +197,21 @@ func (fb *FlowBuilder[Tinit, Tnext]) toNextBuilder[Tnextnext any]() *FlowBuilder
 	}
 }
 
+func (fb *flowBuilder) applyDefaults(tracker *defaultValueTracker) {
+	if tracker.flows.Contains(fb.n) {
+		return
+	}
+	tracker.flows.Add(fb.n)
+
+	for _, v := range fb.h {
+		v.applyDefaults(tracker)
+	}
+
+	if fb.fb != nil {
+		fb.fb.applyDefaults(tracker)
+	}
+}
+
 // Only builds the association between input pipes, handlers and output pipes - building components is done further up the stack
 func (fb *flowBuilder) buildCouplings(logger *slog.Logger, flowMap *map[string][]*HandlerCoupling, handlerMap *map[string]*HandlerCoupling, inProg *util.Set[string]) []*HandlerCoupling {
 	if f, ok := (*flowMap)[fb.n]; ok {
@@ -190,7 +234,7 @@ func (fb *flowBuilder) buildCouplings(logger *slog.Logger, flowMap *map[string][
 		if v.eFb != nil {
 			errPipe = v.eFb.buildCouplings(logger, flowMap, handlerMap, inProg)[0].inputPipe
 		}
-		retryPolicy := NewRetryPolicy(errPipe, v.maxA, v.retryPeriod)
+		retryPolicy := NewRetryPolicy(errPipe, *v.maxA, *v.retryPeriod)
 
 		coupling := &HandlerCoupling{
 			handler:     v.build(),
@@ -239,19 +283,48 @@ func (fb *flowBuilder) buildCouplings(logger *slog.Logger, flowMap *map[string][
 type completedHandlerBuilder struct {
 	n           string
 	bp          *BatchPolicy
-	maxA        int
-	retryPeriod time.Duration
+	maxA        *int
+	retryPeriod *time.Duration
 	eFb         *flowBuilder
 	fb          []*flowBuilder
 	build       func() *handler
+}
+
+func (h *completedHandlerBuilder) applyDefaults(tracker *defaultValueTracker) {
+	if tracker.handlers.Contains(h.n) {
+		return
+	}
+	tracker.handlers.Add(h.n)
+
+	if h.eFb != nil {
+		h.eFb.applyDefaults(tracker)
+	}
+
+	for _, v := range h.fb {
+		v.applyDefaults(tracker)
+	}
+
+	if h.bp == nil {
+		h.bp = NewBatchPolicy(1, time.Second)
+	}
+
+	if h.maxA == nil {
+		v := 0 // Default: Retry forever
+		h.maxA = &v
+	}
+
+	if h.retryPeriod == nil {
+		v := time.Second
+		h.retryPeriod = &v
+	}
 }
 
 type CompletedHandlerBuilder[Tin, Tout any] completedHandlerBuilder
 
 type HandlerBuilder[Tin, Tout any] struct {
 	n           string
-	maxA        int
-	retryPeriod time.Duration
+	maxA        *int
+	retryPeriod *time.Duration
 	eFb         *flowBuilder
 }
 
@@ -267,12 +340,14 @@ func (h *HandlerBuilder[Tin, Tout]) WithBatching(batchSize int, period time.Dura
 }
 
 func (h *HandlerBuilder[Tin, Tout]) WithMaxAttempts(maxAttempts int) *HandlerBuilder[Tin, Tout] {
-	h.maxA = maxAttempts
+	v := maxAttempts
+	h.maxA = &v
 	return h
 }
 
 func (h *HandlerBuilder[Tin, Tout]) WithRetryPeriod(period time.Duration) *HandlerBuilder[Tin, Tout] {
-	h.retryPeriod = period
+	v := period
+	h.retryPeriod = &v
 	return h
 }
 
@@ -308,18 +383,20 @@ type BatchHandlerBuilder[Tin, Tout any] struct {
 	n           string
 	bs          int
 	bp          time.Duration
-	maxA        int
-	retryPeriod time.Duration
+	maxA        *int
+	retryPeriod *time.Duration
 	eFb         *flowBuilder
 }
 
 func (h *BatchHandlerBuilder[Tin, Tout]) WithMaxAttempts(maxAttempts int) *BatchHandlerBuilder[Tin, Tout] {
-	h.maxA = maxAttempts
+	v := maxAttempts
+	h.maxA = &v
 	return h
 }
 
 func (h *BatchHandlerBuilder[Tin, Tout]) WithRetryPeriod(period time.Duration) *BatchHandlerBuilder[Tin, Tout] {
-	h.retryPeriod = period
+	v := period
+	h.retryPeriod = &v
 	return h
 }
 
@@ -354,8 +431,8 @@ func (h *BatchHandlerBuilder[Tin, Tout]) WithHandleFunc(f func(context.Context, 
 type EndHandlerBuilder[Tin any] struct {
 	n           string
 	f           func(context.Context, Tin) error
-	maxA        int
-	retryPeriod time.Duration
+	maxA        *int
+	retryPeriod *time.Duration
 	eFb         *flowBuilder
 }
 
@@ -371,12 +448,14 @@ func (h *EndHandlerBuilder[Tin]) WithBatching(batchSize int, period time.Duratio
 }
 
 func (h *EndHandlerBuilder[Tin]) WithMaxAttempts(maxAttempts int) *EndHandlerBuilder[Tin] {
-	h.maxA = maxAttempts
+	v := maxAttempts
+	h.maxA = &v
 	return h
 }
 
 func (h *EndHandlerBuilder[Tin]) WithRetryPeriod(period time.Duration) *EndHandlerBuilder[Tin] {
-	h.retryPeriod = period
+	v := period
+	h.retryPeriod = &v
 	return h
 }
 
@@ -412,18 +491,20 @@ type BatchEndHandlerBuilder[Tin any] struct {
 	n           string
 	bs          int
 	bp          time.Duration
-	maxA        int
-	retryPeriod time.Duration
+	maxA        *int
+	retryPeriod *time.Duration
 	eFb         *flowBuilder
 }
 
 func (h *BatchEndHandlerBuilder[Tin]) WithMaxAttempts(maxAttempts int) *BatchEndHandlerBuilder[Tin] {
-	h.maxA = maxAttempts
+	v := maxAttempts
+	h.maxA = &v
 	return h
 }
 
 func (h *BatchEndHandlerBuilder[Tin]) WithRetryPeriod(period time.Duration) *BatchEndHandlerBuilder[Tin] {
-	h.retryPeriod = period
+	v := period
+	h.retryPeriod = &v
 	return h
 }
 
@@ -457,8 +538,8 @@ func (h *BatchEndHandlerBuilder[Tin]) WithHandleFunc(f func(context.Context, End
 
 type SplitHandlerBuilder[Tin any] struct {
 	n           string
-	maxA        int
-	retryPeriod time.Duration
+	maxA        *int
+	retryPeriod *time.Duration
 	eFb         *flowBuilder
 	fb          []*flowBuilder
 }
@@ -476,12 +557,14 @@ func (h *SplitHandlerBuilder[Tin]) WithBatching(batchSize int, period time.Durat
 }
 
 func (h *SplitHandlerBuilder[Tin]) WithMaxAttempts(maxAttempts int) *SplitHandlerBuilder[Tin] {
-	h.maxA = maxAttempts
+	v := maxAttempts
+	h.maxA = &v
 	return h
 }
 
 func (h *SplitHandlerBuilder[Tin]) WithRetryPeriod(period time.Duration) *SplitHandlerBuilder[Tin] {
-	h.retryPeriod = period
+	v := period
+	h.retryPeriod = &v
 	return h
 }
 
@@ -522,19 +605,21 @@ type BatchSplitHandlerBuilder[Tin any] struct {
 	n           string
 	bs          int
 	bp          time.Duration
-	maxA        int
-	retryPeriod time.Duration
+	maxA        *int
+	retryPeriod *time.Duration
 	eFb         *flowBuilder
 	fb          []*flowBuilder
 }
 
 func (h *BatchSplitHandlerBuilder[Tin]) WithMaxAttempts(maxAttempts int) *BatchSplitHandlerBuilder[Tin] {
-	h.maxA = maxAttempts
+	v := maxAttempts
+	h.maxA = &v
 	return h
 }
 
 func (h *BatchSplitHandlerBuilder[Tin]) WithRetryPeriod(period time.Duration) *BatchSplitHandlerBuilder[Tin] {
-	h.retryPeriod = period
+	v := period
+	h.retryPeriod = &v
 	return h
 }
 
@@ -574,7 +659,7 @@ func (h *BatchSplitHandlerBuilder[Tin]) WithHandleFunc(f func(context.Context, S
 type ComponentBuilder struct {
 	n    string
 	h    []string
-	maxC int
+	maxC *int
 }
 
 func (c *ComponentBuilder) WithHandlers(handlerNames ...string) *ComponentBuilder {
@@ -583,8 +668,21 @@ func (c *ComponentBuilder) WithHandlers(handlerNames ...string) *ComponentBuilde
 }
 
 func (c *ComponentBuilder) WithConcurrency(maxConcurrency int) *ComponentBuilder {
-	c.maxC = maxConcurrency
+	v := maxConcurrency
+	c.maxC = &v
 	return c
+}
+
+func (c *ComponentBuilder) applyDefaults(tracker *defaultValueTracker) {
+	if tracker.components.Contains(c.n) {
+		return
+	}
+	tracker.components.Add(c.n)
+
+	if c.maxC == nil {
+		v := 10
+		c.maxC = &v
+	}
 }
 
 type BuiltApp struct {
