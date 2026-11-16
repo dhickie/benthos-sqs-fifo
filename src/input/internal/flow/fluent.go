@@ -10,8 +10,6 @@ import (
 	"time"
 )
 
-// TODO - review all default values
-// TODO - add validation when building
 // TODO - replace public facing types with interfaces
 // TODO - all the comments
 // TODO - review variable naming for clarity
@@ -96,6 +94,37 @@ func newDefaultValueTracker() *defaultValueTracker {
 	}
 }
 
+type validationResult struct {
+	errors []string
+}
+
+func newValidationResult() *validationResult {
+	return &validationResult{
+		errors: make([]string, 0),
+	}
+}
+
+func (v *validationResult) addError(err string, args ...any) {
+	v.errors = append(v.errors, fmt.Sprintf(err, args...))
+}
+
+func (v *validationResult) combine(result *validationResult) {
+	v.errors = append(v.errors, result.errors...)
+}
+
+func (v *validationResult) ok() bool {
+	return len(v.errors) == 0
+}
+
+func (v *validationResult) toError() error {
+	errs := make([]error, len(v.errors))
+	for i, e := range v.errors {
+		errs[i] = errors.New(e)
+	}
+
+	return errors.Join(errs...)
+}
+
 func (a *AppBuilder) applyDefaults() {
 	appliedTracker := newDefaultValueTracker()
 
@@ -112,13 +141,42 @@ func (a *AppBuilder) applyDefaults() {
 	}
 }
 
-func (a *AppBuilder) Build() *BuiltApp {
+func (a *AppBuilder) validate() *validationResult {
+	r := newValidationResult()
+
+	if len(a.f) == 0 {
+		r.addError("App %v must contain at least 1 flow", a.n)
+	}
+
+	hNames := util.NewSet[string]()
+	complete := util.NewSet[string]()
+	for _, v := range a.f {
+		inProg := util.NewSet[string]()
+		r.combine(v.validate(hNames, inProg, complete))
+	}
+
+	if a.c != nil {
+		for _, v := range a.c {
+			r.combine(v.validate(hNames))
+		}
+	}
+
+	return r
+}
+
+func (a *AppBuilder) Build() (*BuiltApp, error) {
 	handlerMap := make(map[string]*HandlerCoupling) // Map of handler names to couplings
 	flowMap := make(map[string][]*HandlerCoupling)  // Map of flow names to coupling collections
 	inProg := util.NewSet[string]()
 
 	// Apply default values for anything we reasonably can if it hasn't been specified by the user
 	a.applyDefaults()
+
+	// Validate the app has a valid structure
+	vRes := a.validate()
+	if !vRes.ok() {
+		return nil, vRes.toError()
+	}
 
 	// Build all the couplings between input pipes, output pipes and handlers for all flows
 	for _, v := range a.f {
@@ -165,7 +223,7 @@ func (a *AppBuilder) Build() *BuiltApp {
 		name:       a.n,
 		flows:      flows,
 		components: components,
-	}
+	}, nil
 }
 
 type flowBuilder struct {
@@ -178,8 +236,7 @@ type flowBuilder struct {
 type FlowBuilder[Tinit, Tnext any] flowBuilder
 
 func (fb *FlowBuilder[Tinit, Tnext]) WithHandler[Tout any](hb *CompletedHandlerBuilder[Tnext, Tout]) *FlowBuilder[Tinit, Tout] {
-	h := completedHandlerBuilder(*hb)
-	fb.h = append(fb.h, &h)
+	fb.h = append(fb.h, (*completedHandlerBuilder)(hb))
 	return fb.toNextBuilder[Tout]()
 }
 
@@ -210,6 +267,47 @@ func (fb *flowBuilder) applyDefaults(tracker *defaultValueTracker) {
 	if fb.fb != nil {
 		fb.fb.applyDefaults(tracker)
 	}
+}
+
+func (fb *flowBuilder) validate(handlerNames *util.Set[string], inProg *util.Set[string], complete *util.Set[string]) *validationResult {
+	r := newValidationResult()
+	if complete.Contains(fb.n) {
+		// This flow has already been validated
+		return r
+	}
+
+	if ok := inProg.Add(fb.n); !ok {
+		// Circular dependency
+		r.addError("Flow %v is in a circular dependency", fb.n)
+		return r
+	}
+
+	if len(fb.h) == 0 {
+		r.addError("Flow %v must contain at least 1 handler", fb.n)
+	}
+
+	for _, v := range fb.h {
+		if len(v.n) == 0 {
+			r.addError("Flow %v contains a handler with an empty name", fb.n)
+		}
+
+		if ok := handlerNames.Add(v.n); !ok {
+			r.addError("Handler %v in flow %v has a duplicate name", v.n, fb.n)
+		}
+
+		if v.eFb != nil {
+			r.combine(v.eFb.validate(handlerNames, inProg, complete))
+		}
+
+		if v.fb != nil {
+			for _, w := range v.fb {
+				r.combine(w.validate(handlerNames, inProg, complete))
+			}
+		}
+	}
+
+	complete.Add(fb.n)
+	return r
 }
 
 // Only builds the association between input pipes, handlers and output pipes - building components is done further up the stack
@@ -683,6 +781,22 @@ func (c *ComponentBuilder) applyDefaults(tracker *defaultValueTracker) {
 		v := 10
 		c.maxC = &v
 	}
+}
+
+func (c *ComponentBuilder) validate(handlerNames *util.Set[string]) *validationResult {
+	r := newValidationResult()
+
+	if len(c.h) == 0 {
+		r.addError("Component %v must contain at least 1 handler", c.n)
+	}
+
+	for _, v := range c.h {
+		if ok := handlerNames.Contains(v); !ok {
+			r.addError("Component %v references non-existent handler %v", c.n, v)
+		}
+	}
+
+	return r
 }
 
 type BuiltApp struct {

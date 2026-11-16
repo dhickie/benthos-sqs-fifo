@@ -148,9 +148,13 @@ func TestFluentApi_CanCreateApp_WithBatchedFlow(t *testing.T) {
 					return nil
 				}),
 		)
-	a := App(aName).
+	a, err := App(aName).
 		WithFlow(f).
 		Build()
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	bF, err := a.GetFlow[int](fName)
 	if err != nil {
 		t.Fatal(err)
@@ -197,7 +201,10 @@ func TestFluentApi_CanCreateApp_WithSimpleFlow(t *testing.T) {
 						}),
 				),
 		)
-	built := a.Build()
+	built, err := a.Build()
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	// Act
 	if f, err := built.GetFlow[int]("myFlow"); err != nil {
@@ -256,7 +263,10 @@ func TestFluentApi_CanCreateApp_WhichRetriesFailures(t *testing.T) {
 						}),
 				),
 		)
-	built := a.Build()
+	built, err := a.Build()
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	// Act
 	if f, err := built.GetFlow[int](fName); err != nil {
@@ -313,7 +323,11 @@ func TestFluentApi_CanCreateApp_WhichTriggersErrorFlow(t *testing.T) {
 				),
 		).
 		WithFlow(errFlow) // Also test that we can use the same flow multiple times in an app
-	built := a.Build()
+
+	built, err := a.Build()
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	// Act & Assert
 	f1, err := built.GetFlow[int]("mainFlow")
@@ -358,9 +372,13 @@ func TestFluentApi_CanCreateApp_WithFlowThatTriggersOtherFlow(t *testing.T) {
 		).
 		WithFlow(endFlow)
 
-	app := App("app").
+	app, err := App("app").
 		WithFlow(startFlow).
 		Build()
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	flow, err := app.GetFlow[int]("itoaFlow")
 	if err != nil {
 		t.Fatal(err)
@@ -411,7 +429,7 @@ func TestFluentApi_CanCreateApp_WithHandlersGroupedIntoComponents(t *testing.T) 
 					return nil
 				}),
 		)
-	a := App("myApp").
+	a, err := App("myApp").
 		WithFlow(f1).
 		WithFlow(f2).
 		WithComponents(
@@ -420,6 +438,9 @@ func TestFluentApi_CanCreateApp_WithHandlersGroupedIntoComponents(t *testing.T) 
 				WithConcurrency(1),
 		).
 		Build()
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	f1Built, err := a.GetFlow[int]("flow1")
 	if err != nil {
@@ -490,9 +511,12 @@ func TestFluentApi_CanCreateApp_WithSplitFlow(t *testing.T) {
 					return c.Split(m, results)
 				}),
 		)
-	app := App("splitApp").
+	app, err := App("splitApp").
 		WithFlow(f).
 		Build()
+	if err != nil {
+		t.Fatal(err)
+	}
 	flow, err := app.GetFlow[int]("flow1")
 	if err != nil {
 		t.Fatal(err)
@@ -506,30 +530,6 @@ func TestFluentApi_CanCreateApp_WithSplitFlow(t *testing.T) {
 	// Assert
 	assert.Equal(t, expectedItoaOutput, itoaOutput)
 	assert.Equal(t, expectedAddOutput, addOutput)
-}
-
-func TestFluentApi_Panics_IfComponentReferencesNonExistentHandler(t *testing.T) {
-	// Arrange
-	a := App("myApp").
-		WithFlow(
-			Flow[string]("myFlow").
-				WithHandler(
-					EndHandler[string]("myHandler").
-						WithHandleFunc(func(_ context.Context, c EndHandlerContext[string], i *Message[string]) *EndHandlerResult {
-							return nil
-						}),
-				),
-		).
-		WithComponents(
-			Component("myComponent").
-				WithHandlers("otherHandler").
-				WithConcurrency(1),
-		)
-
-	// Act & Assert
-	assert.Panics(t, func() {
-		a.Build()
-	})
 }
 
 func TestFluentApi_ReturnsErrorIfFlowDoesntExist(t *testing.T) {
@@ -548,10 +548,13 @@ func TestFluentApi_ReturnsErrorIfFlowDoesntExist(t *testing.T) {
 						}),
 				),
 		)
-	built := a.Build()
+	built, err := a.Build()
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	// Act
-	_, err := built.GetFlow[string](fName + "1")
+	_, err = built.GetFlow[string](fName + "1")
 
 	// Assert
 	assert.Error(t, err)
@@ -573,13 +576,161 @@ func TestFluentApi_ReturnsErrorIfFlowHasDifferentTriggerType(t *testing.T) {
 						}),
 				),
 		)
-	built := a.Build()
+	built, err := a.Build()
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	// Act
-	_, err := built.GetFlow[int](fName)
+	_, err = built.GetFlow[int](fName)
 
 	// Assert
 	assert.Error(t, err)
+}
+
+func TestFluentApi_ReturnsError_IfAppContainsHandlersWithDuplicateNames(t *testing.T) {
+	// Arrange
+	builder := App("myApp").
+		WithFlow(
+			Flow[int]("flow1").
+				WithHandler(
+					EndHandler[int]("handler").
+						WithHandleFunc(NilHandler),
+				),
+		).
+		WithFlow(
+			Flow[int]("flow2").
+				WithHandler(
+					EndHandler[int]("handler").
+						WithHandleFunc(NilHandler),
+				),
+		)
+
+	// Act
+	app, err := builder.Build()
+
+	// Assert
+	assert.Nil(t, app)
+	assert.Error(t, err)
+}
+
+func TestFluentApi_ReturnsError_IfAppContainsCircularDependency(t *testing.T) {
+	// Arrange
+	handlerBuilder := EndHandler[int]("handler1").
+		WithHandleFunc(NilHandler)
+	flow1 := Flow[int]("flow1").
+		WithHandler(
+			handlerBuilder,
+		)
+	*handlerBuilder = *EndHandler[int]("handler1").
+		WithErrorFlow(flow1).
+		WithHandleFunc(NilHandler)
+
+	builder := App("app").
+		WithFlow(flow1)
+
+	// Act
+	app, err := builder.Build()
+
+	// Assert
+	assert.Nil(t, app)
+	assert.Error(t, err)
+}
+
+func TestFluentApi_ReturnsError_IfAppContainsNoFlows(t *testing.T) {
+	// Arrange
+	builder := App("app")
+
+	// Act
+	app, err := builder.Build()
+
+	// Assert
+	assert.Nil(t, app)
+	assert.Error(t, err)
+}
+
+func TestFluentApi_ReturnsError_IfFlowContainsNoHandlers(t *testing.T) {
+	// Arrange
+	flow := Flow[int]("flow1")
+	builder := App("myApp").
+		WithFlow(
+			(*FlowBuilder[int, NilType])(flow),
+		)
+
+	// Act
+	app, err := builder.Build()
+
+	// Assert
+	assert.Nil(t, app)
+	assert.Error(t, err)
+}
+
+func TestFluentApi_ReturnsError_IfHandlerHasNoName(t *testing.T) {
+	// Arrange
+	builder := App("myApp").
+		WithFlow(
+			Flow[int]("flow1").
+				WithHandler(
+					EndHandler[int]("").
+						WithHandleFunc(NilHandler),
+				),
+		)
+
+	// Act
+	app, err := builder.Build()
+
+	// Assert
+	assert.Nil(t, app)
+	assert.Error(t, err)
+}
+
+func TestFluentApi_ReturnsError_IfComponentHasNonExistentHandler(t *testing.T) {
+	// Arrange
+	builder := App("myApp").
+		WithFlow(
+			Flow[int]("flow1").
+				WithHandler(
+					EndHandler[int]("handler1").
+						WithHandleFunc(NilHandler),
+				),
+		).
+		WithComponents(
+			Component("component1").
+				WithHandlers("handler1", "handler2"),
+		)
+
+	// Act
+	app, err := builder.Build()
+
+	// Assert
+	assert.Nil(t, app)
+	assert.Error(t, err)
+}
+
+func TestFluentApi_ReturnsError_IfComponentHasNoHandlers(t *testing.T) {
+	// Arrange
+	builder := App("myApp").
+		WithFlow(
+			Flow[int]("flow1").
+				WithHandler(
+					EndHandler[int]("handler1").
+						WithHandleFunc(NilHandler),
+				),
+		).
+		WithComponents(
+			Component("component1"),
+		)
+
+	// Act
+	app, err := builder.Build()
+
+	// Assert
+	assert.Nil(t, app)
+	assert.Error(t, err)
+}
+
+func NilHandler(_ context.Context, c EndHandlerContext[int], m *Message[int]) *EndHandlerResult {
+	return nil
 }
 
 func itoa(_ context.Context, c HandlerContext[int, string], i *Message[int]) *HandlerResult[string] {
