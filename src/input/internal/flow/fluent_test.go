@@ -29,7 +29,7 @@ func TestFluentApi_CanCreateSimpleHandler(t *testing.T) {
 	result := built.handle(t.Context(), hCtx, in)
 
 	// Assert
-	assert.Equal(t, n, h.n)
+	assert.Equal(t, n, h.name)
 	assert.Len(t, result, 1)
 	assert.Equal(t, in[0].id, result[0].Id)
 	assert.Equal(t, []ResultValue{{Value: expectedOut, FlowName: hCtx.currentFlow}}, result[0].Results)
@@ -58,7 +58,7 @@ func TestFluentApi_CanCreateBatchHandler(t *testing.T) {
 	result := built.handle(t.Context(), hCtx, in)
 
 	// Assert
-	assert.Equal(t, n, h.n)
+	assert.Equal(t, n, h.name)
 	assert.Len(t, result, 3)
 	for i := range in {
 		assert.Equal(t, in[i].id, result[i].Id)
@@ -87,9 +87,9 @@ func TestFluentApi_CanCreateRetriedHandler(t *testing.T) {
 		WithHandleFunc(itoa)
 
 	// Assert
-	assert.Equal(t, maxA, *h.maxA)
+	assert.Equal(t, maxA, *h.maxAttempts)
 	assert.Equal(t, retryPeriod, *h.retryPeriod)
-	assert.NotNil(t, h.eFb)
+	assert.NotNil(t, h.errorFlow)
 }
 
 func TestFluentApi_CanCreateRetriedHandler_WhenMixedWithBatchConfig(t *testing.T) {
@@ -113,9 +113,9 @@ func TestFluentApi_CanCreateRetriedHandler_WhenMixedWithBatchConfig(t *testing.T
 		WithHandleFunc(batchItoa)
 
 	// Assert
-	assert.Equal(t, maxA, *h.maxA)
+	assert.Equal(t, maxA, *h.maxAttempts)
 	assert.Equal(t, retryPeriod, *h.retryPeriod)
-	assert.NotNil(t, h.eFb)
+	assert.NotNil(t, h.errorFlow)
 }
 
 func TestFluentApi_CanCreateApp_WithBatchedFlow(t *testing.T) {
@@ -167,7 +167,7 @@ func TestFluentApi_CanCreateApp_WithBatchedFlow(t *testing.T) {
 	// Assert
 	assert.NoError(t, err)
 	assert.Equal(t, expectedOut, actualOut)
-	assert.Equal(t, fName, f.n)
+	assert.Equal(t, fName, f.name)
 }
 
 func TestFluentApi_CanCreateApp_WithSimpleFlow(t *testing.T) {
