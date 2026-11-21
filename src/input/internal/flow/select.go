@@ -4,4 +4,4 @@ package flow
 
 import "context"
 
-type selectFunc func(context.Context, []*<-chan *handlerJob, **handlerJob, *bool) (int, error)
+type selectFunc[T any] func(context.Context, []*<-chan T, *T, *bool) (int, error)

@@ -4,107 +4,111 @@ package flow
 
 import "context"
 
-var selectMap = map[int]selectFunc{
-	1:   select1,
-	2:   select2,
-	3:   select3,
-	4:   select4,
-	5:   select5,
-	6:   select6,
-	7:   select7,
-	8:   select8,
-	9:   select9,
-	10:  select10,
-	11:  select11,
-	12:  select12,
-	13:  select13,
-	14:  select14,
-	15:  select15,
-	16:  select16,
-	17:  select17,
-	18:  select18,
-	19:  select19,
-	20:  select20,
-	21:  select21,
-	22:  select22,
-	23:  select23,
-	24:  select24,
-	25:  select25,
-	26:  select26,
-	27:  select27,
-	28:  select28,
-	29:  select29,
-	30:  select30,
-	31:  select31,
-	32:  select32,
-	33:  select33,
-	34:  select34,
-	35:  select35,
-	36:  select36,
-	37:  select37,
-	38:  select38,
-	39:  select39,
-	40:  select40,
-	41:  select41,
-	42:  select42,
-	43:  select43,
-	44:  select44,
-	45:  select45,
-	46:  select46,
-	47:  select47,
-	48:  select48,
-	49:  select49,
-	50:  select50,
-	51:  select51,
-	52:  select52,
-	53:  select53,
-	54:  select54,
-	55:  select55,
-	56:  select56,
-	57:  select57,
-	58:  select58,
-	59:  select59,
-	60:  select60,
-	61:  select61,
-	62:  select62,
-	63:  select63,
-	64:  select64,
-	65:  select65,
-	66:  select66,
-	67:  select67,
-	68:  select68,
-	69:  select69,
-	70:  select70,
-	71:  select71,
-	72:  select72,
-	73:  select73,
-	74:  select74,
-	75:  select75,
-	76:  select76,
-	77:  select77,
-	78:  select78,
-	79:  select79,
-	80:  select80,
-	81:  select81,
-	82:  select82,
-	83:  select83,
-	84:  select84,
-	85:  select85,
-	86:  select86,
-	87:  select87,
-	88:  select88,
-	89:  select89,
-	90:  select90,
-	91:  select91,
-	92:  select92,
-	93:  select93,
-	94:  select94,
-	95:  select95,
-	96:  select96,
-	97:  select97,
-	98:  select98,
-	99:  select99,
-	100: select100,
+func getSelectFunc[T any](numChans int) selectFunc[T] {
+	funcMap := map[int]selectFunc[T]{
+		1:   select1,
+		2:   select2,
+		3:   select3,
+		4:   select4,
+		5:   select5,
+		6:   select6,
+		7:   select7,
+		8:   select8,
+		9:   select9,
+		10:  select10,
+		11:  select11,
+		12:  select12,
+		13:  select13,
+		14:  select14,
+		15:  select15,
+		16:  select16,
+		17:  select17,
+		18:  select18,
+		19:  select19,
+		20:  select20,
+		21:  select21,
+		22:  select22,
+		23:  select23,
+		24:  select24,
+		25:  select25,
+		26:  select26,
+		27:  select27,
+		28:  select28,
+		29:  select29,
+		30:  select30,
+		31:  select31,
+		32:  select32,
+		33:  select33,
+		34:  select34,
+		35:  select35,
+		36:  select36,
+		37:  select37,
+		38:  select38,
+		39:  select39,
+		40:  select40,
+		41:  select41,
+		42:  select42,
+		43:  select43,
+		44:  select44,
+		45:  select45,
+		46:  select46,
+		47:  select47,
+		48:  select48,
+		49:  select49,
+		50:  select50,
+		51:  select51,
+		52:  select52,
+		53:  select53,
+		54:  select54,
+		55:  select55,
+		56:  select56,
+		57:  select57,
+		58:  select58,
+		59:  select59,
+		60:  select60,
+		61:  select61,
+		62:  select62,
+		63:  select63,
+		64:  select64,
+		65:  select65,
+		66:  select66,
+		67:  select67,
+		68:  select68,
+		69:  select69,
+		70:  select70,
+		71:  select71,
+		72:  select72,
+		73:  select73,
+		74:  select74,
+		75:  select75,
+		76:  select76,
+		77:  select77,
+		78:  select78,
+		79:  select79,
+		80:  select80,
+		81:  select81,
+		82:  select82,
+		83:  select83,
+		84:  select84,
+		85:  select85,
+		86:  select86,
+		87:  select87,
+		88:  select88,
+		89:  select89,
+		90:  select90,
+		91:  select91,
+		92:  select92,
+		93:  select93,
+		94:  select94,
+		95:  select95,
+		96:  select96,
+		97:  select97,
+		98:  select98,
+		99:  select99,
+		100: select100,
+	}
+
+	return funcMap[numChans]
 }
 
 // Select performs a non-reflective select operation using an array of channels of arbitrary length.
@@ -112,11 +116,11 @@ var selectMap = map[int]selectFunc{
 // The value from the channel, and whether the channel was closed, are stored in the provided v and ok pointers.
 // Returns the index of the channel that received/closed, and an error. The error is only populated if the context is
 // cancelled.
-func Select(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
-	return selectMap[len(ch)](ctx, ch, v, ok)
+func Select[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
+	return getSelectFunc[T](len(ch))(ctx, ch, v, ok)
 }
 
-func select1(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select1[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -132,7 +136,7 @@ func select1(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *
 	}
 }
 
-func select2(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select2[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -150,7 +154,7 @@ func select2(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *
 	}
 }
 
-func select3(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select3[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -170,7 +174,7 @@ func select3(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *
 	}
 }
 
-func select4(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select4[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -192,7 +196,7 @@ func select4(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *
 	}
 }
 
-func select5(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select5[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -216,7 +220,7 @@ func select5(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *
 	}
 }
 
-func select6(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select6[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -242,7 +246,7 @@ func select6(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *
 	}
 }
 
-func select7(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select7[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -270,7 +274,7 @@ func select7(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *
 	}
 }
 
-func select8(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select8[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -300,7 +304,7 @@ func select8(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *
 	}
 }
 
-func select9(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select9[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -332,7 +336,7 @@ func select9(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *
 	}
 }
 
-func select10(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select10[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -366,7 +370,7 @@ func select10(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select11(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select11[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -402,7 +406,7 @@ func select11(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select12(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select12[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -440,7 +444,7 @@ func select12(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select13(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select13[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -480,7 +484,7 @@ func select13(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select14(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select14[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -522,7 +526,7 @@ func select14(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select15(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select15[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -566,7 +570,7 @@ func select15(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select16(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select16[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -612,7 +616,7 @@ func select16(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select17(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select17[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -660,7 +664,7 @@ func select17(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select18(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select18[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -710,7 +714,7 @@ func select18(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select19(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select19[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -762,7 +766,7 @@ func select19(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select20(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select20[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -816,7 +820,7 @@ func select20(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select21(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select21[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -872,7 +876,7 @@ func select21(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select22(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select22[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -930,7 +934,7 @@ func select22(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select23(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select23[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -990,7 +994,7 @@ func select23(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select24(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select24[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -1052,7 +1056,7 @@ func select24(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select25(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select25[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -1116,7 +1120,7 @@ func select25(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select26(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select26[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -1182,7 +1186,7 @@ func select26(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select27(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select27[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -1250,7 +1254,7 @@ func select27(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select28(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select28[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -1320,7 +1324,7 @@ func select28(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select29(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select29[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -1392,7 +1396,7 @@ func select29(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select30(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select30[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -1466,7 +1470,7 @@ func select30(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select31(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select31[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -1542,7 +1546,7 @@ func select31(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select32(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select32[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -1620,7 +1624,7 @@ func select32(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select33(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select33[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -1700,7 +1704,7 @@ func select33(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select34(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select34[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -1782,7 +1786,7 @@ func select34(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select35(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select35[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -1866,7 +1870,7 @@ func select35(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select36(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select36[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -1952,7 +1956,7 @@ func select36(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select37(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select37[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -2040,7 +2044,7 @@ func select37(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select38(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select38[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -2130,7 +2134,7 @@ func select38(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select39(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select39[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -2222,7 +2226,7 @@ func select39(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select40(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select40[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -2316,7 +2320,7 @@ func select40(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select41(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select41[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -2412,7 +2416,7 @@ func select41(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select42(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select42[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -2510,7 +2514,7 @@ func select42(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select43(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select43[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -2610,7 +2614,7 @@ func select43(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select44(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select44[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -2712,7 +2716,7 @@ func select44(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select45(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select45[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -2816,7 +2820,7 @@ func select45(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select46(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select46[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -2922,7 +2926,7 @@ func select46(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select47(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select47[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -3030,7 +3034,7 @@ func select47(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select48(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select48[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -3140,7 +3144,7 @@ func select48(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select49(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select49[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -3252,7 +3256,7 @@ func select49(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select50(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select50[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -3366,7 +3370,7 @@ func select50(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select51(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select51[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -3482,7 +3486,7 @@ func select51(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select52(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select52[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -3600,7 +3604,7 @@ func select52(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select53(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select53[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -3720,7 +3724,7 @@ func select53(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select54(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select54[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -3842,7 +3846,7 @@ func select54(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select55(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select55[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -3966,7 +3970,7 @@ func select55(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select56(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select56[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -4092,7 +4096,7 @@ func select56(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select57(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select57[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -4220,7 +4224,7 @@ func select57(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select58(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select58[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -4350,7 +4354,7 @@ func select58(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select59(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select59[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -4482,7 +4486,7 @@ func select59(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select60(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select60[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -4616,7 +4620,7 @@ func select60(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select61(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select61[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -4752,7 +4756,7 @@ func select61(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select62(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select62[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -4890,7 +4894,7 @@ func select62(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select63(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select63[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -5030,7 +5034,7 @@ func select63(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select64(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select64[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -5172,7 +5176,7 @@ func select64(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select65(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select65[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -5316,7 +5320,7 @@ func select65(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select66(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select66[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -5462,7 +5466,7 @@ func select66(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select67(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select67[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -5610,7 +5614,7 @@ func select67(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select68(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select68[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -5760,7 +5764,7 @@ func select68(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select69(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select69[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -5912,7 +5916,7 @@ func select69(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select70(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select70[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -6066,7 +6070,7 @@ func select70(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select71(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select71[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -6222,7 +6226,7 @@ func select71(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select72(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select72[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -6380,7 +6384,7 @@ func select72(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select73(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select73[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -6540,7 +6544,7 @@ func select73(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select74(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select74[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -6702,7 +6706,7 @@ func select74(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select75(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select75[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -6866,7 +6870,7 @@ func select75(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select76(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select76[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -7032,7 +7036,7 @@ func select76(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select77(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select77[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -7200,7 +7204,7 @@ func select77(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select78(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select78[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -7370,7 +7374,7 @@ func select78(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select79(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select79[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -7542,7 +7546,7 @@ func select79(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select80(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select80[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -7716,7 +7720,7 @@ func select80(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select81(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select81[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -7892,7 +7896,7 @@ func select81(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select82(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select82[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -8070,7 +8074,7 @@ func select82(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select83(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select83[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -8250,7 +8254,7 @@ func select83(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select84(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select84[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -8432,7 +8436,7 @@ func select84(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select85(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select85[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -8616,7 +8620,7 @@ func select85(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select86(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select86[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -8802,7 +8806,7 @@ func select86(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select87(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select87[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -8990,7 +8994,7 @@ func select87(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select88(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select88[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -9180,7 +9184,7 @@ func select88(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select89(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select89[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -9372,7 +9376,7 @@ func select89(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select90(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select90[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -9566,7 +9570,7 @@ func select90(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select91(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select91[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -9762,7 +9766,7 @@ func select91(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select92(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select92[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -9960,7 +9964,7 @@ func select92(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select93(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select93[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -10160,7 +10164,7 @@ func select93(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select94(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select94[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -10362,7 +10366,7 @@ func select94(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select95(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select95[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -10566,7 +10570,7 @@ func select95(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select96(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select96[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -10772,7 +10776,7 @@ func select96(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select97(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select97[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -10980,7 +10984,7 @@ func select97(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select98(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select98[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -11190,7 +11194,7 @@ func select98(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select99(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select99[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
@@ -11402,7 +11406,7 @@ func select99(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok 
 	}
 }
 
-func select100(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select100[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():

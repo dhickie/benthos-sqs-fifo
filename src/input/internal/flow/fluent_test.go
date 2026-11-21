@@ -729,6 +729,160 @@ func TestFluentApi_ReturnsError_IfComponentHasNoHandlers(t *testing.T) {
 	assert.Error(t, err)
 }
 
+func TestBuiltApp_WaitsForRunningHandlersToFinish_BeforeClosingApp(t *testing.T) {
+	// Arrange
+	startChan := make(chan struct{}, 1)
+	continueChan := make(chan struct{}, 1)
+
+	flow := Flow[int]("flow1").
+		WithHandler(
+			EndHandler[int]("handler1").
+				WithHandleFunc(func(_ context.Context, c EndHandlerContext[int], msg *Message[int]) *EndHandlerResult {
+					startChan <- struct{}{}
+					<-continueChan
+					return nil
+				}),
+		)
+
+	app, err := App("app").
+		WithFlow(flow).
+		Build()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Act
+	f, err := app.GetFlow[int]("flow1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	f.Trigger(t.Context(), 1)
+	<-startChan
+
+	var result bool
+	stopChan := make(chan struct{}, 1)
+	stoppedChan := make(chan struct{}, 1)
+	go func() {
+		stopChan <- struct{}{}
+		result = app.Stop(t.Context())
+		stoppedChan <- struct{}{}
+	}()
+	<-stopChan
+	continueChan <- struct{}{}
+	<-stoppedChan
+
+	// Assert
+	assert.True(t, result)
+}
+
+func TestBuiltApp_ForceCloses_WhenContextIsCancelled(t *testing.T) {
+	// Arrange
+	startedChan := make(chan struct{}, 1)
+	continueChan := make(chan struct{}, 1)
+	flow := Flow[int]("flow1").
+		WithHandler(
+			EndHandler[int]("handler1").
+				WithHandleFunc(func(_ context.Context, c EndHandlerContext[int], msg *Message[int]) *EndHandlerResult {
+					startedChan <- struct{}{}
+					<-continueChan
+					return nil
+				}),
+		)
+
+	app, err := App("app").
+		WithFlow(flow).
+		Build()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Act
+	f, err := app.GetFlow[int]("flow1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	f.Trigger(t.Context(), 1)
+	<-startedChan
+
+	ctx, cancel := context.WithCancel(t.Context())
+	cancel()
+	result := app.Stop(ctx)
+
+	// Assert
+	assert.False(t, result)
+}
+
+func TestBuiltApp_WaitsForBothHandlersBeforeStopping_WhenTheyArePartOfSameComponent(t *testing.T) {
+	// Arrange
+	startedChan1 := make(chan struct{}, 1)
+	continueChan1 := make(chan struct{}, 1)
+	startedChan2 := make(chan struct{}, 1)
+	continueChan2 := make(chan struct{}, 1)
+	flow1 := Flow[int]("flow1").
+		WithHandler(
+			EndHandler[int]("handler1").
+				WithHandleFunc(func(_ context.Context, c EndHandlerContext[int], msg *Message[int]) *EndHandlerResult {
+					startedChan1 <- struct{}{}
+					<-continueChan1
+					return nil
+				}),
+		)
+	flow2 := Flow[int]("flow2").
+		WithHandler(
+			EndHandler[int]("handler2").
+				WithHandleFunc(func(_ context.Context, c EndHandlerContext[int], msg *Message[int]) *EndHandlerResult {
+					startedChan2 <- struct{}{}
+					<-continueChan2
+					return nil
+				}),
+		)
+
+	app, err := App("app").
+		WithFlow(flow1).
+		WithFlow(flow2).
+		WithComponents(
+			Component("component1").
+				WithConcurrency(2).
+				WithHandlers("handler1", "handler2"),
+		).
+		Build()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	f1, err := app.GetFlow[int]("flow1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	f2, err := app.GetFlow[int]("flow2")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Act
+	f1.Trigger(t.Context(), 1)
+	f2.Trigger(t.Context(), 1)
+	<-startedChan1
+	<-startedChan2
+
+	var result bool
+	stopChan := make(chan struct{}, 1)
+	stoppedChan := make(chan struct{}, 1)
+	go func() {
+		stopChan <- struct{}{}
+		result = app.Stop(t.Context())
+		stoppedChan <- struct{}{}
+	}()
+	<-stopChan
+
+	continueChan1 <- struct{}{}
+	continueChan2 <- struct{}{}
+	<-stoppedChan
+
+	// Assert
+	assert.True(t, result)
+}
+
 func NilHandler(_ context.Context, c EndHandlerContext[int], m *Message[int]) *EndHandlerResult {
 	return nil
 }

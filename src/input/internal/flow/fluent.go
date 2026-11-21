@@ -7,13 +7,13 @@ import (
 	"fmt"
 	"log/slog"
 	"reflect"
+	"slices"
 	"time"
 )
 
 // TODO - replace public facing types with interfaces
 // TODO - all the comments
 // TODO - review variable naming for clarity
-// TODO - termination of app
 
 func App(name string) *AppBuilder {
 	return &AppBuilder{
@@ -168,6 +168,7 @@ func (a *AppBuilder) Build() (*BuiltApp, error) {
 	handlerMap := make(map[string]*HandlerCoupling) // Map of handler names to couplings
 	flowMap := make(map[string][]*HandlerCoupling)  // Map of flow names to coupling collections
 	inProg := util.NewSet[string]()
+	ctx, cancel := context.WithCancel(context.Background())
 
 	// Apply default values for anything we reasonably can if it hasn't been specified by the user
 	a.applyDefaults()
@@ -175,6 +176,7 @@ func (a *AppBuilder) Build() (*BuiltApp, error) {
 	// Validate the app has a valid structure
 	vRes := a.validate()
 	if !vRes.ok() {
+		cancel() // To avoid context leak
 		return nil, vRes.toError()
 	}
 
@@ -183,8 +185,9 @@ func (a *AppBuilder) Build() (*BuiltApp, error) {
 		v.buildCouplings(a.l, &flowMap, &handlerMap, inProg)
 	}
 
-	// Build components where multiple handlers have been grouped together
+	// Build components where multiple handlers have been grouped together, keeping track of which component each handler is in
 	components := make([]*component, 0)
+	componentMap := make(map[string]*component) // Map of handler names to components
 	for _, v := range a.c {
 		couplings := make([]*HandlerCoupling, 0, len(v.h))
 		for _, c := range v.h {
@@ -197,24 +200,31 @@ func (a *AppBuilder) Build() (*BuiltApp, error) {
 			delete(handlerMap, c)
 		}
 
-		component := NewComponent(context.TODO(), a.l, couplings, *v.maxC) // TODO add actual context
+		component := NewComponent(ctx, a.l, couplings, *v.maxC)
 		components = append(components, component)
+
+		for _, c := range v.h {
+			componentMap[c] = component
+		}
 	}
 
 	// Build a single component per remaining handler
 	for _, v := range handlerMap {
-		component := NewComponent(context.TODO(), a.l, []*HandlerCoupling{v}, 1) // TODO review default concurrency
+		component := NewComponent(ctx, a.l, []*HandlerCoupling{v}, 1)
 		components = append(components, component)
+		componentMap[v.handler.name] = component
 	}
 
 	// Build the flow objects
 	flows := make(map[string]*flow)
 	for _, v := range a.f {
 		inputPipe := flowMap[v.n][0].inputPipe
+		endComponent := componentMap[flowMap[v.n][len(flowMap[v.n])-1].handler.name]
 		flow := &flow{
-			n: v.n,
-			t: v.inT,
-			p: inputPipe,
+			n:    v.n,
+			t:    v.inT,
+			p:    inputPipe,
+			endC: endComponent,
 		}
 		flows[v.n] = flow
 	}
@@ -223,6 +233,8 @@ func (a *AppBuilder) Build() (*BuiltApp, error) {
 		name:       a.n,
 		flows:      flows,
 		components: components,
+		ctx:        ctx,
+		cancel:     cancel,
 	}, nil
 }
 
@@ -803,6 +815,8 @@ type BuiltApp struct {
 	name       string
 	flows      map[string]*flow
 	components []*component
+	ctx        context.Context // Lifetime context
+	cancel     context.CancelFunc
 }
 
 func (a *BuiltApp) GetFlow[T any](name string) (*BuiltFlow[T], error) {
@@ -817,10 +831,42 @@ func (a *BuiltApp) GetFlow[T any](name string) (*BuiltFlow[T], error) {
 	}
 }
 
+func (a *BuiltApp) Stop(ctx context.Context) bool {
+	// Close all the input pipes to prevent the flows being triggered any more
+	stopChans := make([]*<-chan struct{}, 0, len(a.flows))
+	for _, v := range a.flows {
+		close(v.p.input)
+		var c <-chan struct{} = v.endC.stopped
+
+		// Multiple flows might finish with the same component, only add it to the slice if it hasn't been added already
+		if !slices.Contains(stopChans, &c) {
+			stopChans = append(stopChans, &c)
+		}
+	}
+
+	// Wait for either all the flows to stop, or for the provided context to be cancelled
+	var x struct{}
+	var ok bool
+	for len(stopChans) > 0 {
+		if i, err := Select(ctx, stopChans, &x, &ok); err != nil {
+			// Context has been cancelled, tell the app to force shutdown
+			a.cancel()
+			return false
+		} else {
+			// Remove the stopped channel
+			stopChans = append(stopChans[:i], stopChans[i+1:]...)
+		}
+	}
+
+	// Return true if the app stopped gracefully
+	return true
+}
+
 type flow struct {
-	t reflect.Type
-	n string
-	p *Pipe
+	t    reflect.Type
+	n    string
+	p    *Pipe
+	endC *component // The component that ends the flow
 }
 
 func (f *flow) trigger(ctx context.Context, data ...any) error {

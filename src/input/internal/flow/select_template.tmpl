@@ -4,8 +4,12 @@ package flow
 
 import "context"
 
-var selectMap = map[int]selectFunc{ {{range .}}
-	{{.Size}}: select{{.Size}},{{end}}
+func getSelectFunc[T any](numChans int) selectFunc[T] {
+	funcMap := map[int]selectFunc[T]{ {{range .}}
+		{{.Size}}: select{{.Size}},{{end}}
+	}
+
+	return funcMap[numChans]
 }
 
 // Select performs a non-reflective select operation using an array of channels of arbitrary length.
@@ -13,12 +17,12 @@ var selectMap = map[int]selectFunc{ {{range .}}
 // The value from the channel, and whether the channel was closed, are stored in the provided v and ok pointers.
 // Returns the index of the channel that received/closed, and an error. The error is only populated if the context is
 // cancelled.
-func Select(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
-	return selectMap[len(ch)](ctx, ch, v, ok)
+func Select[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
+	return getSelectFunc[T](len(ch))(ctx, ch, v, ok)
 }
 
 {{range .}}
-func select{{.Size}}(ctx context.Context, ch []*<-chan *handlerJob, v **handlerJob, ok *bool) (int, error) {
+func select{{.Size}}[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	// Return immediately if the context is already cancelled
 	select {
 	case <-ctx.Done():
