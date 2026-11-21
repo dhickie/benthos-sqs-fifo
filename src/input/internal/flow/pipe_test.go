@@ -22,14 +22,14 @@ var rng = test.NewRng(0)
 func TestSendAndReceive_UseSameTypeForMessage(t *testing.T) {
 	// Arrange
 	p := makePipe()
-	defer p.Close(t.Context())
+	defer p.close(t.Context())
 	m := buildMessage()
 
 	// Act
-	if err := p.Send(t.Context(), m); err != nil {
+	if err := p.send(t.Context(), m); err != nil {
 		t.Fatal(err)
 	}
-	r, err := p.Receive(t.Context())
+	r, err := p.receive(t.Context())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -43,14 +43,14 @@ func TestSendAndReceive_UseSameTypeForMessage(t *testing.T) {
 func TestSendAndReceive_SendsAndReceivesTheSameMessage(t *testing.T) {
 	// Arrange
 	p := makePipe()
-	defer p.Close(t.Context())
+	defer p.close(t.Context())
 	m := buildMessage()
 
 	// Act
-	if err := p.Send(t.Context(), m); err != nil {
+	if err := p.send(t.Context(), m); err != nil {
 		t.Fatal(err)
 	}
-	r, err := p.Receive(t.Context())
+	r, err := p.receive(t.Context())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -69,12 +69,12 @@ func TestSendAndReceive_SendsAndReceivesTheSameMessage(t *testing.T) {
 func TestChannels_CanSendAndReceiveMessages(t *testing.T) {
 	// Arrange
 	p := makePipe()
-	defer p.Close(t.Context())
+	defer p.close(t.Context())
 	m := buildMessage()
 
 	// Act
-	p.SendChan() <- []any{m}
-	rM := <-p.ReceiveChan()
+	p.sendChan() <- []any{m}
+	rM := <-p.receiveChan()
 
 	// Assert
 	assert.Equal(t, 1, len(rM.msgs))
@@ -84,16 +84,16 @@ func TestReceive_ReceivesBatchedInput(t *testing.T) {
 	// Arrange
 	bSize := 10
 	p := makeBatchPipe(bSize, time.Duration(1)*time.Minute)
-	defer p.Close(t.Context())
+	defer p.close(t.Context())
 	m := buildMessages(bSize)
 	for i := range bSize {
-		if err := p.Send(t.Context(), m[i]); err != nil {
+		if err := p.send(t.Context(), m[i]); err != nil {
 			t.Fatal(err)
 		}
 	}
 
 	// Act
-	r, err := p.Receive(t.Context())
+	r, err := p.receive(t.Context())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -106,14 +106,14 @@ func TestReceive_ReceivesUnfilledBatchAfterBatchPeriod(t *testing.T) {
 	// Arrange
 	bSize := 10
 	p := makeBatchPipe(bSize, time.Duration(1)*time.Millisecond)
-	defer p.Close(t.Context())
+	defer p.close(t.Context())
 	m := buildMessage()
-	if err := p.Send(t.Context(), m); err != nil {
+	if err := p.send(t.Context(), m); err != nil {
 		t.Fatal(err)
 	}
 
 	// Act
-	r, err := p.Receive(t.Context())
+	r, err := p.receive(t.Context())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -128,7 +128,7 @@ func TestClose_WaitsForPipeToBeEmpty(t *testing.T) {
 	p := makePipe()
 	m := buildMessages(nM)
 	for i := range nM {
-		if err := p.Send(t.Context(), m[i]); err != nil {
+		if err := p.send(t.Context(), m[i]); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -137,7 +137,7 @@ func TestClose_WaitsForPipeToBeEmpty(t *testing.T) {
 	wg := startCloseRoutine(t.Context(), t, p)
 	rM := make([]*message, 0)
 	for range nM {
-		if r, err := p.Receive(t.Context()); err != nil {
+		if r, err := p.receive(t.Context()); err != nil {
 			t.Fatal(err)
 		} else {
 			rM = append(rM, r.msgs...)
@@ -154,7 +154,7 @@ func TestClose_ForceClosesPipeIfContextIsCancelled(t *testing.T) {
 	ctx, cancel := context.WithCancel(t.Context())
 	p := makePipe()
 	m := buildMessage()
-	if err := p.Send(t.Context(), m); err != nil {
+	if err := p.send(t.Context(), m); err != nil {
 		cancel()
 		t.Fatal(err)
 	}
@@ -171,12 +171,12 @@ func TestPipe_BatchesMessagesIntoHandlerJobWithCorrectContext(t *testing.T) {
 	currentFlow := "myFlow"
 	nextFlows := []string{"myFlow", "myOtherFlow"}
 	logger := slog.Default()
-	batchPolicy := NewBatchPolicy(2, time.Minute)
-	pipe := NewPipe("testPipe", batchPolicy, logger, currentFlow, nextFlows)
+	batchPolicy := newBatchPolicy(2, time.Minute)
+	pipe := newPipe("testPipe", batchPolicy, logger, currentFlow, nextFlows)
 
 	// Act
-	pipe.Send(t.Context(), input...)
-	job, err := pipe.Receive(t.Context())
+	pipe.send(t.Context(), input...)
+	job, err := pipe.receive(t.Context())
 
 	// Assert
 	assert.NoError(t, err)
@@ -195,10 +195,10 @@ func TestPipe_UnderHighLoad(t *testing.T) {
 	const batchPeriod = time.Duration(1) * time.Second
 
 	// Create the pipes
-	bp := NewBatchPolicy(batchSize, batchPeriod)
-	pipes := make([]*Pipe, nPipes)
+	bp := newBatchPolicy(batchSize, batchPeriod)
+	pipes := make([]*pipe, nPipes)
 	for i := range nPipes {
-		pipes[i] = NewPipe("testpipe", bp, slog.Default(), "", []string{""})
+		pipes[i] = newPipe("testpipe", bp, slog.Default(), "", []string{""})
 	}
 
 	// Start publishing & subscribing routines
@@ -214,7 +214,7 @@ func TestPipe_UnderHighLoad(t *testing.T) {
 		startTimes[i] = time.Now()
 		for j := range nMsgsPerPipe {
 			msgs[j].timeValue = time.Now()
-			if err := pipes[i].Send(t.Context(), msgs[j]); err != nil {
+			if err := pipes[i].send(t.Context(), msgs[j]); err != nil {
 				sendErrs[i] = err
 				return
 			}
@@ -226,7 +226,7 @@ func TestPipe_UnderHighLoad(t *testing.T) {
 		latencies[i] = make([]float64, nMsgsPerPipe)
 		received := 0
 		for received < nMsgsPerPipe {
-			if batch, err := pipes[i].Receive(t.Context()); err != nil {
+			if batch, err := pipes[i].receive(t.Context()); err != nil {
 				receiveErrs[i] = err
 				return
 			} else {
@@ -319,12 +319,12 @@ func meanMany(values [][]float64) float64 {
 	return total / float64(n)
 }
 
-func startCloseRoutine(ctx context.Context, t *testing.T, ch *Pipe) *sync.WaitGroup {
+func startCloseRoutine(ctx context.Context, t *testing.T, ch *pipe) *sync.WaitGroup {
 	wg := sync.WaitGroup{}
 	c := util.NewAsyncCond()
 	wg.Go(func() {
 		c.Signal()
-		ch.Close(ctx)
+		ch.close(ctx)
 	})
 	if err := c.Wait(ctx); err != nil { // Wait for the goroutine to start
 		t.Fatal(err)
@@ -333,13 +333,13 @@ func startCloseRoutine(ctx context.Context, t *testing.T, ch *Pipe) *sync.WaitGr
 	return &wg
 }
 
-func makePipe() *Pipe {
-	return NewPipe("testpipe", nil, nil, "", []string{""})
+func makePipe() *pipe {
+	return newPipe("testpipe", nil, nil, "", []string{""})
 }
 
-func makeBatchPipe(batchSize int, period time.Duration) *Pipe {
-	bp := NewBatchPolicy(batchSize, period)
-	return NewPipe("testpipe", bp, nil, "", []string{""})
+func makeBatchPipe(batchSize int, period time.Duration) *pipe {
+	bp := newBatchPolicy(batchSize, period)
+	return newPipe("testpipe", bp, nil, "", []string{""})
 }
 
 func buildMessages(n int) []*TestMessage {

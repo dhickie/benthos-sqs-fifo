@@ -908,7 +908,7 @@ func reverse(i string) string {
 	return string(r)
 }
 
-func nullHandler[Tin any](name string) EndHandleFunc[Tin] {
+func nullHandler[Tin any](name string) endHandleFunc[Tin] {
 	return func(_ context.Context, c EndHandlerContext[Tin], i *Message[Tin]) *EndHandlerResult {
 		return nil
 	}

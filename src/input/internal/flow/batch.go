@@ -2,14 +2,14 @@ package flow
 
 import "time"
 
-type BatchPolicy struct {
-	Number int
-	Period time.Duration
+type batchPolicy struct {
+	number int
+	period time.Duration
 }
 
-func NewBatchPolicy(number int, period time.Duration) *BatchPolicy {
-	return &BatchPolicy{
-		Number: number,
-		Period: period,
+func newBatchPolicy(number int, period time.Duration) *batchPolicy {
+	return &batchPolicy{
+		number: number,
+		period: period,
 	}
 }

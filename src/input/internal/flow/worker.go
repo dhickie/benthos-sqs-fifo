@@ -8,9 +8,9 @@ import (
 	"sync"
 )
 
-type WorkerPool struct {
-	workers  []*Worker
-	workChan chan *WorkItem
+type workerPool struct {
+	workers  []*worker
+	workChan chan *workItem
 
 	ctx     context.Context
 	wg      *sync.WaitGroup
@@ -19,15 +19,15 @@ type WorkerPool struct {
 	logger *slog.Logger
 }
 
-func NewWorkerPool(ctx context.Context, logger *slog.Logger, numWorkers int) *WorkerPool {
-	workers := make([]*Worker, numWorkers)
-	input := make(chan *WorkItem)
+func newWorkerPool(ctx context.Context, logger *slog.Logger, numWorkers int) *workerPool {
+	workers := make([]*worker, numWorkers)
+	input := make(chan *workItem)
 	wg := &sync.WaitGroup{}
 	for i := range numWorkers {
-		workers[i] = NewWorker(ctx, wg, input)
+		workers[i] = newWorker(ctx, wg, input)
 	}
 
-	wp := &WorkerPool{
+	wp := &workerPool{
 		workers:  workers,
 		workChan: input,
 		ctx:      ctx,
@@ -40,7 +40,7 @@ func NewWorkerPool(ctx context.Context, logger *slog.Logger, numWorkers int) *Wo
 	return wp
 }
 
-func (p *WorkerPool) Do(wg *util.ContextWaitGroup, h *handler, job *handlerJob, o map[string]*Pipe, retryPolicy *RetryPolicy) error {
+func (p *workerPool) do(wg *util.ContextWaitGroup, h *handler, job *handlerJob, o map[string]*pipe, retryPolicy *retryPolicy) error {
 	f := func() error {
 		numAttempts := 0
 
@@ -60,7 +60,7 @@ func (p *WorkerPool) Do(wg *util.ContextWaitGroup, h *handler, job *handlerJob, 
 						if pipe, ok := o[w.FlowName]; !ok {
 							// TODO log an error
 						} else {
-							pipe.Send(p.ctx, w.Value)
+							pipe.send(p.ctx, w.Value)
 						}
 					}
 				} else if p.ctx.Err() != nil { // Was the context cancelled?
@@ -99,7 +99,7 @@ func (p *WorkerPool) Do(wg *util.ContextWaitGroup, h *handler, job *handlerJob, 
 					for i, v := range errorMsgs {
 						errorMsgValues[i] = v.value
 					}
-					if err := retryPolicy.errPipe.Send(p.ctx, errorMsgValues...); err != nil {
+					if err := retryPolicy.errPipe.send(p.ctx, errorMsgValues...); err != nil {
 						return err
 					}
 				} else {
@@ -110,7 +110,7 @@ func (p *WorkerPool) Do(wg *util.ContextWaitGroup, h *handler, job *handlerJob, 
 			return nil
 		}
 	}
-	wi := NewWorkItem(f, wg)
+	wi := newWorkItem(f, wg)
 
 	select {
 	case <-p.ctx.Done():
@@ -120,19 +120,19 @@ func (p *WorkerPool) Do(wg *util.ContextWaitGroup, h *handler, job *handlerJob, 
 	}
 }
 
-func (p *WorkerPool) stoppedMonitor() {
+func (p *workerPool) stoppedMonitor() {
 	p.wg.Wait()
 	close(p.stopped)
 	close(p.workChan)
 }
 
-type Worker struct {
-	input chan *WorkItem
+type worker struct {
+	input chan *workItem
 	ctx   context.Context
 }
 
-func NewWorker(ctx context.Context, wg *sync.WaitGroup, input chan *WorkItem) *Worker {
-	w := &Worker{
+func newWorker(ctx context.Context, wg *sync.WaitGroup, input chan *workItem) *worker {
+	w := &worker{
 		input: input,
 		ctx:   ctx,
 	}
@@ -141,8 +141,8 @@ func NewWorker(ctx context.Context, wg *sync.WaitGroup, input chan *WorkItem) *W
 	return w
 }
 
-func (w *Worker) run() {
-	var i *WorkItem
+func (w *worker) run() {
+	var i *workItem
 	var err error
 
 	for {
@@ -165,13 +165,13 @@ func (w *Worker) run() {
 	}
 }
 
-type WorkItem struct {
+type workItem struct {
 	f  func() error
 	wg *util.ContextWaitGroup
 }
 
-func NewWorkItem(f func() error, wg *util.ContextWaitGroup) *WorkItem {
-	return &WorkItem{
+func newWorkItem(f func() error, wg *util.ContextWaitGroup) *workItem {
+	return &workItem{
 		f:  f,
 		wg: wg,
 	}

@@ -164,8 +164,8 @@ func (a *AppBuilder) validate() *validationResult {
 }
 
 func (a *AppBuilder) Build() (*BuiltApp, error) {
-	handlerMap := make(map[string]*HandlerCoupling) // Map of handler names to couplings
-	flowMap := make(map[string][]*HandlerCoupling)  // Map of flow names to coupling collections
+	handlerMap := make(map[string]*handlerCoupling) // Map of handler names to couplings
+	flowMap := make(map[string][]*handlerCoupling)  // Map of flow names to coupling collections
 	inProg := util.NewSet[string]()
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -188,7 +188,7 @@ func (a *AppBuilder) Build() (*BuiltApp, error) {
 	components := make([]*component, 0)
 	componentMap := make(map[string]*component) // Map of handler names to components
 	for _, v := range a.components {
-		couplings := make([]*HandlerCoupling, 0, len(v.handlers))
+		couplings := make([]*handlerCoupling, 0, len(v.handlers))
 		for _, c := range v.handlers {
 			coupling, ok := handlerMap[c]
 			if !ok {
@@ -199,7 +199,7 @@ func (a *AppBuilder) Build() (*BuiltApp, error) {
 			delete(handlerMap, c)
 		}
 
-		component := NewComponent(ctx, a.logger, couplings, *v.maxConcurrency)
+		component := newComponent(ctx, a.logger, couplings, *v.maxConcurrency)
 		components = append(components, component)
 
 		for _, c := range v.handlers {
@@ -209,7 +209,7 @@ func (a *AppBuilder) Build() (*BuiltApp, error) {
 
 	// Build a single component per remaining handler
 	for _, v := range handlerMap {
-		component := NewComponent(ctx, a.logger, []*HandlerCoupling{v}, 1)
+		component := newComponent(ctx, a.logger, []*handlerCoupling{v}, 1)
 		components = append(components, component)
 		componentMap[v.handler.name] = component
 	}
@@ -322,7 +322,7 @@ func (fb *flowBuilder) validate(handlerNames *util.Set[string], inProg *util.Set
 }
 
 // Only builds the association between input pipes, handlers and output pipes - building components is done further up the stack
-func (fb *flowBuilder) buildCouplings(logger *slog.Logger, flowMap *map[string][]*HandlerCoupling, handlerMap *map[string]*HandlerCoupling, inProg *util.Set[string]) []*HandlerCoupling {
+func (fb *flowBuilder) buildCouplings(logger *slog.Logger, flowMap *map[string][]*handlerCoupling, handlerMap *map[string]*handlerCoupling, inProg *util.Set[string]) []*handlerCoupling {
 	if f, ok := (*flowMap)[fb.name]; ok {
 		// The flow's already been built, just return it
 		return f
@@ -335,19 +335,19 @@ func (fb *flowBuilder) buildCouplings(logger *slog.Logger, flowMap *map[string][
 		panic(err)
 	}
 
-	couplings := make([]*HandlerCoupling, 0)
+	couplings := make([]*handlerCoupling, 0)
 
 	// Create all the input pipes and associate them with their handlers
 	for _, v := range fb.handlers {
-		var errPipe *Pipe
+		var errPipe *pipe
 		if v.errorFlow != nil {
 			errPipe = v.errorFlow.buildCouplings(logger, flowMap, handlerMap, inProg)[0].inputPipe
 		}
-		retryPolicy := NewRetryPolicy(errPipe, *v.maxAttempts, *v.retryPeriod)
+		retryPolicy := newRetryPolicy(errPipe, *v.maxAttempts, *v.retryPeriod)
 
-		coupling := &HandlerCoupling{
+		coupling := &handlerCoupling{
 			handler:     v.build(),
-			inputPipe:   NewPipe(fmt.Sprintf("%v_input", v.name), v.batchPolicy, logger, fb.name, []string{}), // The following flow names are added later
+			inputPipe:   newPipe(fmt.Sprintf("%v_input", v.name), v.batchPolicy, logger, fb.name, []string{}), // The following flow names are added later
 			retryPolicy: retryPolicy,
 		}
 		(*handlerMap)[coupling.handler.name] = coupling
@@ -355,7 +355,7 @@ func (fb *flowBuilder) buildCouplings(logger *slog.Logger, flowMap *map[string][
 	}
 
 	// If the flow is completed by another flow or a split handler, build those flows as well
-	nextFlowPipes := make([]*Pipe, 0)
+	nextFlowPipes := make([]*pipe, 0)
 	lastHandler := fb.handlers[len(fb.handlers)-1]
 	if fb.continuingFlow != nil && len(lastHandler.continuingFlows) == 0 { // Flow is completed by a different flow
 		nextFlowPipes = append(nextFlowPipes, fb.continuingFlow.buildCouplings(logger, flowMap, handlerMap, inProg)[0].inputPipe)
@@ -370,7 +370,7 @@ func (fb *flowBuilder) buildCouplings(logger *slog.Logger, flowMap *map[string][
 
 	// Associate input pipes as the previous handler's output
 	for i, v := range couplings {
-		v.outputPipes = make(map[string]*Pipe)
+		v.outputPipes = make(map[string]*pipe)
 		if i == len(fb.handlers)-1 { // Final coupling
 			// If this flow is followed by other flows, set name of the following flows and use their input pipes as the output pipe for this handler
 			for _, w := range nextFlowPipes {
@@ -391,7 +391,7 @@ func (fb *flowBuilder) buildCouplings(logger *slog.Logger, flowMap *map[string][
 
 type completedHandlerBuilder struct {
 	name            string
-	batchPolicy     *BatchPolicy
+	batchPolicy     *batchPolicy
 	maxAttempts     *int
 	retryPeriod     *time.Duration
 	errorFlow       *flowBuilder
@@ -414,7 +414,7 @@ func (h *completedHandlerBuilder) applyDefaults(tracker *defaultValueTracker) {
 	}
 
 	if h.batchPolicy == nil {
-		h.batchPolicy = NewBatchPolicy(1, time.Second)
+		h.batchPolicy = newBatchPolicy(1, time.Second)
 	}
 
 	if h.maxAttempts == nil {
@@ -526,7 +526,7 @@ func (h *BatchHandlerBuilder[Tin, Tout]) WithErrorFlow(errFlow *FlowBuilder[Tin,
 func (h *BatchHandlerBuilder[Tin, Tout]) WithHandleFunc(f func(context.Context, HandlerContext[Tin, Tout], []*Message[Tin]) []*HandlerResult[Tout]) *CompletedHandlerBuilder[Tin, Tout] {
 	return &CompletedHandlerBuilder[Tin, Tout]{
 		name:            h.name,
-		batchPolicy:     NewBatchPolicy(h.batchSize, h.batchPeriod),
+		batchPolicy:     newBatchPolicy(h.batchSize, h.batchPeriod),
 		maxAttempts:     h.maxAttempts,
 		retryPeriod:     h.retryPeriod,
 		errorFlow:       h.errorFlow,
@@ -633,7 +633,7 @@ func (h *BatchEndHandlerBuilder[Tin]) WithErrorFlow(errFlow *FlowBuilder[Tin, Ni
 func (h *BatchEndHandlerBuilder[Tin]) WithHandleFunc(f func(context.Context, EndHandlerContext[Tin], []*Message[Tin]) []*EndHandlerResult) *CompletedHandlerBuilder[Tin, NilType] {
 	return &CompletedHandlerBuilder[Tin, NilType]{
 		name:            h.name,
-		batchPolicy:     NewBatchPolicy(h.batchSize, h.batchPeriod),
+		batchPolicy:     newBatchPolicy(h.batchSize, h.batchPeriod),
 		maxAttempts:     h.maxAttempts,
 		retryPeriod:     h.retryPeriod,
 		errorFlow:       h.errorFlow,
@@ -753,7 +753,7 @@ func (h *BatchSplitHandlerBuilder[Tin]) WithFlow(flow *FlowBuilder[Tin, NilType]
 func (h *BatchSplitHandlerBuilder[Tin]) WithHandleFunc(f func(context.Context, SplitHandlerContext[Tin], []*Message[Tin]) []*SplitHandlerResult) *CompletedHandlerBuilder[Tin, NilType] {
 	return &CompletedHandlerBuilder[Tin, NilType]{
 		name:            h.name,
-		batchPolicy:     NewBatchPolicy(h.batchSize, h.batchPeriod),
+		batchPolicy:     newBatchPolicy(h.batchSize, h.batchPeriod),
 		maxAttempts:     h.maxAttempts,
 		retryPeriod:     h.retryPeriod,
 		errorFlow:       h.errorFlow,
@@ -846,7 +846,7 @@ func (a *BuiltApp) Stop(ctx context.Context) bool {
 	var x struct{}
 	var ok bool
 	for len(stopChans) > 0 {
-		if i, err := Select(ctx, stopChans, &x, &ok); err != nil {
+		if i, err := arraySelect(ctx, stopChans, &x, &ok); err != nil {
 			// Context has been cancelled, tell the app to force shutdown
 			a.cancel()
 			return false
@@ -863,12 +863,12 @@ func (a *BuiltApp) Stop(ctx context.Context) bool {
 type flow struct {
 	triggerT     reflect.Type
 	name         string
-	inputPipe    *Pipe
+	inputPipe    *pipe
 	endComponent *component // The component that ends the flow
 }
 
 func (f *flow) trigger(ctx context.Context, data ...any) error {
-	return f.inputPipe.Send(ctx, data...)
+	return f.inputPipe.send(ctx, data...)
 }
 
 type BuiltFlow[T any] struct {

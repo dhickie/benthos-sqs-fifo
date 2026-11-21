@@ -18,12 +18,12 @@ func (h *handler) handle(ctx context.Context, hCtx handlerContext, msgs []*messa
 	return h.handleFunc(ctx, hCtx, msgs)
 }
 
-type EndHandleFunc[Tin any] func(context.Context, EndHandlerContext[Tin], *Message[Tin]) *EndHandlerResult
-type BatchEndHandleFunc[Tin any] func(context.Context, EndHandlerContext[Tin], []*Message[Tin]) []*EndHandlerResult
-type HandleFunc[Tin, Tout any] func(context.Context, HandlerContext[Tin, Tout], *Message[Tin]) *HandlerResult[Tout]
-type BatchHandleFunc[Tin, Tout any] func(context.Context, HandlerContext[Tin, Tout], []*Message[Tin]) []*HandlerResult[Tout]
-type SplitHandleFunc[Tin any] func(context.Context, SplitHandlerContext[Tin], *Message[Tin]) *SplitHandlerResult
-type BatchSplitHandleFunc[Tin any] func(context.Context, SplitHandlerContext[Tin], []*Message[Tin]) []*SplitHandlerResult
+type endHandleFunc[Tin any] func(context.Context, EndHandlerContext[Tin], *Message[Tin]) *EndHandlerResult
+type batchEndHandleFunc[Tin any] func(context.Context, EndHandlerContext[Tin], []*Message[Tin]) []*EndHandlerResult
+type handleFunc[Tin, Tout any] func(context.Context, HandlerContext[Tin, Tout], *Message[Tin]) *HandlerResult[Tout]
+type batchHandleFunc[Tin, Tout any] func(context.Context, HandlerContext[Tin, Tout], []*Message[Tin]) []*HandlerResult[Tout]
+type splitHandleFunc[Tin any] func(context.Context, SplitHandlerContext[Tin], *Message[Tin]) *SplitHandlerResult
+type batchSplitHandleFunc[Tin any] func(context.Context, SplitHandlerContext[Tin], []*Message[Tin]) []*SplitHandlerResult
 
 func newEndHandler[Tin any](name string, f func(context.Context, EndHandlerContext[Tin], *Message[Tin]) *EndHandlerResult) *handler {
 	return &handler{

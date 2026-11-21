@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var bp = NewBatchPolicy(1, time.Second)
+var bp = newBatchPolicy(1, time.Second)
 var l = slog.Default()
 
 func TestComponent_CanReceiveAndCarryOutWork(t *testing.T) {
@@ -24,8 +24,8 @@ func TestComponent_CanReceiveAndCarryOutWork(t *testing.T) {
 	_, inP, outP := createComponent(t.Context(), itoaBatch)
 
 	// Act
-	_ = inP.Send(t.Context(), input...)
-	result, _ := outP.Receive(t.Context())
+	_ = inP.send(t.Context(), input...)
+	result, _ := outP.receive(t.Context())
 
 	// Assert
 	for i, v := range result.msgs {
@@ -45,8 +45,8 @@ func TestComponents_CanBeChainedTogether(t *testing.T) {
 	_, inP, outP := createComponentChain(t.Context(), itoaBatch, reverseBatch)
 
 	// Act
-	_ = inP.Send(t.Context(), input...)
-	result, _ := outP.Receive(t.Context())
+	_ = inP.send(t.Context(), input...)
+	result, _ := outP.receive(t.Context())
 
 	// Assert
 	for i, v := range result.msgs {
@@ -68,10 +68,10 @@ func TestComponents_CanContainMultipleHandlers(t *testing.T) {
 	_, inPipes, outPipes := createMultiHandlerComponent(t.Context(), itoaBatch, reverseBatch)
 
 	// Act
-	_ = inPipes[0].Send(t.Context(), in1...)
-	_ = inPipes[1].Send(t.Context(), in2...)
-	result1, _ := outPipes[0].Receive(t.Context())
-	result2, _ := outPipes[1].Receive(t.Context())
+	_ = inPipes[0].send(t.Context(), in1...)
+	_ = inPipes[1].send(t.Context(), in2...)
+	result1, _ := outPipes[0].receive(t.Context())
+	result2, _ := outPipes[1].receive(t.Context())
 
 	// Assert
 	for i, v := range result1.msgs {
@@ -108,12 +108,12 @@ func TestComponents_CanHaveNoOutput(t *testing.T) {
 	// Act
 	mu.Lock()
 	defer mu.Unlock()
-	inP.Send(t.Context(), in)
+	inP.send(t.Context(), in)
 	cond.Wait()
-	close(inP.SendChan())
+	close(inP.sendChan())
 
 	// Assert
-	<-c.Stopped()
+	<-c.stopped
 }
 
 func TestComponent_CanHaveOptionalOutputs(t *testing.T) {
@@ -130,11 +130,11 @@ func TestComponent_CanHaveOptionalOutputs(t *testing.T) {
 
 		return results
 	})
-	defer close(inP.SendChan())
+	defer close(inP.sendChan())
 
 	// Act
-	inP.Send(t.Context(), in...)
-	out, err := outP.Receive(t.Context())
+	inP.send(t.Context(), in...)
+	out, err := outP.receive(t.Context())
 
 	// Assert
 	assert.NoError(t, err)
@@ -160,12 +160,12 @@ func TestComponent_CanHaveMultipleOutputs(t *testing.T) {
 		return out
 	}
 	_, inP, outP1, outP2 := createMultiOutputComponent(t.Context(), f)
-	defer close(inP.SendChan())
+	defer close(inP.sendChan())
 
 	// Act
-	inP.Send(t.Context(), in...)
-	out1, err1 := outP1.Receive(t.Context())
-	out2, err2 := outP2.Receive(t.Context())
+	inP.send(t.Context(), in...)
+	out1, err1 := outP1.receive(t.Context())
+	out2, err2 := outP2.receive(t.Context())
 
 	// Assert
 	assert.NoError(t, err1)
@@ -181,13 +181,13 @@ func TestComponent_Stops_AndClosesOutputPipe_WhenInputPipeHasClosed(t *testing.T
 	c, inP, outP := createComponent(t.Context(), itoaBatch)
 
 	// Act
-	close(inP.SendChan())
+	close(inP.sendChan())
 
 	// Assert
-	_, ok := <-c.Stopped()
+	_, ok := <-c.stopped
 	assert.False(t, ok)
 	err := wait.Until(t.Context(), func(_ context.Context) (bool, error) {
-		_, ok := <-outP.ReceiveChan()
+		_, ok := <-outP.receiveChan()
 		return !ok, nil
 	}, time.Second)
 	assert.NoError(t, err)
@@ -203,7 +203,7 @@ func TestComponent_Stops_WhenContextIsCancelled(t *testing.T) {
 	cancel()
 
 	// Assert
-	_, ok := <-c.Stopped()
+	_, ok := <-c.stopped
 	assert.False(t, ok)
 }
 
@@ -214,10 +214,10 @@ func TestComponent_WaitsToStop_UntilAllInputPipesAreClosed(t *testing.T) {
 	c, inP, outP := createMultiHandlerComponent(t.Context(), itoaBatch, reverseBatch)
 
 	// Act
-	close(inP[0].SendChan())
-	_ = inP[1].Send(t.Context(), input...)
-	result, _ := outP[1].Receive(t.Context())
-	close(inP[1].SendChan())
+	close(inP[0].sendChan())
+	_ = inP[1].send(t.Context(), input...)
+	result, _ := outP[1].receive(t.Context())
+	close(inP[1].sendChan())
 
 	// Assert
 	for i, v := range result.msgs {
@@ -228,7 +228,7 @@ func TestComponent_WaitsToStop_UntilAllInputPipesAreClosed(t *testing.T) {
 
 		assert.Equal(t, expectedOutput[i], vStr)
 	}
-	_, ok := <-c.Stopped()
+	_, ok := <-c.stopped
 	assert.False(t, ok)
 }
 
@@ -241,15 +241,15 @@ func TestComponent_WaitsForWorkToFinish_BeforeStopping(t *testing.T) {
 	input := []int{123}
 
 	// Act
-	_ = inP.Send(t.Context(), input...)
+	_ = inP.send(t.Context(), input...)
 	started.WaitForValue(t.Context(), true)
-	close(inP.SendChan())
+	close(inP.sendChan())
 	err := wait.Until(t.Context(), func(_ context.Context) (bool, error) {
-		<-c.Stopped()
+		<-c.stopped
 		return true, nil
 	}, time.Duration(10)*time.Millisecond)
 	cont.Set(true)
-	_, ok := <-c.Stopped()
+	_, ok := <-c.stopped
 
 	// Assert
 	assert.Error(t, err)
@@ -263,11 +263,11 @@ func TestComponent_SendsToErrorPipe_AfterFailure(t *testing.T) {
 		return []*HandlerResult[string]{c.Error(i[0], errors.New("test error"))}
 	}
 	_, inP, _, errorP := createErrorComponent(t.Context(), f, 1, 1)
-	defer close(inP.SendChan())
+	defer close(inP.sendChan())
 
 	// Act
-	_ = inP.Send(t.Context(), input...)
-	result, err := errorP.Receive(t.Context())
+	_ = inP.send(t.Context(), input...)
+	result, err := errorP.receive(t.Context())
 
 	// Assert
 	assert.NoError(t, err)
@@ -285,11 +285,11 @@ func TestComponent_RetriesHandler_UpToMaxAttempts(t *testing.T) {
 		return []*HandlerResult[string]{c.Error(i[0], errors.New("test error"))}
 	}
 	_, inP, _, errorP := createErrorComponent(t.Context(), f, maxAttempts, 1)
-	defer close(inP.SendChan())
+	defer close(inP.sendChan())
 
 	// Act
-	_ = inP.Send(t.Context(), input...)
-	errorP.Receive(t.Context()) // Ensure the work is completed
+	_ = inP.send(t.Context(), input...)
+	errorP.receive(t.Context()) // Ensure the work is completed
 
 	// Assert
 	assert.Equal(t, maxAttempts, attempts)
@@ -307,9 +307,9 @@ func TestComponent_IgnoresErrors_IfNoErrorPipeIsDefined(t *testing.T) {
 	c, inP := createErrorComponentWithNoErrorPipe(t.Context(), f, maxAttempts)
 
 	// Act
-	_ = inP.Send(t.Context(), input...)
-	close(inP.SendChan())
-	<-c.Stopped()
+	_ = inP.send(t.Context(), input...)
+	close(inP.sendChan())
+	<-c.stopped
 
 	// Assert
 	assert.Equal(t, maxAttempts, attempts)
@@ -343,8 +343,8 @@ func TestComponent_OnlyRetriesFailedMessagesFromBatch(t *testing.T) {
 	_, inP, outP, _ := createErrorComponent(t.Context(), f, maxAttempts, 2)
 
 	// Act
-	inP.Send(t.Context(), input...)
-	out, err := outP.Receive(t.Context())
+	inP.send(t.Context(), input...)
+	out, err := outP.receive(t.Context())
 
 	// Assert
 	assert.NoError(t, err)
@@ -377,7 +377,7 @@ func reverseBatch(_ context.Context, c HandlerContext[string, string], str []*Me
 	return o
 }
 
-func bigWorkFactory(started *util.SyncValue[bool], cont *util.SyncValue[bool]) BatchHandleFunc[int, string] {
+func bigWorkFactory(started *util.SyncValue[bool], cont *util.SyncValue[bool]) batchHandleFunc[int, string] {
 	return func(ctx context.Context, c HandlerContext[int, string], input []*Message[int]) []*HandlerResult[string] {
 		started.Set(true)
 		cont.WaitForValue(ctx, true)
@@ -385,80 +385,80 @@ func bigWorkFactory(started *util.SyncValue[bool], cont *util.SyncValue[bool]) B
 	}
 }
 
-func createComponent(ctx context.Context, handleFunc BatchHandleFunc[int, string]) (*component, *Pipe, *Pipe) {
-	bp := NewBatchPolicy(5, time.Second)
-	inP := NewPipe("input", bp, l, "", []string{""})
-	outP := NewPipe("output", bp, l, "", []string{""})
+func createComponent(ctx context.Context, handleFunc batchHandleFunc[int, string]) (*component, *pipe, *pipe) {
+	bp := newBatchPolicy(5, time.Second)
+	inP := newPipe("input", bp, l, "", []string{""})
+	outP := newPipe("output", bp, l, "", []string{""})
 	handler := newBatchHandler("", handleFunc)
-	coupling := NewHandlerCoupling(handler, inP, map[string]*Pipe{"": outP}, nil)
+	coupling := newHandlerCoupling(handler, inP, map[string]*pipe{"": outP}, nil)
 
-	return NewComponent(ctx, l, []*HandlerCoupling{coupling}, 1), inP, outP
+	return newComponent(ctx, l, []*handlerCoupling{coupling}, 1), inP, outP
 }
 
-func createComponentChain(ctx context.Context, f1 BatchHandleFunc[int, string], f2 BatchHandleFunc[string, string]) ([]*component, *Pipe, *Pipe) {
-	p1 := NewPipe("input", bp, l, "", []string{""})
-	p2 := NewPipe("intermediate", bp, l, "", []string{""})
-	p3 := NewPipe("output", bp, l, "", []string{""})
+func createComponentChain(ctx context.Context, f1 batchHandleFunc[int, string], f2 batchHandleFunc[string, string]) ([]*component, *pipe, *pipe) {
+	p1 := newPipe("input", bp, l, "", []string{""})
+	p2 := newPipe("intermediate", bp, l, "", []string{""})
+	p3 := newPipe("output", bp, l, "", []string{""})
 	handler1 := newBatchHandler("", f1)
 	handler2 := newBatchHandler("", f2)
-	couplings1 := []*HandlerCoupling{NewHandlerCoupling(handler1, p1, map[string]*Pipe{"": p2}, nil)}
-	couplings2 := []*HandlerCoupling{NewHandlerCoupling(handler2, p2, map[string]*Pipe{"": p3}, nil)}
-	c1 := NewComponent(ctx, l, couplings1, 1)
-	c2 := NewComponent(ctx, l, couplings2, 1)
+	couplings1 := []*handlerCoupling{newHandlerCoupling(handler1, p1, map[string]*pipe{"": p2}, nil)}
+	couplings2 := []*handlerCoupling{newHandlerCoupling(handler2, p2, map[string]*pipe{"": p3}, nil)}
+	c1 := newComponent(ctx, l, couplings1, 1)
+	c2 := newComponent(ctx, l, couplings2, 1)
 
 	return []*component{c1, c2}, p1, p3
 }
 
-func createMultiHandlerComponent(ctx context.Context, f1 BatchHandleFunc[int, string], f2 BatchHandleFunc[string, string]) (*component, []*Pipe, []*Pipe) {
-	inP1 := NewPipe("input1", bp, l, "", []string{""})
-	inP2 := NewPipe("input2", bp, l, "", []string{""})
-	outP1 := NewPipe("output1", bp, l, "", []string{""})
-	outP2 := NewPipe("output2", bp, l, "", []string{""})
+func createMultiHandlerComponent(ctx context.Context, f1 batchHandleFunc[int, string], f2 batchHandleFunc[string, string]) (*component, []*pipe, []*pipe) {
+	inP1 := newPipe("input1", bp, l, "", []string{""})
+	inP2 := newPipe("input2", bp, l, "", []string{""})
+	outP1 := newPipe("output1", bp, l, "", []string{""})
+	outP2 := newPipe("output2", bp, l, "", []string{""})
 	handler1 := newBatchHandler("", f1)
 	handler2 := newBatchHandler("", f2)
-	couplings := []*HandlerCoupling{
-		NewHandlerCoupling(handler1, inP1, map[string]*Pipe{"": outP1}, nil),
-		NewHandlerCoupling(handler2, inP2, map[string]*Pipe{"": outP2}, nil),
+	couplings := []*handlerCoupling{
+		newHandlerCoupling(handler1, inP1, map[string]*pipe{"": outP1}, nil),
+		newHandlerCoupling(handler2, inP2, map[string]*pipe{"": outP2}, nil),
 	}
-	c := NewComponent(ctx, l, couplings, 1)
-	return c, []*Pipe{inP1, inP2}, []*Pipe{outP1, outP2}
+	c := newComponent(ctx, l, couplings, 1)
+	return c, []*pipe{inP1, inP2}, []*pipe{outP1, outP2}
 }
 
-func createErrorComponent(ctx context.Context, f BatchHandleFunc[int, string], maxAttempts int, batchSize int) (*component, *Pipe, *Pipe, *Pipe) {
-	bp := NewBatchPolicy(batchSize, time.Minute)
-	inP := NewPipe("input", bp, l, "", []string{""})
-	outP := NewPipe("output", bp, l, "", []string{""})
-	errorP := NewPipe("error", bp, l, "", []string{""})
-	retryPolicy := NewRetryPolicy(errorP, maxAttempts, time.Microsecond)
+func createErrorComponent(ctx context.Context, f batchHandleFunc[int, string], maxAttempts int, batchSize int) (*component, *pipe, *pipe, *pipe) {
+	bp := newBatchPolicy(batchSize, time.Minute)
+	inP := newPipe("input", bp, l, "", []string{""})
+	outP := newPipe("output", bp, l, "", []string{""})
+	errorP := newPipe("error", bp, l, "", []string{""})
+	retryPolicy := newRetryPolicy(errorP, maxAttempts, time.Microsecond)
 	handler := newBatchHandler("", f)
-	coupling := NewHandlerCoupling(handler, inP, map[string]*Pipe{"": outP}, retryPolicy)
-	return NewComponent(ctx, l, []*HandlerCoupling{coupling}, 1), inP, outP, errorP
+	coupling := newHandlerCoupling(handler, inP, map[string]*pipe{"": outP}, retryPolicy)
+	return newComponent(ctx, l, []*handlerCoupling{coupling}, 1), inP, outP, errorP
 }
 
-func createErrorComponentWithNoErrorPipe(ctx context.Context, f BatchHandleFunc[int, string], maxAttempts int) (*component, *Pipe) {
-	inP := NewPipe("input", bp, l, "", []string{""})
-	outP := NewPipe("output", bp, l, "", []string{""})
-	retryPolicy := NewRetryPolicy(nil, maxAttempts, time.Microsecond)
+func createErrorComponentWithNoErrorPipe(ctx context.Context, f batchHandleFunc[int, string], maxAttempts int) (*component, *pipe) {
+	inP := newPipe("input", bp, l, "", []string{""})
+	outP := newPipe("output", bp, l, "", []string{""})
+	retryPolicy := newRetryPolicy(nil, maxAttempts, time.Microsecond)
 	handler := newBatchHandler("", f)
-	coupling := NewHandlerCoupling(handler, inP, map[string]*Pipe{"": outP}, retryPolicy)
-	return NewComponent(ctx, l, []*HandlerCoupling{coupling}, 1), inP
+	coupling := newHandlerCoupling(handler, inP, map[string]*pipe{"": outP}, retryPolicy)
+	return newComponent(ctx, l, []*handlerCoupling{coupling}, 1), inP
 }
 
-func createZeroOutputComponent(ctx context.Context, f EndHandleFunc[int]) (*component, *Pipe) {
-	bp := NewBatchPolicy(5, time.Second)
-	inP := NewPipe("input", bp, l, "", []string{""})
+func createZeroOutputComponent(ctx context.Context, f endHandleFunc[int]) (*component, *pipe) {
+	bp := newBatchPolicy(5, time.Second)
+	inP := newPipe("input", bp, l, "", []string{""})
 	handler := newEndHandler("", f)
-	coupling := NewHandlerCoupling(handler, inP, nil, nil)
+	coupling := newHandlerCoupling(handler, inP, nil, nil)
 
-	return NewComponent(ctx, l, []*HandlerCoupling{coupling}, 1), inP
+	return newComponent(ctx, l, []*handlerCoupling{coupling}, 1), inP
 }
 
-func createMultiOutputComponent(ctx context.Context, f BatchSplitHandleFunc[int]) (*component, *Pipe, *Pipe, *Pipe) {
-	inP := NewPipe("input", bp, l, "", []string{""})
-	outP1 := NewPipe("output1", bp, l, "", []string{""})
-	outP2 := NewPipe("output2", bp, l, "", []string{""})
+func createMultiOutputComponent(ctx context.Context, f batchSplitHandleFunc[int]) (*component, *pipe, *pipe, *pipe) {
+	inP := newPipe("input", bp, l, "", []string{""})
+	outP1 := newPipe("output1", bp, l, "", []string{""})
+	outP2 := newPipe("output2", bp, l, "", []string{""})
 	handler := newBatchSplitHandler("", f)
-	coupling := NewHandlerCoupling(handler, inP, map[string]*Pipe{"first": outP1, "second": outP2}, nil)
+	coupling := newHandlerCoupling(handler, inP, map[string]*pipe{"first": outP1, "second": outP2}, nil)
 
-	return NewComponent(ctx, l, []*HandlerCoupling{coupling}, 1), inP, outP1, outP2
+	return newComponent(ctx, l, []*handlerCoupling{coupling}, 1), inP, outP1, outP2
 }

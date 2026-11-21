@@ -22,21 +22,21 @@ const (
 	defaultBatchPeriodSeconds = 3600
 )
 
-// Pipe represents a medium for asynchronously sending messages of any type to one or more receivers.
+// pipe represents a medium for asynchronously sending messages of any type to one or more receivers.
 // They are fully threadsafe, and can be used by any number of goroutines simultaneously for both sending and receiving.
 // Messages sent to the pipe are batched according to the batch policy provided upon creation. They are
 // only propagated to any receivers when either the number of pending messages reaches the maximum batch size, or the
 // duration since the previous pushed batch is greater than the maximum batch period.
 //
 // Pipes are strictly FIFO and ordering is guaranteed.
-type Pipe struct {
+type pipe struct {
 	id   string // A unique identifier for the pipe
 	name string // A name for the pipe - used in logging
 
 	ctx    context.Context    // The context for the lifetime of the pipe - cancelled when the pipe has closed
 	cancel context.CancelFunc // The function to cancel the lifetime context
 
-	bp   *BatchPolicy  // The batch policy that governs when batches are propagated to receivers
+	bp   *batchPolicy  // The batch policy that governs when batches are propagated to receivers
 	size *atomic.Int32 // The number of messages waiting to be received in the pipe
 
 	input  chan []any       // The input channel for incoming messages
@@ -67,12 +67,12 @@ type Pipe struct {
 	logger *slog.Logger
 }
 
-// NewPipe returns a pointer to a new pipe that can send and receive messages of the specified type, and applies
+// newPipe returns a pointer to a new pipe that can send and receive messages of the specified type, and applies
 // the provided batching policy to any sent messages before propagating messages to receivers.
-func NewPipe(name string, bp *BatchPolicy, logger *slog.Logger, flowName string, nextFlows []string) *Pipe {
+func newPipe(name string, bp *batchPolicy, logger *slog.Logger, flowName string, nextFlows []string) *pipe {
 	// Apply a default batch policy if one isn't provided
 	if bp == nil {
-		bp = NewBatchPolicy(defaultBatchSize, time.Duration(defaultBatchPeriodSeconds)*time.Second)
+		bp = newBatchPolicy(defaultBatchSize, time.Duration(defaultBatchPeriodSeconds)*time.Second)
 	}
 	if logger == nil {
 		logger = slog.Default()
@@ -81,7 +81,7 @@ func NewPipe(name string, bp *BatchPolicy, logger *slog.Logger, flowName string,
 	bLock := &sync.Mutex{}
 	ctx, cancel := context.WithCancel(context.Background())
 	iCtx, iCancel := context.WithCancel(context.Background())
-	c := &Pipe{
+	c := &pipe{
 		id:                    uuid.NewString(),
 		name:                  name,
 		ctx:                   ctx,
@@ -92,7 +92,7 @@ func NewPipe(name string, bp *BatchPolicy, logger *slog.Logger, flowName string,
 		flowName:              flowName,
 		nextFlows:             nextFlows,
 		messages:              make([]*message, 0),
-		ticker:                time.NewTicker(bp.Period),
+		ticker:                time.NewTicker(bp.period),
 		batches:               make([][]*message, 0),
 		batchLock:             bLock,
 		batchCond:             util.NewContextCond(bLock),
@@ -115,10 +115,10 @@ func NewPipe(name string, bp *BatchPolicy, logger *slog.Logger, flowName string,
 	return c
 }
 
-// Send sends the provided message(s) to the pipe.
+// send sends the provided message(s) to the pipe.
 // Blocks indefinitely if the pipe is already closed.
 // Returns an error if ctx is cancelled.
-func (c *Pipe) Send[T any](ctx context.Context, m ...T) error {
+func (c *pipe) send[T any](ctx context.Context, m ...T) error {
 	mConv := make([]any, len(m))
 	for i, v := range m {
 		mConv[i] = v
@@ -132,17 +132,17 @@ func (c *Pipe) Send[T any](ctx context.Context, m ...T) error {
 	}
 }
 
-// SendChan returns a channel that can be used to send messages to the pipe, for example if needed for use with a
+// sendChan returns a channel that can be used to send messages to the pipe, for example if needed for use with a
 // select statement. If the channel is closed, it will asynchronously gracefully close the pipe.
 // If the pipe is already closed when the channel is sent to, it will block indefinitely.
-func (c *Pipe) SendChan() chan<- []any {
+func (c *pipe) sendChan() chan<- []any {
 	return c.input
 }
 
-// Receive receives the next batch of messages from the pipe, blocking until one is available.
+// receive receives the next batch of messages from the pipe, blocking until one is available.
 // Returns an error if the pipe is already closed, or is forcefully closed while waiting for messages to be available.
 // If the provided context is cancelled, any wait for a new batch is abandoned and an error is returned.
-func (c *Pipe) Receive(ctx context.Context) (*handlerJob, error) {
+func (c *pipe) receive(ctx context.Context) (*handlerJob, error) {
 	select {
 	case <-c.ctx.Done():
 		c.logger.Debug("Pipe closed while waiting for batch", logPropPipeName, c.name)
@@ -159,17 +159,17 @@ func (c *Pipe) Receive(ctx context.Context) (*handlerJob, error) {
 	}
 }
 
-// ReceiveChan returns a channel that can be used to receive batches of messages from the pipe, for example if
+// receiveChan returns a channel that can be used to receive batches of messages from the pipe, for example if
 // needed for use with a select statement. If the pipe is closed, this channel will be closed when there are
 // no more messages remaining.
-func (c *Pipe) ReceiveChan() <-chan *handlerJob {
+func (c *pipe) receiveChan() <-chan *handlerJob {
 	return c.output
 }
 
-// Close initiates a graceful closure of the pipe, and blocks until any remaining messages in the pipe have been
+// close initiates a graceful closure of the pipe, and blocks until any remaining messages in the pipe have been
 // received. Any attempts to send more messages while the pipe is closing will return an error. If the context
-// provided to Close is cancelled while waiting, the pipe is forcefully closed and any pending messages are lost.
-func (c *Pipe) Close(ctx context.Context) {
+// provided to close is cancelled while waiting, the pipe is forcefully closed and any pending messages are lost.
+func (c *pipe) close(ctx context.Context) {
 	// TODO - rework this - closure should return immediately and signal completion via a channel
 	c.closeLock.Lock()
 	defer c.closeLock.Unlock()
@@ -202,7 +202,7 @@ func (c *Pipe) Close(ctx context.Context) {
 }
 
 // Loop that manages the closure of the pipe, ensuring graceful termination
-func (c *Pipe) closeLoop() {
+func (c *pipe) closeLoop() {
 	for {
 		select {
 		case <-c.ctx.Done(): // Force closure - kill the loop
@@ -222,7 +222,7 @@ func (c *Pipe) closeLoop() {
 }
 
 // Loop that manages the batching and propagation of incoming messages according to the channel's batch policy.
-func (c *Pipe) inputLoop() {
+func (c *pipe) inputLoop() {
 	for {
 		select {
 		case <-c.ctx.Done():
@@ -251,8 +251,8 @@ func (c *Pipe) inputLoop() {
 				}
 				c.messages = append(c.messages, msgs...)
 
-				if len(c.messages) >= c.bp.Number {
-					c.ticker.Reset(c.bp.Period)
+				if len(c.messages) >= c.bp.number {
+					c.ticker.Reset(c.bp.period)
 					c.propagateBatch(false)
 				}
 			} else {
@@ -270,13 +270,13 @@ func (c *Pipe) inputLoop() {
 // Batches pending messages and makes them available to receivers.
 // If batchAll is true, all pending messages will be batched regardless of whether they fill full batches.
 // If batchAll is false, messages are only batched if they can fill a full batch.
-func (c *Pipe) propagateBatch(batchAll bool) {
+func (c *pipe) propagateBatch(batchAll bool) {
 	c.batchLock.Lock()
 	defer c.batchLock.Unlock()
 
-	batches := slices.Chunk(c.messages, c.bp.Number)
+	batches := slices.Chunk(c.messages, c.bp.number)
 	for v := range batches {
-		if len(v) == c.bp.Number || (len(v) > 0 && batchAll) {
+		if len(v) == c.bp.number || (len(v) > 0 && batchAll) {
 			if len(c.batches) == 0 {
 				c.batchCond.Signal()
 			}
@@ -288,7 +288,7 @@ func (c *Pipe) propagateBatch(batchAll bool) {
 }
 
 // Loop that manages serving batches to receivers.
-func (c *Pipe) outputLoop() {
+func (c *pipe) outputLoop() {
 	closing := false
 	batchSent := false
 	stopFunc := func() {

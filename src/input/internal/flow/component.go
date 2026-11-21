@@ -10,9 +10,9 @@ import (
 
 type component struct {
 	inputMap  map[string]*handler              // Map of input pipe IDs to handlers
-	outputMap map[string]map[string]*Pipe      // Map of handler IDs to output pipes
-	retryMap  map[string]*RetryPolicy          // Map of handler IDs to their retry policies
-	inputs    []*Pipe                          // All the input pipes
+	outputMap map[string]map[string]*pipe      // Map of handler IDs to output pipes
+	retryMap  map[string]*retryPolicy          // Map of handler IDs to their retry policies
+	inputs    []*pipe                          // All the input pipes
 	rChan     []*<-chan *handlerJob            // All of the receive channels for incoming pipes
 	rChanMap  map[*<-chan *handlerJob]*handler // Map of receive channels to their corresponding handlers
 
@@ -20,35 +20,35 @@ type component struct {
 	wg      sync.WaitGroup
 	stopped chan struct{} // Closed when the component has stopped
 
-	workerPool *WorkerPool
+	workerPool *workerPool
 	workWgMap  map[*handler]*util.ContextWaitGroup // For keeping track of work currently being carried out by the worker pool
 
 	logger *slog.Logger
 }
 
-type RetryPolicy struct {
-	errPipe     *Pipe
+type retryPolicy struct {
+	errPipe     *pipe
 	maxAttempts int           // 0 means retry indefinitely.
 	interval    time.Duration // How long to wait between attempts
 }
 
-func NewRetryPolicy(errPipe *Pipe, maxAttempts int, interval time.Duration) *RetryPolicy {
-	return &RetryPolicy{
+func newRetryPolicy(errPipe *pipe, maxAttempts int, interval time.Duration) *retryPolicy {
+	return &retryPolicy{
 		errPipe:     errPipe,
 		maxAttempts: maxAttempts,
 		interval:    interval,
 	}
 }
 
-type HandlerCoupling struct {
+type handlerCoupling struct {
 	handler     *handler
-	inputPipe   *Pipe
-	outputPipes map[string]*Pipe
-	retryPolicy *RetryPolicy
+	inputPipe   *pipe
+	outputPipes map[string]*pipe
+	retryPolicy *retryPolicy
 }
 
-func NewHandlerCoupling(h *handler, in *Pipe, out map[string]*Pipe, retryPolicy *RetryPolicy) *HandlerCoupling {
-	return &HandlerCoupling{
+func newHandlerCoupling(h *handler, in *pipe, out map[string]*pipe, retryPolicy *retryPolicy) *handlerCoupling {
+	return &handlerCoupling{
 		handler:     h,
 		inputPipe:   in,
 		outputPipes: out,
@@ -61,22 +61,22 @@ type handlerJob struct {
 	msgs    []*message
 }
 
-func NewComponent(ctx context.Context, logger *slog.Logger, couplings []*HandlerCoupling, maxConcurrency int) *component {
-	inputs := make([]*Pipe, 0, len(couplings))
+func newComponent(ctx context.Context, logger *slog.Logger, couplings []*handlerCoupling, maxConcurrency int) *component {
+	inputs := make([]*pipe, 0, len(couplings))
 	inputMap := make(map[string]*handler, len(couplings))
-	outputMap := make(map[string]map[string]*Pipe, len(couplings))
-	retryMap := make(map[string]*RetryPolicy)
+	outputMap := make(map[string]map[string]*pipe, len(couplings))
+	retryMap := make(map[string]*retryPolicy)
 	rChan := make([]*<-chan *handlerJob, len(couplings))
 	rChanMap := make(map[*<-chan *handlerJob]*handler, len(couplings))
 	workWgMap := make(map[*handler]*util.ContextWaitGroup, maxConcurrency)
 
-	pool := NewWorkerPool(ctx, logger, maxConcurrency)
+	pool := newWorkerPool(ctx, logger, maxConcurrency)
 
 	for i, c := range couplings {
 		inputs = append(inputs, c.inputPipe)
 		inputMap[c.inputPipe.id] = c.handler
 		outputMap[c.handler.id] = c.outputPipes
-		ch := c.inputPipe.ReceiveChan()
+		ch := c.inputPipe.receiveChan()
 		rChan[i] = &ch
 		rChanMap[&ch] = c.handler
 		workWgMap[c.handler] = util.NewContextWaitGroup()
@@ -103,11 +103,6 @@ func NewComponent(ctx context.Context, logger *slog.Logger, couplings []*Handler
 	return c
 }
 
-// Stopped returns a channel that is closed once the component has stopped operating
-func (c *component) Stopped() chan struct{} {
-	return c.stopped
-}
-
 // Waits until the process loop has stopped, and closes the stopped channel when it has
 func (c *component) stopMonitor() {
 	c.wg.Wait()
@@ -121,12 +116,12 @@ func (c *component) processLoop() {
 	var job *handlerJob
 	var ok bool
 	var h *handler
-	var out map[string]*Pipe
-	var retryPolicy *RetryPolicy
+	var out map[string]*pipe
+	var retryPolicy *retryPolicy
 	var wg *util.ContextWaitGroup
 
 	for {
-		if i, err = Select(c.ctx, c.rChan, &job, &ok); err != nil {
+		if i, err = arraySelect(c.ctx, c.rChan, &job, &ok); err != nil {
 			return
 		}
 
@@ -138,7 +133,7 @@ func (c *component) processLoop() {
 		if ok {
 			// Message(s) received - schedule the work
 			_ = wg.Add(1)
-			if err = c.workerPool.Do(wg, h, job, out, retryPolicy); err != nil {
+			if err = c.workerPool.do(wg, h, job, out, retryPolicy); err != nil {
 				// Context cancelled - kill the loop
 				return
 			}
@@ -149,7 +144,7 @@ func (c *component) processLoop() {
 				return
 			}
 			for _, p := range out {
-				close(p.SendChan())
+				close(p.sendChan())
 			}
 			if len(c.rChan) == 1 {
 				// That was the last open channel, kill the loop

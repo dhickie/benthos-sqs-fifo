@@ -17,7 +17,7 @@ func getSelectFunc[T any](numChans int) selectFunc[T] {
 // The value from the channel, and whether the channel was closed, are stored in the provided v and ok pointers.
 // Returns the index of the channel that received/closed, and an error. The error is only populated if the context is
 // cancelled.
-func Select[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
+func arraySelect[T any](ctx context.Context, ch []*<-chan T, v *T, ok *bool) (int, error) {
 	return getSelectFunc[T](len(ch))(ctx, ch, v, ok)
 }
 
