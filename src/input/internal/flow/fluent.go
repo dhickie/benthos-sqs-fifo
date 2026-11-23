@@ -11,9 +11,12 @@ import (
 	"time"
 )
 
-// TODO - replace public facing types with interfaces
 // TODO - all the comments
+// TODO - check that validation catches a single handler in multiple components
+// TODO - return error from trigger if app is stopping
 
+// App returns an AppBuilder instance with the provided name.
+// Call the methods on the AppBuilder to define its flows and components, followed by Build() to build and start the app.
 func App(name string) *AppBuilder {
 	return &AppBuilder{
 		name:  name,
@@ -21,6 +24,9 @@ func App(name string) *AppBuilder {
 	}
 }
 
+// Flow returns a FlowBuilder instance for defining a flow with the provided name.
+// Tinit is the type of data that triggers the flow (by sending it to the first handler).
+// It exposes methods for adding handlers to the flow, or triggering a different flow from this one.
 func Flow[Tinit any](name string) *FlowBuilder[Tinit, Tinit] {
 	return &FlowBuilder[Tinit, Tinit]{
 		name:     name,
@@ -29,6 +35,10 @@ func Flow[Tinit any](name string) *FlowBuilder[Tinit, Tinit] {
 	}
 }
 
+// Handler returns a HandlerBuilder instance for defining a handler which receives messages,
+// and then optionally outputs messages for a single following handler.
+// Tin is the type of data which is received by the handler, and Tout is the type of data which it returns for the next handler.
+// The name provided for the handler must be unique across all handlers in the app.
 func Handler[Tin, Tout any](name string) *HandlerBuilder[Tin, Tout] {
 	return &HandlerBuilder[Tin, Tout]{
 		name:        name,
@@ -37,18 +47,29 @@ func Handler[Tin, Tout any](name string) *HandlerBuilder[Tin, Tout] {
 	}
 }
 
+// EndHandler returns an EndHandlerBuilder instance for defining a handler which receives messages at the end of a flow.
+// Tin is the type of data which is received by the handler.
+// The name provided for the handler must be unique across all handlers in the app.
 func EndHandler[Tin any](name string) *EndHandlerBuilder[Tin] {
 	return &EndHandlerBuilder[Tin]{
 		name: name,
 	}
 }
 
+// SplitHandler returns a SplitHandlerBuilder instance for defining a handler which receives messages,
+// and then optionally outputs messages to multiple following handlers.
+// Tin is the type of data which is received by the handler.
+// The name provided for the handler must be unique across all handlers in the app.
 func SplitHandler[Tin any](name string) *SplitHandlerBuilder[Tin] {
 	return &SplitHandlerBuilder[Tin]{
 		name: name,
 	}
 }
 
+// Component returns a ComponentBuilder instance for defining a component which groups together
+// handlers in a component.
+// Handlers grouped in a component share a common concurrency limit.
+// The name provided for the component must be unique across all components in the app.
 func Component(name string) *ComponentBuilder {
 	return &ComponentBuilder{
 		name: name,
@@ -57,6 +78,8 @@ func Component(name string) *ComponentBuilder {
 
 type NilType struct{}
 
+// AppBuilder exposes methods for adding flow and component definitions to the app, as well as
+// defining common app-level configuration like the logger instance to use.
 type AppBuilder struct {
 	name       string
 	flows      []*flowBuilder
@@ -64,16 +87,25 @@ type AppBuilder struct {
 	logger     *slog.Logger
 }
 
+// WithFlow adds the flow with the provided flow definition to the app.
+// Tinit is the type of data received by the first handler in the provided flow.
+// Create a FlowBuilder with Flow[Tinit]("name").
+// Returns the AppBuilder for chaining further calls.
 func (a *AppBuilder) WithFlow[Tinit any](flow *FlowBuilder[Tinit, NilType]) *AppBuilder {
 	a.flows = append(a.flows, (*flowBuilder)(flow))
 	return a
 }
 
+// WithComponents configures the components for the app, using the provided component builders.
+// Create a ComponentBuilder with Component("name").
+// Returns the AppBuilder for chaining further calls.
 func (a *AppBuilder) WithComponents(componentBuilders ...*ComponentBuilder) *AppBuilder {
 	a.components = componentBuilders
 	return a
 }
 
+// WithLogger configures the logger the app will use.
+// Returns the AppBuilder for chaining further calls.
 func (a *AppBuilder) WithLogger(logger *slog.Logger) *AppBuilder {
 	a.logger = logger
 	return a
@@ -125,6 +157,7 @@ func (v *validationResult) toError() error {
 }
 
 func (a *AppBuilder) applyDefaults() {
+
 	appliedTracker := newDefaultValueTracker()
 
 	for _, v := range a.flows {
@@ -163,6 +196,9 @@ func (a *AppBuilder) validate() *validationResult {
 	return r
 }
 
+// Build builds the app using the configured flows, handlers and components, and starts all processing loops.
+// If the AppBuilder instance is configured correctly, it will return a BuiltApp instance for the app.
+// If there are issues with the configuration, it returns an aggregate error with all found validation failures.
 func (a *AppBuilder) Build() (*BuiltApp, error) {
 	handlerMap := make(map[string]*handlerCoupling) // Map of handler names to couplings
 	flowMap := make(map[string][]*handlerCoupling)  // Map of flow names to coupling collections
@@ -244,13 +280,22 @@ type flowBuilder struct {
 	continuingFlow *flowBuilder
 }
 
+// FlowBuilder exposes methods for building a flow out of handlers, or using the flow to trigger
+// another flow. Tinit is the type of data that triggers the first handler in the flow, while Tnext
+// is the type of data that's sent to the next handler while building out the handler chain.
+// If the type of Tnext is NilType, then the flow is complete.
 type FlowBuilder[Tinit, Tnext any] flowBuilder
 
+// WithHandler adds a handler (of any kind) to the flow, as configured by the provided handler builder.
+// Returns the flow builder for chaining further calls.
 func (fb *FlowBuilder[Tinit, Tnext]) WithHandler[Tout any](hb *CompletedHandlerBuilder[Tnext, Tout]) *FlowBuilder[Tinit, Tout] {
 	fb.handlers = append(fb.handlers, (*completedHandlerBuilder)(hb))
 	return fb.toNextBuilder[Tout]()
 }
 
+// WithFlow triggers another flow from this one, completing this flow. The trigger type for the
+// triggered flow must be the same as the next data type for this flow.
+// Returns the flow builder for chaining further configuration calls.
 func (fb *FlowBuilder[Tinit, Tnext]) WithFlow(endingFb *FlowBuilder[Tnext, NilType]) *FlowBuilder[Tinit, NilType] {
 	fb.continuingFlow = (*flowBuilder)(endingFb)
 	return fb.toNextBuilder[NilType]()
@@ -428,8 +473,13 @@ func (h *completedHandlerBuilder) applyDefaults(tracker *defaultValueTracker) {
 	}
 }
 
+// CompletedHandlerBuilder represents a handler builder that has had its handler function defined,
+// and is ready for passing to a FlowBuilder instance as part of a call to WithHandler.
 type CompletedHandlerBuilder[Tin, Tout any] completedHandlerBuilder
 
+// HandlerBuilder represents an in-progress build of a handler definition, which accepts single
+// messages of one type, and returns messages of another type.
+// Tin is the data type sent to the handler, while Tout is the data type returned by the handler.
 type HandlerBuilder[Tin, Tout any] struct {
 	name        string
 	maxAttempts *int
@@ -437,6 +487,10 @@ type HandlerBuilder[Tin, Tout any] struct {
 	errorFlow   *flowBuilder
 }
 
+// WithBatching configures the handler to receive and return batches of messages instead of single messages.
+// batchSize is the maximum permitted size of batches, while period is the maximum duration a batch
+// should be pending before being sent to the handler.
+// Returns a BatchHandlerBuilder in order to continue configuration of the handler.
 func (h *HandlerBuilder[Tin, Tout]) WithBatching(batchSize int, period time.Duration) *BatchHandlerBuilder[Tin, Tout] {
 	return &BatchHandlerBuilder[Tin, Tout]{
 		name:        h.name,
@@ -448,18 +502,31 @@ func (h *HandlerBuilder[Tin, Tout]) WithBatching(batchSize int, period time.Dura
 	}
 }
 
+// WithMaxAttempts configures the handler to abandon processing of a message once it has failed to be
+// processed maxAttempts times.
+// By default, a handler will retry indefinitely with a 1 second delay between each attempt.
+// When handling is abandoned, an error handler or flow can be triggered for the message using WithErrorHandler or WithErrorFlow.
+// Returns the HandlerBuilder for chaining further calls.
 func (h *HandlerBuilder[Tin, Tout]) WithMaxAttempts(maxAttempts int) *HandlerBuilder[Tin, Tout] {
 	v := maxAttempts
 	h.maxAttempts = &v
 	return h
 }
 
+// WithRetryPeriod sets the time period that should elapse between attempts to process a message.
+// Defaults to 1 second.
+// Returns the HandlerBuilder for chaining further calls.
 func (h *HandlerBuilder[Tin, Tout]) WithRetryPeriod(period time.Duration) *HandlerBuilder[Tin, Tout] {
 	v := period
 	h.retryPeriod = &v
 	return h
 }
 
+// WithErrorHandler specifies a handler to which any message is sent if it exceeds its maximum
+// permitted number of attempts for this handler. Callers should call either this or WithErrorFlow,
+// not both.
+// By default, no error handler is provided and messages will be logged then dropped.
+// Returns the HandlerBuilder for chaining further calls.
 func (h *HandlerBuilder[Tin, Tout]) WithErrorHandler(errHandler *CompletedHandlerBuilder[Tin, NilType]) *HandlerBuilder[Tin, Tout] {
 	efb := Flow[Tin](h.name + "_Error").
 		WithHandler(
@@ -469,11 +536,19 @@ func (h *HandlerBuilder[Tin, Tout]) WithErrorHandler(errHandler *CompletedHandle
 	return h
 }
 
+// WithErrorFlow specifies a flow that is triggered for any message that exceeds its maximum
+// permitted number of attempts in this handler. Callers should call either this or WithErrorHandler,
+// not both.
+// By default, no flow is provided and messages will be logged then dropped.
+// Returns the HandlerBuilder for chaining further calls.
 func (h *HandlerBuilder[Tin, Tout]) WithErrorFlow(errFlow *FlowBuilder[Tin, NilType]) *HandlerBuilder[Tin, Tout] {
 	h.errorFlow = (*flowBuilder)(errFlow)
 	return h
 }
 
+// WithHandleFunc specifies the function that will be invoked when this handler handles a message.
+// Calling this method completes the handler specification, and no further function calls can be
+// made on this builder.
 func (h *HandlerBuilder[Tin, Tout]) WithHandleFunc(f func(context.Context, HandlerContext[Tin, Tout], *Message[Tin]) *HandlerResult[Tout]) *CompletedHandlerBuilder[Tin, Tout] {
 	return &CompletedHandlerBuilder[Tin, Tout]{
 		name:            h.name,
@@ -488,6 +563,9 @@ func (h *HandlerBuilder[Tin, Tout]) WithHandleFunc(f func(context.Context, Handl
 	}
 }
 
+// BatchHandlerBuilder represents an in-progress build of a batch handler definition, which accepts
+// batches of messages of one type, and returns batches of messages of another type.
+// Tin is the data type sent to the handler, while Tout is the data type returned by the handler.
 type BatchHandlerBuilder[Tin, Tout any] struct {
 	name        string
 	batchSize   int
@@ -497,18 +575,31 @@ type BatchHandlerBuilder[Tin, Tout any] struct {
 	errorFlow   *flowBuilder
 }
 
+// WithMaxAttempts configures the handler to abandon processing of a message once it has failed to be
+// processed maxAttempts times.
+// By default, a handler will retry indefinitely with a 1 second delay between each attempt.
+// When handling is abandoned, an error handler or flow can be triggered for the message using WithErrorHandler or WithErrorFlow.
+// Returns the BatchHandlerBuilder for chaining further calls.
 func (h *BatchHandlerBuilder[Tin, Tout]) WithMaxAttempts(maxAttempts int) *BatchHandlerBuilder[Tin, Tout] {
 	v := maxAttempts
 	h.maxAttempts = &v
 	return h
 }
 
+// WithRetryPeriod sets the time period that should elapse between attempts to process a message.
+// Defaults to 1 second.
+// Returns the BatchHandlerBuilder for chaining further calls.
 func (h *BatchHandlerBuilder[Tin, Tout]) WithRetryPeriod(period time.Duration) *BatchHandlerBuilder[Tin, Tout] {
 	v := period
 	h.retryPeriod = &v
 	return h
 }
 
+// WithErrorHandler specifies a handler to which any message is sent if it exceeds its maximum
+// permitted number of attempts for this handler. Callers should call either this or WithErrorFlow,
+// not both.
+// By default, no error handler is provided and messages will be logged then dropped.
+// Returns the BatchHandlerBuilder for chaining further calls.
 func (h *BatchHandlerBuilder[Tin, Tout]) WithErrorHandler(errHandler *CompletedHandlerBuilder[Tin, NilType]) *BatchHandlerBuilder[Tin, Tout] {
 	efb := Flow[Tin](h.name + "_Error").
 		WithHandler(
@@ -518,11 +609,20 @@ func (h *BatchHandlerBuilder[Tin, Tout]) WithErrorHandler(errHandler *CompletedH
 	return h
 }
 
+// WithErrorFlow specifies a flow that is triggered for any message that exceeds its maximum
+// permitted number of attempts in this handler. Callers should call either this or WithErrorHandler,
+// not both.
+// By default, no flow is provided and messages will be logged then dropped.
+// Returns the BatchHandlerBuilder for chaining further calls.
 func (h *BatchHandlerBuilder[Tin, Tout]) WithErrorFlow(errFlow *FlowBuilder[Tin, NilType]) *BatchHandlerBuilder[Tin, Tout] {
 	h.errorFlow = (*flowBuilder)(errFlow)
 	return h
 }
 
+// WithHandleFunc specifies the function that will be invoked when this handler handles a batch of
+// messages.
+// Calling this method completes the handler specification, and no further function calls can be
+// made on this builder.
 func (h *BatchHandlerBuilder[Tin, Tout]) WithHandleFunc(f func(context.Context, HandlerContext[Tin, Tout], []*Message[Tin]) []*HandlerResult[Tout]) *CompletedHandlerBuilder[Tin, Tout] {
 	return &CompletedHandlerBuilder[Tin, Tout]{
 		name:            h.name,
@@ -537,6 +637,9 @@ func (h *BatchHandlerBuilder[Tin, Tout]) WithHandleFunc(f func(context.Context, 
 	}
 }
 
+// EndHandlerBuilder represents an in-progress build of an end handler definition, which accepts
+// a single message of one type, and does not return any messages for further handlers.
+// Tin is the data type sent to the handler.
 type EndHandlerBuilder[Tin any] struct {
 	name        string
 	maxAttempts *int
@@ -544,6 +647,10 @@ type EndHandlerBuilder[Tin any] struct {
 	errorFlow   *flowBuilder
 }
 
+// WithBatching configures the handler to receive batches of messages instead of single messages.
+// batchSize is the maximum permitted size of batches, while period is the maximum duration a batch
+// should be pending before being sent to the handler.
+// Returns a BatchEndHandlerBuilder in order to continue configuration of the handler.
 func (h *EndHandlerBuilder[Tin]) WithBatching(batchSize int, period time.Duration) *BatchEndHandlerBuilder[Tin] {
 	return &BatchEndHandlerBuilder[Tin]{
 		name:        h.name,
@@ -555,18 +662,31 @@ func (h *EndHandlerBuilder[Tin]) WithBatching(batchSize int, period time.Duratio
 	}
 }
 
+// WithMaxAttempts configures the handler to abandon processing of a message once it has failed to be
+// processed maxAttempts times.
+// By default, a handler will retry indefinitely with a 1 second delay between each attempt.
+// When handling is abandoned, an error handler or flow can be triggered for the message using WithErrorHandler or WithErrorFlow.
+// Returns the EndHandlerBuilder for chaining further calls.
 func (h *EndHandlerBuilder[Tin]) WithMaxAttempts(maxAttempts int) *EndHandlerBuilder[Tin] {
 	v := maxAttempts
 	h.maxAttempts = &v
 	return h
 }
 
+// WithRetryPeriod sets the time period that should elapse between attempts to process a message.
+// Defaults to 1 second.
+// Returns the EndHandlerBuilder for chaining further calls.
 func (h *EndHandlerBuilder[Tin]) WithRetryPeriod(period time.Duration) *EndHandlerBuilder[Tin] {
 	v := period
 	h.retryPeriod = &v
 	return h
 }
 
+// WithErrorHandler specifies a handler to which any message is sent if it exceeds its maximum
+// permitted number of attempts for this handler. Callers should call either this or WithErrorFlow,
+// not both.
+// By default, no error handler is provided and messages will be logged then dropped.
+// Returns the EndHandlerBuilder for chaining further calls.
 func (h *EndHandlerBuilder[Tin]) WithErrorHandler(errHandler *CompletedHandlerBuilder[Tin, NilType]) *EndHandlerBuilder[Tin] {
 	efb := Flow[Tin](h.name + "_Error").
 		WithHandler(
@@ -576,11 +696,19 @@ func (h *EndHandlerBuilder[Tin]) WithErrorHandler(errHandler *CompletedHandlerBu
 	return h
 }
 
+// WithErrorFlow specifies a flow that is triggered for any message that exceeds its maximum
+// permitted number of attempts in this handler. Callers should call either this or WithErrorHandler,
+// not both.
+// By default, no flow is provided and messages will be logged then dropped.
+// Returns the EndHandlerBuilder for chaining further calls.
 func (h *EndHandlerBuilder[Tin]) WithErrorFlow(errFlow *FlowBuilder[Tin, NilType]) *EndHandlerBuilder[Tin] {
 	h.errorFlow = (*flowBuilder)(errFlow)
 	return h
 }
 
+// WithHandleFunc specifies the function that will be invoked when this handler handles a message.
+// Calling this method completes the handler specification, and no further function calls can be
+// made on this builder.
 func (h *EndHandlerBuilder[Tin]) WithHandleFunc(f func(context.Context, EndHandlerContext[Tin], *Message[Tin]) *EndHandlerResult) *CompletedHandlerBuilder[Tin, NilType] {
 	return &CompletedHandlerBuilder[Tin, NilType]{
 		name:            h.name,
@@ -595,6 +723,9 @@ func (h *EndHandlerBuilder[Tin]) WithHandleFunc(f func(context.Context, EndHandl
 	}
 }
 
+// BatchEndHandlerBuilder represents an in-progress build of an batched end handler definition, which accepts
+// batches of messages of one type, and does not return any messages for further handlers.
+// Tin is the data type sent to the handler.
 type BatchEndHandlerBuilder[Tin any] struct {
 	name        string
 	batchSize   int
@@ -604,18 +735,31 @@ type BatchEndHandlerBuilder[Tin any] struct {
 	errorFlow   *flowBuilder
 }
 
+// WithMaxAttempts configures the handler to abandon processing of a message once it has failed to be
+// processed maxAttempts times.
+// By default, a handler will retry indefinitely with a 1 second delay between each attempt.
+// When handling is abandoned, an error handler or flow can be triggered for the message using WithErrorHandler or WithErrorFlow.
+// Returns the BatchEndHandlerBuilder for chaining further calls.
 func (h *BatchEndHandlerBuilder[Tin]) WithMaxAttempts(maxAttempts int) *BatchEndHandlerBuilder[Tin] {
 	v := maxAttempts
 	h.maxAttempts = &v
 	return h
 }
 
+// WithRetryPeriod sets the time period that should elapse between attempts to process a message.
+// Defaults to 1 second.
+// Returns the BatchEndHandlerBuilder for chaining further calls.
 func (h *BatchEndHandlerBuilder[Tin]) WithRetryPeriod(period time.Duration) *BatchEndHandlerBuilder[Tin] {
 	v := period
 	h.retryPeriod = &v
 	return h
 }
 
+// WithErrorHandler specifies a handler to which any message is sent if it exceeds its maximum
+// permitted number of attempts for this handler. Callers should call either this or WithErrorFlow,
+// not both.
+// By default, no error handler is provided and messages will be logged then dropped.
+// Returns the BatchEndHandlerBuilder for chaining further calls.
 func (h *BatchEndHandlerBuilder[Tin]) WithErrorHandler(errHandler *CompletedHandlerBuilder[Tin, NilType]) *BatchEndHandlerBuilder[Tin] {
 	efb := Flow[Tin](h.name + "_Error").
 		WithHandler(
@@ -625,11 +769,19 @@ func (h *BatchEndHandlerBuilder[Tin]) WithErrorHandler(errHandler *CompletedHand
 	return h
 }
 
+// WithErrorFlow specifies a flow that is triggered for any message that exceeds its maximum
+// permitted number of attempts in this handler. Callers should call either this or WithErrorHandler,
+// not both.
+// By default, no flow is provided and messages will be logged then dropped.
+// Returns the BatchEndHandlerBuilder for chaining further calls.
 func (h *BatchEndHandlerBuilder[Tin]) WithErrorFlow(errFlow *FlowBuilder[Tin, NilType]) *BatchEndHandlerBuilder[Tin] {
 	h.errorFlow = (*flowBuilder)(errFlow)
 	return h
 }
 
+// WithHandleFunc specifies the function that will be invoked when this handler handles a message.
+// Calling this method completes the handler specification, and no further function calls can be
+// made on this builder.
 func (h *BatchEndHandlerBuilder[Tin]) WithHandleFunc(f func(context.Context, EndHandlerContext[Tin], []*Message[Tin]) []*EndHandlerResult) *CompletedHandlerBuilder[Tin, NilType] {
 	return &CompletedHandlerBuilder[Tin, NilType]{
 		name:            h.name,
@@ -644,6 +796,11 @@ func (h *BatchEndHandlerBuilder[Tin]) WithHandleFunc(f func(context.Context, End
 	}
 }
 
+// SplitHandlerBuilder represents an in-progress build of an split handler definition, which accepts
+// a message of one type, and returns a number of messages of different types for sending to multiple
+// following handlers in different flows.
+// Split handlers are always the end of one flow and the beginning of at least two more.
+// Tin is the data type sent to the handler.
 type SplitHandlerBuilder[Tin any] struct {
 	name            string
 	maxAttempts     *int
@@ -652,6 +809,10 @@ type SplitHandlerBuilder[Tin any] struct {
 	continuingFlows []*flowBuilder
 }
 
+// WithBatching configures the handler to receive batches of messages instead of single messages.
+// batchSize is the maximum permitted size of batches, while period is the maximum duration a batch
+// should be pending before being sent to the handler.
+// Returns a BatchSplitHandlerBuilder in order to continue configuration of the handler.
 func (h *SplitHandlerBuilder[Tin]) WithBatching(batchSize int, period time.Duration) *BatchSplitHandlerBuilder[Tin] {
 	return &BatchSplitHandlerBuilder[Tin]{
 		name:            h.name,
@@ -664,18 +825,31 @@ func (h *SplitHandlerBuilder[Tin]) WithBatching(batchSize int, period time.Durat
 	}
 }
 
+// WithMaxAttempts configures the handler to abandon processing of a message once it has failed to be
+// processed maxAttempts times.
+// By default, a handler will retry indefinitely with a 1 second delay between each attempt.
+// When handling is abandoned, an error handler or flow can be triggered for the message using WithErrorHandler or WithErrorFlow.
+// Returns the SplitHandlerBuilder for chaining further calls.
 func (h *SplitHandlerBuilder[Tin]) WithMaxAttempts(maxAttempts int) *SplitHandlerBuilder[Tin] {
 	v := maxAttempts
 	h.maxAttempts = &v
 	return h
 }
 
+// WithRetryPeriod sets the time period that should elapse between attempts to process a message.
+// Defaults to 1 second.
+// Returns the SplitHandlerBuilder for chaining further calls.
 func (h *SplitHandlerBuilder[Tin]) WithRetryPeriod(period time.Duration) *SplitHandlerBuilder[Tin] {
 	v := period
 	h.retryPeriod = &v
 	return h
 }
 
+// WithErrorHandler specifies a handler to which any message is sent if it exceeds its maximum
+// permitted number of attempts for this handler. Callers should call either this or WithErrorFlow,
+// not both.
+// By default, no error handler is provided and messages will be logged then dropped.
+// Returns the SplitHandlerBuilder for chaining further calls.
 func (h *SplitHandlerBuilder[Tin]) WithErrorHandler(errHandler *CompletedHandlerBuilder[Tin, NilType]) *SplitHandlerBuilder[Tin] {
 	efb := Flow[Tin](h.name + "_Error").
 		WithHandler(
@@ -685,16 +859,29 @@ func (h *SplitHandlerBuilder[Tin]) WithErrorHandler(errHandler *CompletedHandler
 	return h
 }
 
+// WithErrorFlow specifies a flow that is triggered for any message that exceeds its maximum
+// permitted number of attempts in this handler. Callers should call either this or WithErrorHandler,
+// not both.
+// By default, no flow is provided and messages will be logged then dropped.
+// Returns the SplitHandlerBuilder for chaining further calls.
 func (h *SplitHandlerBuilder[Tin]) WithErrorFlow(errFlow *FlowBuilder[Tin, NilType]) *SplitHandlerBuilder[Tin] {
 	h.errorFlow = (*flowBuilder)(errFlow)
 	return h
 }
 
+// WithFlow adds a possible flow that can be triggered by this split handler. Within the handle
+// function, possible flows that can be triggered by that handler are referred to by their name.
+// Client code is obligated to return messages of the correct type for any flows triggered by the
+// handler.
+// Returns the SplitHandlerBuilder for chaining further calls.
 func (h *SplitHandlerBuilder[Tin]) WithFlow(flow *FlowBuilder[Tin, NilType]) *SplitHandlerBuilder[Tin] {
 	h.continuingFlows = append(h.continuingFlows, (*flowBuilder)(flow))
 	return h
 }
 
+// WithHandleFunc specifies the function that will be invoked when this handler handles a message.
+// Calling this method completes the handler specification, and no further function calls can be
+// made on this builder.
 func (h *SplitHandlerBuilder[Tin]) WithHandleFunc(f func(context.Context, SplitHandlerContext[Tin], *Message[Tin]) *SplitHandlerResult) *CompletedHandlerBuilder[Tin, NilType] {
 	return &CompletedHandlerBuilder[Tin, NilType]{
 		name:            h.name,
@@ -709,6 +896,11 @@ func (h *SplitHandlerBuilder[Tin]) WithHandleFunc(f func(context.Context, SplitH
 	}
 }
 
+// BatchSplitHandlerBuilder represents an in-progress build of a batched split handler definition,
+// which accepts a batch of messages of one type, and returns a number of messages of different
+// types for sending to multiple following handlers in different flows.
+// Split handlers are always the end of one flow and the beginning of at least two more.
+// Tin is the data type sent to the handler.
 type BatchSplitHandlerBuilder[Tin any] struct {
 	name            string
 	batchSize       int
@@ -719,18 +911,31 @@ type BatchSplitHandlerBuilder[Tin any] struct {
 	continuingFlows []*flowBuilder
 }
 
+// WithMaxAttempts configures the handler to abandon processing of a message once it has failed to be
+// processed maxAttempts times.
+// By default, a handler will retry indefinitely with a 1 second delay between each attempt.
+// When handling is abandoned, an error handler or flow can be triggered for the message using WithErrorHandler or WithErrorFlow.
+// Returns the BatchSplitHandlerBuilder for chaining further calls.
 func (h *BatchSplitHandlerBuilder[Tin]) WithMaxAttempts(maxAttempts int) *BatchSplitHandlerBuilder[Tin] {
 	v := maxAttempts
 	h.maxAttempts = &v
 	return h
 }
 
+// WithRetryPeriod sets the time period that should elapse between attempts to process a message.
+// Defaults to 1 second.
+// Returns the BatchSplitHandlerBuilder for chaining further calls.
 func (h *BatchSplitHandlerBuilder[Tin]) WithRetryPeriod(period time.Duration) *BatchSplitHandlerBuilder[Tin] {
 	v := period
 	h.retryPeriod = &v
 	return h
 }
 
+// WithErrorHandler specifies a handler to which any message is sent if it exceeds its maximum
+// permitted number of attempts for this handler. Callers should call either this or WithErrorFlow,
+// not both.
+// By default, no error handler is provided and messages will be logged then dropped.
+// Returns the BatchSplitHandlerBuilder for chaining further calls.
 func (h *BatchSplitHandlerBuilder[Tin]) WithErrorHandler(errHandler *CompletedHandlerBuilder[Tin, NilType]) *BatchSplitHandlerBuilder[Tin] {
 	efb := Flow[Tin](h.name + "_Error").
 		WithHandler(
@@ -740,16 +945,29 @@ func (h *BatchSplitHandlerBuilder[Tin]) WithErrorHandler(errHandler *CompletedHa
 	return h
 }
 
+// WithErrorFlow specifies a flow that is triggered for any message that exceeds its maximum
+// permitted number of attempts in this handler. Callers should call either this or WithErrorHandler,
+// not both.
+// By default, no flow is provided and messages will be logged then dropped.
+// Returns the BatchSplitHandlerBuilder for chaining further calls.
 func (h *BatchSplitHandlerBuilder[Tin]) WithErrorFlow(errFlow *FlowBuilder[Tin, NilType]) *BatchSplitHandlerBuilder[Tin] {
 	h.errorFlow = (*flowBuilder)(errFlow)
 	return h
 }
 
+// WithFlow adds a possible flow that can be triggered by this split handler. Within the handle
+// function, possible flows that can be triggered by that handler are referred to by their name.
+// Client code is obligated to return messages of the correct type for any flows triggered by the
+// handler.
+// Returns the BatchSplitHandlerBuilder for chaining further calls.
 func (h *BatchSplitHandlerBuilder[Tin]) WithFlow(flow *FlowBuilder[Tin, NilType]) *BatchSplitHandlerBuilder[Tin] {
 	h.continuingFlows = append(h.continuingFlows, (*flowBuilder)(flow))
 	return h
 }
 
+// WithHandleFunc specifies the function that will be invoked when this handler handles a message.
+// Calling this method completes the handler specification, and no further function calls can be
+// made on this builder.
 func (h *BatchSplitHandlerBuilder[Tin]) WithHandleFunc(f func(context.Context, SplitHandlerContext[Tin], []*Message[Tin]) []*SplitHandlerResult) *CompletedHandlerBuilder[Tin, NilType] {
 	return &CompletedHandlerBuilder[Tin, NilType]{
 		name:            h.name,
@@ -764,17 +982,26 @@ func (h *BatchSplitHandlerBuilder[Tin]) WithHandleFunc(f func(context.Context, S
 	}
 }
 
+// ComponentBuilder exposes methods for configuring a component by grouping handlers together with a
+// common concurrency pool.
 type ComponentBuilder struct {
 	name           string
 	handlers       []string
 	maxConcurrency *int
 }
 
+// WithHandlers specifies the handlers which make up this component.
+// Handlers can only belong to a single component, and are referred to by name.
+// Returns the ComponentBuilder for chaining further calls.
 func (c *ComponentBuilder) WithHandlers(handlerNames ...string) *ComponentBuilder {
 	c.handlers = handlerNames
 	return c
 }
 
+// WithConcurrency specifies how many handlers in this component can execute concurrently at any
+// given time.
+// Defaults to 10.
+// Returns the ComponentBuilder for chaining further calls.
 func (c *ComponentBuilder) WithConcurrency(maxConcurrency int) *ComponentBuilder {
 	v := maxConcurrency
 	c.maxConcurrency = &v
@@ -809,6 +1036,8 @@ func (c *ComponentBuilder) validate(handlerNames *util.Set[string]) *validationR
 	return r
 }
 
+// BuiltApp is an app that has been built from an AppBuilder by calling Build().
+// All processing loops are active, and will continue to run until Stop() has been called.
 type BuiltApp struct {
 	name       string
 	flows      map[string]*flow
@@ -817,6 +1046,11 @@ type BuiltApp struct {
 	cancel     context.CancelFunc
 }
 
+// GetFlow returns the flow with the specified name, for triggering with messages.
+// T is the type of data that triggers the flow, and must match the data type provided when
+// building the flow.
+// Returns the built flow, or an error if there is no flow with the provided name, or T does not
+// match the data type that was provided when the flow was configured.
 func (a *BuiltApp) GetFlow[T any](name string) (*BuiltFlow[T], error) {
 	if f, ok := a.flows[name]; !ok {
 		return nil, errors.New("Flow doesn't exist")
@@ -829,6 +1063,13 @@ func (a *BuiltApp) GetFlow[T any](name string) (*BuiltFlow[T], error) {
 	}
 }
 
+// Stop stops the app and shuts down all processing loops. Once called, any attempts to trigger
+// flows will return an error. Any flows that are currently in progress will finish processing,
+// and components will shut down once no more work available.
+// This call blocks until the app has stopped successfully. If the provided context is cancelled,
+// the app is force stopped, and any in progress flows are forcefully terminated, dropping any
+// in progress messages.
+// Returns true if the app stopped gracefully, or false if the app was forcefully stopped.
 func (a *BuiltApp) Stop(ctx context.Context) bool {
 	// Close all the input pipes to prevent the flows being triggered any more
 	stopChans := make([]*<-chan struct{}, 0, len(a.flows))
@@ -871,10 +1112,17 @@ func (f *flow) trigger(ctx context.Context, data ...any) error {
 	return f.inputPipe.send(ctx, data...)
 }
 
+// BuiltFlow represents a single flow that form part of a running BuiltApp.
+// It exposes a method for triggering the flow with new data.
 type BuiltFlow[T any] struct {
 	flow *flow
 }
 
+// Triggers the flow by sending the provided data to the first handler in the flow.
+// Returns an error if the provided context is cancelled while waiting for the data
+// to be handed over to the flow pipeline, or if the app is currently being stopped.
+// This call is non-blocking - it returns as soon as the data has been successfully
+// handed over to the flow pipeline.
 func (f *BuiltFlow[T]) Trigger(ctx context.Context, data ...T) error {
 	conv := make([]any, len(data))
 	for i, v := range data {
