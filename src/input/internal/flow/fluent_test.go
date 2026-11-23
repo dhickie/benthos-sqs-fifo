@@ -729,6 +729,29 @@ func TestFluentApi_ReturnsError_IfComponentHasNoHandlers(t *testing.T) {
 	assert.Error(t, err)
 }
 
+func TestFluentApi_ReturnsError_IfHandlerIsPartOfMultipleComponents(t *testing.T) {
+	// Arrange
+	builder := App("myApp").
+		WithFlow(
+			Flow[int]("flow1").
+				WithHandler(
+					EndHandler[int]("handler1").
+						WithHandleFunc(NilHandler),
+				),
+		).
+		WithComponents(
+			Component("component1").WithHandlers("handler1"),
+			Component("component2").WithHandlers("handler1"),
+		)
+
+	// Act
+	app, err := builder.Build()
+
+	// Assert
+	assert.Nil(t, app)
+	assert.Error(t, err)
+}
+
 func TestBuiltApp_WaitsForRunningHandlersToFinish_BeforeClosingApp(t *testing.T) {
 	// Arrange
 	startChan := make(chan struct{}, 1)

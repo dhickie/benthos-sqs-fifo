@@ -12,7 +12,6 @@ import (
 )
 
 // TODO - all the comments
-// TODO - check that validation catches a single handler in multiple components
 // TODO - return error from trigger if app is stopping
 
 // App returns an AppBuilder instance with the provided name.
@@ -187,9 +186,10 @@ func (a *AppBuilder) validate() *validationResult {
 		r.combine(v.validate(hNames, inProg, complete))
 	}
 
+	usedHandlers := util.NewSet[string]()
 	if a.components != nil {
 		for _, v := range a.components {
-			r.combine(v.validate(hNames))
+			r.combine(v.validate(hNames, usedHandlers))
 		}
 	}
 
@@ -1020,7 +1020,7 @@ func (c *ComponentBuilder) applyDefaults(tracker *defaultValueTracker) {
 	}
 }
 
-func (c *ComponentBuilder) validate(handlerNames *util.Set[string]) *validationResult {
+func (c *ComponentBuilder) validate(handlerNames *util.Set[string], usedHandlers *util.Set[string]) *validationResult {
 	r := newValidationResult()
 
 	if len(c.handlers) == 0 {
@@ -1030,6 +1030,8 @@ func (c *ComponentBuilder) validate(handlerNames *util.Set[string]) *validationR
 	for _, v := range c.handlers {
 		if ok := handlerNames.Contains(v); !ok {
 			r.addError("Component %v references non-existent handler %v", c.name, v)
+		} else if ok = usedHandlers.Add(v); !ok {
+			r.addError("Handler %v is referenced by multiple components", v)
 		}
 	}
 
