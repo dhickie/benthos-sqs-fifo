@@ -8,11 +8,11 @@ import (
 	"log/slog"
 	"reflect"
 	"slices"
+	"sync"
 	"time"
 )
 
 // TODO - all the comments
-// TODO - return error from trigger if app is stopping
 
 // App returns an AppBuilder instance with the provided name.
 // Call the methods on the AppBuilder to define its flows and components, followed by Build() to build and start the app.
@@ -264,12 +264,15 @@ func (a *AppBuilder) Build() (*BuiltApp, error) {
 		flows[v.name] = flow
 	}
 
+	stopping := false
 	return &BuiltApp{
 		name:       a.name,
 		flows:      flows,
 		components: components,
 		ctx:        ctx,
 		cancel:     cancel,
+		stopLock:   &sync.RWMutex{},
+		stopping:   &stopping,
 	}, nil
 }
 
@@ -1046,6 +1049,8 @@ type BuiltApp struct {
 	components []*component
 	ctx        context.Context // Lifetime context
 	cancel     context.CancelFunc
+	stopLock   *sync.RWMutex
+	stopping   *bool
 }
 
 // GetFlow returns the flow with the specified name, for triggering with messages.
@@ -1060,7 +1065,9 @@ func (a *BuiltApp) GetFlow[T any](name string) (*BuiltFlow[T], error) {
 		return nil, errors.New("Flow doesn't have requested type")
 	} else {
 		return &BuiltFlow[T]{
-			flow: f,
+			flow:     f,
+			stopLock: a.stopLock,
+			stopping: a.stopping,
 		}, nil
 	}
 }
@@ -1073,6 +1080,10 @@ func (a *BuiltApp) GetFlow[T any](name string) (*BuiltFlow[T], error) {
 // in progress messages.
 // Returns true if the app stopped gracefully, or false if the app was forcefully stopped.
 func (a *BuiltApp) Stop(ctx context.Context) bool {
+	a.stopLock.Lock()
+	*a.stopping = true
+	a.stopLock.Unlock()
+
 	// Close all the input pipes to prevent the flows being triggered any more
 	stopChans := make([]*<-chan struct{}, 0, len(a.flows))
 	for _, v := range a.flows {
@@ -1117,15 +1128,25 @@ func (f *flow) trigger(ctx context.Context, data ...any) error {
 // BuiltFlow represents a single flow that form part of a running BuiltApp.
 // It exposes a method for triggering the flow with new data.
 type BuiltFlow[T any] struct {
-	flow *flow
+	flow     *flow
+	stopLock *sync.RWMutex
+	stopping *bool
 }
 
 // Triggers the flow by sending the provided data to the first handler in the flow.
 // Returns an error if the provided context is cancelled while waiting for the data
 // to be handed over to the flow pipeline, or if the app is currently being stopped.
 // This call is non-blocking - it returns as soon as the data has been successfully
-// handed over to the flow pipeline.
+// handed over to the flow pipeline (or an error has occured).
 func (f *BuiltFlow[T]) Trigger(ctx context.Context, data ...T) error {
+	f.stopLock.RLock()
+	defer f.stopLock.RUnlock()
+
+	if *f.stopping {
+		err := fmt.Sprintf("Cannot trigger flow %v because app is stopping", f.flow.name)
+		return errors.New(err)
+	}
+
 	conv := make([]any, len(data))
 	for i, v := range data {
 		conv[i] = v

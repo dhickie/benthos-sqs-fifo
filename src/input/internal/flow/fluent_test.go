@@ -906,6 +906,54 @@ func TestBuiltApp_WaitsForBothHandlersBeforeStopping_WhenTheyArePartOfSameCompon
 	assert.True(t, result)
 }
 
+func TestBuiltApp_ReturnsErrorWhenTriggeringFlow_IfAppIsStopping(t *testing.T) {
+	// Arrange
+	started := make(chan struct{}, 1)
+	cont := make(chan struct{}, 1)
+	flow := Flow[int]("flow1").
+		WithHandler(
+			EndHandler[int]("handler1").
+				WithHandleFunc(func(_ context.Context, c EndHandlerContext[int], m *Message[int]) *EndHandlerResult {
+					started <- struct{}{}
+					<-cont
+					return nil
+				}),
+		)
+
+	app, err := App("app").
+		WithFlow(flow).
+		Build()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	f, err := app.GetFlow[int]("flow1")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Act
+	err = f.Trigger(t.Context(), 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	<-started
+	go func() {
+		app.Stop(t.Context())
+	}()
+	err = wait.Until(t.Context(), func(_ context.Context) (bool, error) {
+		return *app.stopping, nil
+	}, time.Duration(10)*time.Millisecond)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = f.Trigger(t.Context(), 1)
+	cont <- struct{}{}
+
+	// Assert
+	assert.Error(t, err)
+}
+
 func NilHandler(_ context.Context, c EndHandlerContext[int], m *Message[int]) *EndHandlerResult {
 	return nil
 }
